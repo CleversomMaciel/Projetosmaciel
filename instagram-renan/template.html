@@ -106,7 +106,7 @@ if (P.tipo === "dica"){
   if (P.chips && P.chips.length) h += `<div class="chips">${P.chips.map(c=>`<div class="chip">${ic(c.icone)}<b>${c.titulo}</b><span>${c.texto||""}</span></div>`).join("")}</div>`;
   h += `<div class="muda"><small>${P.muda_titulo || "O que isso muda para você"}</small><p>${P.muda || ""}</p></div>`;
 }
-h += `<div class="rodape"><div class="marca"><img src="assets/logo-perfil.png" alt=""><div><b>RENAN SANTOS</b><span>Patrimônio · Cascavel</span></div></div><div class="cta"><b>${P.cta || "Fale comigo no direct"}</b>${P.handle ? "@" + P.handle : "Cascavel · PR"}</div></div>`;
+h += `<div class="rodape"><div class="marca"><img src="assets/logo-perfil.png" alt=""><div><b>RENAN SANTOS</b><span>Imóveis · Cascavel</span></div></div><div class="cta"><b>${P.cta || "Fale comigo no direct"}</b>${P.handle ? "@" + P.handle : "Cascavel · PR"}</div></div>`;
 a.innerHTML = h;
 </script>
 </body>
