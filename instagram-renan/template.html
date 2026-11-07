@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Post Renan Santos Patrimônio</title>
+<style>
+/* Arte 1080x1350 (retrato 4:5) do perfil Renan Santos Patrimônio.
+   Preto e dourado, título forte, rodapé fixo com a marca. Os dados vêm de window.POST. */
+@font-face{font-family:"Playfair";src:url(fonts/playfair-display-latin-600-normal.woff2) format("woff2");font-weight:600}
+@font-face{font-family:"Playfair";src:url(fonts/playfair-display-latin-700-normal.woff2) format("woff2");font-weight:700}
+@font-face{font-family:"Playfair";src:url(fonts/playfair-display-latin-600-italic.woff2) format("woff2");font-weight:600;font-style:italic}
+@font-face{font-family:"Playfair";src:url(fonts/playfair-display-latin-700-italic.woff2) format("woff2");font-weight:700;font-style:italic}
+@font-face{font-family:"Archivo";src:url(fonts/archivo-latin-400-normal.woff2) format("woff2");font-weight:400}
+@font-face{font-family:"Archivo";src:url(fonts/archivo-latin-500-normal.woff2) format("woff2");font-weight:500}
+@font-face{font-family:"Archivo";src:url(fonts/archivo-latin-700-normal.woff2) format("woff2");font-weight:700}
+@font-face{font-family:"Archivo";src:url(fonts/archivo-latin-800-normal.woff2) format("woff2");font-weight:800}
+@font-face{font-family:"Archivo";src:url(fonts/archivo-latin-900-normal.woff2) format("woff2");font-weight:900}
+:root{
+  --preto:#0b0a09; --preto-2:#16130f; --ouro:#c9a35a; --ouro-claro:#e6c98a; --ouro-esc:#9b7a3c;
+  --branco:#f4efe6; --cinza:#b9b0a2; --linha:rgba(201,163,90,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1350px;background:var(--preto);overflow:hidden}
+body{font-family:"Archivo",Arial,sans-serif;color:var(--branco);-webkit-font-smoothing:antialiased}
+.arte{position:relative;width:1080px;height:1350px;padding:84px 84px 0;display:flex;flex-direction:column;overflow:hidden;isolation:isolate}
+.fundo{position:absolute;inset:0;z-index:-2;background:radial-gradient(70% 45% at 85% 8%,rgba(201,163,90,.20),transparent 70%),radial-gradient(60% 40% at 0% 100%,rgba(201,163,90,.10),transparent 70%),var(--preto)}
+.foto{position:absolute;inset:0;z-index:-2;background-size:cover;background-position:center}
+.foto::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,10,9,.55) 0%,rgba(11,10,9,.82) 45%,rgba(11,10,9,.97) 75%)}
+.predios{position:absolute;right:-20px;bottom:150px;width:620px;z-index:-1;opacity:.16}
+
+/* topo */
+.chapeu{display:flex;align-items:center;gap:18px;font-size:22px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--ouro)}
+.chapeu::before{content:"";width:56px;height:3px;background:var(--ouro)}
+.chapeu .data{color:var(--cinza);font-weight:500;letter-spacing:.12em}
+
+/* notícia */
+.noticia h1{font-weight:900;font-size:var(--tam,104px);line-height:.94;letter-spacing:-.02em;text-transform:uppercase;margin-top:34px}
+.noticia h1 mark{background:none;color:var(--ouro)}
+.noticia .sub{font-size:34px;line-height:1.3;color:var(--cinza);margin-top:30px;max-width:860px}
+.chips{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:44px}
+.chip{border:1.5px solid var(--linha);border-radius:18px;padding:22px 22px 24px;background:rgba(22,19,15,.75)}
+.chip svg{width:40px;height:40px;color:var(--ouro);display:block}
+.chip b{display:block;font-size:26px;font-weight:800;margin-top:14px;line-height:1.15}
+.chip span{display:block;font-size:21px;color:var(--cinza);margin-top:6px;line-height:1.3}
+.muda{margin-top:auto;margin-bottom:40px;border-left:5px solid var(--ouro);background:rgba(201,163,90,.08);padding:26px 30px;border-radius:0 16px 16px 0}
+.muda small{display:block;font-size:21px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--ouro)}
+.muda p{font-size:30px;line-height:1.35;margin-top:8px}
+
+/* dica */
+.dica h1{font-family:"Playfair",Georgia,serif;font-weight:700;font-size:var(--tam,112px);line-height:.98;letter-spacing:-.01em;margin-top:34px}
+.dica h1 em{font-style:italic;color:var(--ouro)}
+.dica .sub{font-size:32px;line-height:1.35;color:var(--cinza);margin-top:26px;max-width:860px}
+.lista{margin-top:40px;display:grid;gap:0}
+.item{display:grid;grid-template-columns:86px 1fr;gap:20px;align-items:start;padding:20px 0;border-top:1.5px solid var(--linha)}
+.item:last-child{border-bottom:1.5px solid var(--linha)}
+.item .n{font-family:"Playfair",Georgia,serif;font-weight:700;font-size:58px;line-height:1;color:var(--ouro)}
+.item b{display:block;font-size:30px;font-weight:800;line-height:1.15}
+.item span{display:block;font-size:24px;color:var(--cinza);margin-top:6px;line-height:1.3}
+.dica .fecho{margin-top:auto;margin-bottom:40px;font-family:"Playfair",Georgia,serif;font-style:italic;font-size:36px;color:var(--ouro-claro)}
+
+/* rodapé fixo */
+.rodape{margin:0 -84px;padding:30px 84px 36px;border-top:1.5px solid var(--linha);display:flex;align-items:center;justify-content:space-between;gap:24px;background:rgba(11,10,9,.9)}
+.marca{display:flex;align-items:center;gap:22px}
+.marca img{width:92px;height:92px;border-radius:50%;object-fit:cover;border:2px solid var(--ouro-esc)}
+.marca b{display:block;font-family:"Playfair",Georgia,serif;font-weight:600;font-size:34px;letter-spacing:.14em}
+.marca span{display:block;font-size:19px;letter-spacing:.2em;color:var(--ouro);margin-top:4px;text-transform:uppercase}
+.cta{text-align:right;font-size:23px;line-height:1.35;color:var(--cinza)}
+.cta b{display:block;color:var(--branco);font-size:26px}
+</style>
+</head>
+<body>
+<div class="arte" id="arte"></div>
+<script>
+const P = window.POST || {
+  tipo:"noticia", chapeu:"Mercado imobiliário", data:"07/11/2026",
+  titulo:"Caixa retoma atendimento em <mark>Cascavel</mark>", sub:"Agências voltam a funcionar após 18 dias de greve.",
+  chips:[{icone:"casa",titulo:"Financiamento",texto:"Análises voltam a andar"},{icone:"doc",titulo:"Documentos",texto:"Regularização retomada"},{icone:"gente",titulo:"Atendimento",texto:"Agências abertas"}],
+  muda:"Quem estava com o financiamento parado pode retomar o processo agora.", cta:"Fale comigo no direct"
+};
+const ICONES = {
+  casa:'<path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
+  doc:'<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/>',
+  gente:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.2c3 .2 5.5 2.6 5.5 5.8"/>',
+  grafico:'<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>',
+  dinheiro:'<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 9v.01M18 15v.01"/>',
+  chave:'<circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3M14 9l2 2"/>',
+  banco:'<path d="M3 10 12 4l9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/>',
+  calendario:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  terreno:'<path d="M3 20 9 9l4 6 3-4 5 9z"/><circle cx="17" cy="6" r="2"/>',
+  alerta:'<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17v.01"/>'
+};
+const ic = n => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONES[n]||ICONES.casa}</svg>`;
+const PREDIOS = `<svg class="predios" viewBox="0 0 620 420" fill="none" stroke="#c9a35a" stroke-width="2"><path d="M10 420V180h90v240M100 420V90h120v330M220 420V230h70v190M290 420V40h130v380M420 420V150h90v270M510 420V250h100v170"/><path d="M120 120h80M120 160h80M120 200h80M120 240h80M120 280h80M310 80h90M310 120h90M310 160h90M310 200h90M310 240h90M310 280h90M310 320h90M30 220h50M30 260h50M30 300h50M440 190h50M440 230h50M440 270h50M530 290h60M530 330h60"/></svg>`;
+
+const a = document.getElementById("arte");
+a.classList.add(P.tipo === "dica" ? "dica" : "noticia");
+if (P.tam) a.style.setProperty("--tam", P.tam + "px");
+let h = P.foto ? `<div class="foto" style="background-image:url('${P.foto}')"></div>` : `<div class="fundo"></div>${PREDIOS}`;
+h += `<p class="chapeu">${P.chapeu || ""}${P.data ? `<span class="data">· ${P.data}</span>` : ""}</p>`;
+h += `<h1>${P.titulo}</h1>`;
+if (P.sub) h += `<p class="sub">${P.sub}</p>`;
+if (P.tipo === "dica"){
+  h += `<div class="lista">${(P.itens||[]).map((it,i)=>`<div class="item"><span class="n">${String(i+1).padStart(2,"0")}</span><div><b>${it.titulo}</b>${it.texto?`<span>${it.texto}</span>`:""}</div></div>`).join("")}</div>`;
+  h += `<p class="fecho">${P.fecho || "Cada aquisição deve construir a próxima."}</p>`;
+} else {
+  if (P.chips && P.chips.length) h += `<div class="chips">${P.chips.map(c=>`<div class="chip">${ic(c.icone)}<b>${c.titulo}</b><span>${c.texto||""}</span></div>`).join("")}</div>`;
+  h += `<div class="muda"><small>${P.muda_titulo || "O que isso muda para você"}</small><p>${P.muda || ""}</p></div>`;
+}
+h += `<div class="rodape"><div class="marca"><img src="assets/logo-perfil.png" alt=""><div><b>RENAN SANTOS</b><span>Patrimônio · Cascavel</span></div></div><div class="cta"><b>${P.cta || "Fale comigo no direct"}</b>${P.handle ? "@" + P.handle : "Cascavel · PR"}</div></div>`;
+a.innerHTML = h;
+</script>
+</body>
+</html>
