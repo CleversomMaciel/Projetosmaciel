@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#0f0a1c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Golias">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="Golias: assistente pessoal por voz com visão pela câmera.">
+<title>Golias</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f0a1c; --bg2:#1d1233; --ink:#efe8ff; --dim:#9b8fb8;
+  --ouvindo:#4fd1ff; --pensando:#ffb547; --falando:#ff2e63; --parado:#6b5a8c;
+  --linha:rgba(239,232,255,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--ink);
+  font-family:"Chakra Petch",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+body{background:radial-gradient(ellipse at 50% 42%,var(--bg2),var(--bg) 70%);
+  padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0);overscroll-behavior:none}
+#app{height:100%;display:flex;flex-direction:column;align-items:center}
+header{width:100%;display:flex;justify-content:space-between;align-items:center;padding:14px 18px}
+#nome{letter-spacing:.6em;font-weight:600;font-size:1.05rem;padding-left:.6em}
+.icone{background:none;border:1px solid var(--linha);color:var(--ink);width:44px;height:44px;
+  border-radius:50%;font-size:1.15rem;cursor:pointer;display:grid;place-items:center}
+.icone.on{border-color:var(--pensando);color:var(--pensando)}
+.grupo{display:flex;gap:8px}
+#status{font-size:.85rem;color:var(--dim);min-height:1.3em;text-align:center;padding:0 20px}
+#status::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;
+  background:var(--cor,var(--parado));margin-right:8px;vertical-align:middle}
+#timers{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding:6px 16px 0;min-height:0}
+#timers .chip{font-size:.8rem;border:1px solid var(--linha);border-radius:14px;padding:4px 10px;color:var(--pensando);
+  background:none;font-family:inherit;cursor:pointer}
+#palco{flex:1;min-height:120px;width:100%;position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation}
+canvas#esfera{width:min(80vw,46vh,420px);height:min(80vw,46vh,420px)}
+#fala{width:100%;max-width:520px;padding:0 22px;min-height:4.5em;max-height:28vh;overflow:auto;text-align:center;font-size:1rem;line-height:1.45}
+#fala .voce{color:var(--dim);font-size:.85rem;margin-bottom:6px}
+#acoes{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding:8px 16px 0;width:100%;max-width:520px}
+#acoes a,#acoes button{background:var(--falando);color:#fff;border:none;border-radius:22px;padding:10px 18px;
+  font:inherit;font-weight:600;font-size:.95rem;text-decoration:none;cursor:pointer}
+#acoes .sec{background:none;border:1px solid var(--linha);color:var(--ink);font-weight:400}
+#base{width:100%;max-width:520px;display:flex;gap:10px;align-items:center;padding:12px 16px 18px}
+#olho{width:58px;height:58px;border-radius:50%;object-fit:cover;border:2px solid var(--linha);background:#000;flex:none}
+#olho.off{opacity:.25}
+#texto{flex:1;min-width:0;background:rgba(255,255,255,.06);border:1px solid var(--linha);color:var(--ink);
+  border-radius:24px;padding:12px 16px;font:inherit;font-size:16px}
+#mic{width:52px;height:52px;flex:none;border-radius:50%;border:none;background:var(--ouvindo);color:#0f0a1c;font-size:1.3rem;cursor:pointer}
+#ativar{position:fixed;inset:0;display:flex;flex-direction:column;gap:16px;align-items:center;justify-content:center;
+  background:rgba(15,10,28,.92);z-index:5;text-align:center;padding:24px}
+#ativar button,.painel button.pri{background:var(--falando);color:#fff;border:none;border-radius:28px;
+  padding:14px 34px;font:inherit;font-weight:600;font-size:1.05rem;cursor:pointer}
+#ativar p{color:var(--dim);max-width:32ch;line-height:1.4}
+#ativar .aviso{color:var(--pensando)}
+.painel{position:fixed;inset:auto 0 0 0;background:#1a1129;border-top:1px solid var(--linha);
+  border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0));
+  transform:translateY(105%);transition:transform .25s;z-index:10;max-height:88vh;overflow:auto}
+.painel.aberto{transform:none}
+.painel h2{font-size:1.1rem;margin-bottom:6px}
+.painel h3{font-size:.95rem;margin:22px 0 2px;color:var(--ouvindo);font-weight:600}
+.painel label{display:block;font-size:.85rem;color:var(--dim);margin:12px 0 5px}
+.painel .ajuda{font-size:.78rem;color:var(--dim);margin-top:5px;line-height:1.4}
+.painel .ajuda a{color:var(--ouvindo)}
+.painel input,.painel select{width:100%;background:rgba(255,255,255,.06);border:1px solid var(--linha);
+  color:var(--ink);border-radius:10px;padding:11px;font:inherit;font-size:16px}
+.painel input[type=range]{padding:0}
+.painel select option{background:#1a1129}
+.painel .linha{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+.painel button.sec{background:none;border:1px solid var(--linha);color:var(--ink);border-radius:28px;padding:12px 20px;font:inherit;cursor:pointer}
+.painel .chk{display:flex;gap:10px;align-items:center;margin-top:14px;color:var(--ink);font-size:.95rem}
+.painel .chk input{width:auto;accent-color:var(--falando)}
+#memlista{font-size:.85rem;color:var(--dim);margin-top:8px;line-height:1.5}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--ouvindo);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.painel{transition:none}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="grupo">
+      <button class="icone" id="btnCam" aria-label="Trocar câmera" title="Trocar câmera">⟲</button>
+      <button class="icone" id="btnLuz" aria-label="Lanterna" title="Lanterna">ϟ</button>
+    </div>
+    <div id="nome">GOLIAS</div>
+    <div class="grupo">
+      <button class="icone" id="btnInstalar" aria-label="Instalar app" title="Instalar na tela inicial" hidden>⤓</button>
+      <button class="icone" id="btnConfig" aria-label="Configurações" title="Configurações">⚙</button>
+    </div>
+  </header>
+  <div id="status">Desligado</div>
+  <div id="timers"></div>
+  <div id="palco" title="Toque para falar"><canvas id="esfera"></canvas></div>
+  <div id="fala"></div>
+  <div id="acoes"></div>
+  <div id="base">
+    <video id="olho" autoplay playsinline muted></video>
+    <input id="texto" placeholder="Ou digite aqui" enterkeyhint="send" autocomplete="off">
+    <button id="mic" aria-label="Falar">🎤</button>
+  </div>
+</div>
+
+<div id="ativar">
+  <button id="btnAtivar">Ativar</button>
+  <p>Vou pedir acesso à câmera e ao microfone. Depois é só falar.</p>
+  <p class="aviso" id="avisoChave" hidden>Antes, abra ⚙ Configurações e cole sua chave da API da Anthropic.</p>
+</div>
+
+<div class="painel" id="painel" role="dialog" aria-label="Configurações">
+  <h2>Configurações</h2>
+
+  <h3>Inteligência</h3>
+  <label for="cfgChave">Chave da API da Anthropic</label>
+  <input id="cfgChave" type="password" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
+  <p class="ajuda">Fica salva só neste aparelho e é enviada direto para a Anthropic. Crie em <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>. Coloque um limite de gasto na conta.</p>
+  <label for="cfgModelo">Modelo</label>
+  <select id="cfgModelo">
+    <option value="claude-haiku-5-5">Haiku 5.5 (mais rápido e barato)</option>
+    <option value="claude-sonnet-5-5">Sonnet 5.5 (equilibrado)</option>
+    <option value="claude-opus-5-5">Opus 5.5 (mais inteligente)</option>
+  </select>
+  <label for="cfgFoto">Enviar foto da câmera</label>
+  <select id="cfgFoto">
+    <option value="auto">Só quando eu falar de ver algo (recomendado)</option>
+    <option value="sempre">Em toda pergunta</option>
+    <option value="nunca">Nunca</option>
+  </select>
+
+  <h3>Voz</h3>
+  <label for="cfgNome">Nome do assistente</label>
+  <input id="cfgNome" placeholder="Golias">
+  <label for="cfgVoz">Voz</label>
+  <select id="cfgVoz"></select>
+  <label for="cfgVel">Velocidade da fala: <span id="velTxt"></span></label>
+  <input id="cfgVel" type="range" min="0.7" max="1.6" step="0.05">
+  <label class="chk"><input type="checkbox" id="cfgContinuo"> Conversa contínua (volta a ouvir sozinho)</label>
+  <label class="chk"><input type="checkbox" id="cfgWake"> Só responder quando eu disser o nome dele</label>
+  <label class="chk"><input type="checkbox" id="cfgVibrar"> Vibrar ao começar a ouvir</label>
+
+  <h3>Memória</h3>
+  <div id="memlista"></div>
+  <div class="linha">
+    <button class="pri" id="btnSalvar">Salvar</button>
+    <button class="sec" id="btnEsquecer">Apagar memória</button>
+    <button class="sec" id="btnFechar">Fechar</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+// ---------- estado e armazenamento ----------
+const $ = id => document.getElementById(id);
+const ler = (k, p) => { try { const v = localStorage.getItem(k); return v === null ? p : JSON.parse(v); } catch { return p; } };
+const gravar = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+
+let cfg = Object.assign({ nome:"Golias", voz:"", continuo:true, wake:true, chave:"", modelo:"claude-haiku-5-5",
+  foto:"auto", vel:1.05, vibrar:true }, ler("golias_cfg", {}));
+let memoria = ler("golias_mem", []);
+let historico = [];
+let estado = "parado", ativo = false, cameraFrente = false, stream = null, reco = null, luz = false;
+let janelaAte = 0, travaTela = null;
+const isAndroid = /android/i.test(navigator.userAgent);
+const samplePromise = (window.claude && claude.use) ? claude.use("sample").catch(() => null) : Promise.resolve(null);
+const sempreOuvindo = () => ativo && (cfg.continuo || cfg.wake);
+
+async function manterTela(){
+  try { if ("wakeLock" in navigator && document.visibilityState === "visible") travaTela = await navigator.wakeLock.request("screen"); } catch {}
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && ativo){
+    manterTela();
+    if (stream && !stream.getVideoTracks().some(t => t.readyState === "live")) ligarCamera();
+    if (estado === "parado") setTimeout(ouvir, 300);
+  } else if (document.visibilityState === "hidden" && reco && estado === "ouvindo"){
+    estado = "parado"; try { reco.abort(); } catch {}
+  }
+});
+
+const CORES = { parado:"--parado", ouvindo:"--ouvindo", pensando:"--pensando", falando:"--falando" };
+const TEXTOS = { parado:"Toque na esfera para falar", ouvindo:"Ouvindo…", pensando:"Pensando…", falando:"Falando…" };
+const corDe = e => getComputedStyle(document.documentElement).getPropertyValue(CORES[e]).trim();
+function setEstado(e, msg){
+  estado = e;
+  $("status").style.setProperty("--cor", corDe(e));
+  $("status").textContent = msg || (e === "ouvindo" && cfg.wake && Date.now() > janelaAte ? `Diga "${cfg.nome}…"` : TEXTOS[e]);
+  $("mic").textContent = e === "ouvindo" ? "■" : e === "falando" ? "🔇" : "🎤";
+}
+$("nome").textContent = cfg.nome.toUpperCase();
+
+// ---------- esfera ----------
+const cv = $("esfera"), ctx = cv.getContext("2d");
+function ajustar(){ const r = devicePixelRatio || 1; cv.width = cv.clientWidth * r; cv.height = cv.clientHeight * r; }
+addEventListener("resize", ajustar); ajustar();
+let ang = 0, pulso = 0;
+function desenhar(t){
+  if (document.visibilityState === "hidden"){ requestAnimationFrame(desenhar); return; }
+  const w = cv.width, h = cv.height, cx = w/2, cy = h/2;
+  const cor = corDe(estado);
+  const alvo = estado === "falando" ? 0.06 + 0.05*Math.abs(Math.sin(t/90)) : estado === "ouvindo" ? 0.03*Math.sin(t/300) : estado === "pensando" ? 0.02 : 0;
+  pulso += (alvo - pulso) * 0.2;
+  ang += estado === "pensando" ? 0.03 : 0.006;
+  const R = Math.min(w,h) * 0.33 * (1 + pulso);
+  ctx.clearRect(0,0,w,h);
+  const g = ctx.createRadialGradient(cx,cy,0,cx,cy,R*1.1);
+  g.addColorStop(0, cor + "cc"); g.addColorStop(0.35, cor + "44"); g.addColorStop(1, "transparent");
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx,cy,R*1.1,0,7); ctx.fill();
+  ctx.strokeStyle = cor; ctx.lineWidth = Math.max(1, w/500);
+  const inc = 0.35;
+  for (let i=1;i<9;i++){
+    const lat = -Math.PI/2 + i*Math.PI/9, ry = R*Math.sin(lat), rr = R*Math.cos(lat);
+    ctx.globalAlpha = 0.5; ctx.beginPath(); ctx.ellipse(cx, cy+ry*Math.cos(inc), rr, rr*Math.sin(inc), 0, 0, 7); ctx.stroke();
+  }
+  for (let i=0;i<10;i++){
+    const lon = ang + i*Math.PI/10, sx = Math.cos(lon);
+    ctx.globalAlpha = 0.25 + 0.5*Math.abs(Math.sin(lon));
+    ctx.beginPath(); ctx.ellipse(cx, cy, Math.abs(R*sx), R, 0, 0, 7); ctx.stroke();
+  }
+  ctx.globalAlpha = 0.35;
+  ctx.beginPath(); ctx.ellipse(cx,cy,R*1.35,R*0.42,Math.sin(t/4000)*0.2,0,7); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(cx,cy,R*1.25,R*0.55,-0.3+Math.cos(t/5000)*0.2,0,7); ctx.stroke();
+  ctx.globalAlpha = 1; ctx.fillStyle = "#fff";
+  ctx.beginPath(); ctx.arc(cx,cy,R*0.035,0,7); ctx.fill();
+  requestAnimationFrame(desenhar);
+}
+requestAnimationFrame(desenhar);
+
+// ---------- câmera e lanterna ----------
+async function ligarCamera(){
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  luz = false; $("btnLuz").classList.remove("on");
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode: cameraFrente ? "user" : "environment", width:{ideal:1280} }, audio:false });
+    $("olho").srcObject = stream; $("olho").classList.remove("off");
+  } catch(e){ stream = null; $("olho").classList.add("off"); setEstado("parado","Sem câmera: verifique a permissão do navegador"); }
+}
+function capturar(){
+  const v = $("olho"); if (!stream || !v.videoWidth) return Promise.resolve(null);
+  const esc = Math.min(1, 768 / Math.max(v.videoWidth, v.videoHeight));
+  const c = document.createElement("canvas"); c.width = Math.round(v.videoWidth*esc); c.height = Math.round(v.videoHeight*esc);
+  c.getContext("2d").drawImage(v,0,0,c.width,c.height);
+  return new Promise(res => c.toBlob(b => res(b), "image/jpeg", 0.75));
+}
+const paraBase64 = blob => new Promise(res => { const r = new FileReader(); r.onload = () => res(String(r.result).split(",")[1]); r.readAsDataURL(blob); });
+
+async function lanterna(ligar){
+  if (ligar === undefined) ligar = !luz;
+  if (ligar && cameraFrente){ cameraFrente = false; await ligarCamera(); }
+  const track = stream && stream.getVideoTracks()[0];
+  const caps = track && track.getCapabilities ? track.getCapabilities() : {};
+  if (!track || !caps.torch) return "Não consegui acessar a lanterna deste aparelho pelo navegador.";
+  try { await track.applyConstraints({ advanced:[{ torch: ligar }] }); luz = ligar; $("btnLuz").classList.toggle("on", luz); return null; }
+  catch { return "A lanterna não respondeu."; }
+}
+$("btnCam").onclick = () => { cameraFrente = !cameraFrente; ligarCamera(); };
+$("btnLuz").onclick = async () => { const erro = await lanterna(); if (erro) setEstado("parado", erro); };
+
+// ---------- ouvir ----------
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+function ouvir(){
+  if (!SR){ setEstado("parado","Este navegador não reconhece voz. Use o Chrome ou o campo de texto."); return; }
+  if (!ativo || document.visibilityState === "hidden") return;
+  if (estado === "ouvindo" || estado === "falando" || estado === "pensando") return;
+  if ($("painel").classList.contains("aberto")) return;
+  reco = new SR(); reco.lang = "pt-BR"; reco.interimResults = true; reco.continuous = false; reco.maxAlternatives = 1;
+  let final = "";
+  reco.onresult = ev => {
+    let parcial = "";
+    for (const r of ev.results){ if (r.isFinal) final += r[0].transcript; else parcial += r[0].transcript; }
+    if (parcial) $("fala").innerHTML = `<div class="voce">${esc(parcial)}</div>`;
+  };
+  reco.onerror = ev => {
+    if (ev.error === "not-allowed" || ev.error === "service-not-allowed"){ ativo = false; setEstado("parado","Microfone bloqueado nas permissões"); }
+    else if (ev.error === "network") setEstado("parado","Reconhecimento de voz precisa de internet");
+  };
+  reco.onend = () => {
+    if (estado !== "ouvindo") return;
+    setEstado("parado");
+    const txt = final.trim();
+    if (txt) processar(txt);
+    else if (sempreOuvindo()) setTimeout(ouvir, 250);
+  };
+  setEstado("ouvindo");
+  if (cfg.vibrar && navigator.vibrate && !cfg.wake) navigator.vibrate(25);
+  try { reco.start(); } catch { setEstado("parado"); }
+}
+function alternarFala(){
+  if (!ativo) return;
+  if (estado === "falando"){ speechSynthesis.cancel(); setEstado("parado"); return; }
+  if (estado === "ouvindo"){ reco && reco.stop(); return; }
+  janelaAte = Date.now() + 10000; // tocar = chamar pelo nome
+  ouvir();
+}
+$("palco").onclick = alternarFala;
+$("mic").onclick = alternarFala;
+$("texto").addEventListener("keydown", e => {
+  if (e.key === "Enter" && e.target.value.trim()){
+    if (reco && estado === "ouvindo"){ estado = "parado"; try { reco.abort(); } catch {} }
+    if (estado === "falando") speechSynthesis.cancel();
+    janelaAte = Date.now() + 10000; // texto digitado não precisa do nome
+    processar(e.target.value.trim()); e.target.value = ""; e.target.blur();
+  }
+});
+
+// ---------- cérebro ----------
+const semAcento = s => Array.from(s.toLowerCase(), c => c.normalize("NFD")[0]).join("");
+function sistema(){
+  return `Você é ${cfg.nome}, um assistente pessoal por voz, em português do Brasil, estilo mordomo dos filmes: educado, direto, com leve bom humor.
+Suas respostas serão FALADAS em voz alta: use frases curtas (no máximo 3 frases, a menos que peçam detalhes), sem listas, sem markdown, sem emojis. Escreva números e horas de um jeito natural para fala.
+Às vezes vem junto uma foto do que a câmera do celular está vendo agora. Use a imagem quando a pergunta tiver a ver com o que está à frente (ex.: "o que tem na minha mão?", "lê isso pra mim"); caso contrário, ignore-a e não a descreva.
+Quando o usuário contar algo duradouro sobre ele (nome, gostos, rotina, pessoas próximas, números de telefone) ou pedir para você lembrar de algo, inclua no fim da resposta a marcação [[lembrar: fato curto]]. Essa marcação não será falada.
+O usuário usa um celular ${isAndroid ? "Android" : ""} e você pode EXECUTAR ações nele. Quando ele pedir uma delas, responda curto confirmando e inclua UMA marcação no fim (ela não é falada):
+[[acao: whatsapp | número com DDI e DDD só dígitos, ou vazio | texto da mensagem]]
+[[acao: sms | número | texto]]
+[[acao: ligar | número]]
+[[acao: email | endereço | assunto | corpo]]
+[[acao: mapa | lugar]] (mostrar no mapa)
+[[acao: navegar | destino]] (rota com GPS)
+[[acao: timer | duração em segundos | rótulo curto]]
+[[acao: alarme | HH:MM no formato 24h | rótulo curto]]
+[[acao: lembrete | AAAA-MM-DDTHH:MM | texto]] (cria evento na agenda do Google)
+[[acao: lanterna | ligar ou desligar]]
+[[acao: clima]] (o app busca o tempo de agora pela localização e fala; nesse caso responda só "Vou verificar.")
+[[acao: musica | o que tocar]]
+[[acao: youtube | busca]]
+[[acao: pesquisar | termo]]
+[[acao: abrir | url completa]]
+Use os números de telefone que estiverem na sua memória quando o usuário citar a pessoa pelo nome. Se não houver ação adequada, diga com franqueza que ainda não consegue fazer isso.
+O que você já sabe sobre o usuário:
+${memoria.length ? memoria.map(m => "- " + m).join("\n") : "(nada ainda)"}
+Data e hora atuais: ${new Date().toLocaleString("pt-BR", { dateStyle:"full", timeStyle:"short" })}.`;
+}
+
+const PEDE_FOTO = /\b(v[eê]|ver|vendo|olh[ae]|olhando|c[aâ]mera|foto|imagem|isso|isto|aqui|esse|essa|este|esta|na minha m[aã]o|frente|l[eê]|leia|ler|lendo|cor|qual [eé]|o que [eé]|quanto custa|r[oó]tulo|tela)\b/i;
+
+async function perguntarIA(txt, foto){
+  if (cfg.chave){
+    const conteudo = [];
+    if (foto) conteudo.push({ type:"image", source:{ type:"base64", media_type:"image/jpeg", data: await paraBase64(foto) } });
+    conteudo.push({ type:"text", text: txt });
+    const messages = [...historico.map(h => ({ role:h.role, content:h.content })), { role:"user", content: conteudo }];
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
+      method:"POST",
+      headers:{ "content-type":"application/json", "x-api-key": cfg.chave, "anthropic-version":"2023-06-01",
+        "anthropic-dangerous-direct-browser-access":"true" },
+      body: JSON.stringify({ model: cfg.modelo, max_tokens: 600, system: sistema(), messages })
+    });
+    if (!r.ok){
+      let det = ""; try { det = (await r.json()).error.message; } catch {}
+      const e = new Error(det || ("HTTP " + r.status)); e.status = r.status; throw e;
+    }
+    const d = await r.json();
+    return (d.content || []).filter(b => b.type === "text").map(b => b.text).join(" ");
+  }
+  // Fallback: quando aberto como Artifact no claude.ai
+  const sample = await samplePromise;
+  if (!sample){ const e = new Error("sem chave"); e.code = "sem_chave"; throw e; }
+  const turnos = historico.map(h => ({ role:h.role, content:h.content }));
+  const nota = foto ? "\n(A foto da câmera está anexada.)" : "";
+  if (turnos.length) turnos[0] = { role:"user", content: sistema() + "\n\nMensagem do usuário: " + turnos[0].content };
+  const input = turnos.length ? [...turnos, { role:"user", content: txt + nota }] : [{ role:"user", content: sistema() + "\n\nMensagem do usuário: " + txt + nota }];
+  const opts = { modelTier:"quick", cache:false };
+  if (foto){ try { const lim = await sample.limits(); if (lim && lim.images) opts.images = [foto]; } catch {} }
+  const d = await sample(input, opts);
+  return d.text || "";
+}
+
+async function processar(txt){
+  if (cfg.wake && Date.now() > janelaAte){
+    const n = semAcento(cfg.nome), base = semAcento(txt);
+    const i = base.indexOf(n);
+    if (i < 0){ $("fala").innerHTML = ""; if (sempreOuvindo()) setTimeout(ouvir, 200); return; }
+    if (cfg.vibrar && navigator.vibrate) navigator.vibrate(25);
+    txt = txt.slice(i + n.length).replace(/^o(?=\s|$)/i, "").replace(/^[\s,.!?]+/, "").trim();
+    if (!txt){ janelaAte = Date.now() + 10000; falar("Pois não?"); return; }
+  }
+  $("fala").innerHTML = `<div class="voce">${esc(txt)}</div>`;
+  $("acoes").innerHTML = "";
+  setEstado("pensando");
+  const querFoto = cfg.foto === "sempre" || (cfg.foto === "auto" && PEDE_FOTO.test(txt));
+  const foto = querFoto ? await capturar() : null;
+  try {
+    let resp = (await perguntarIA(txt, foto)).trim() || "Não consegui responder agora.";
+    let acao = null;
+    resp = resp.replace(/\[\[acao:\s*([\s\S]+?)\]\]/gi, (_, a) => { if (!acao) acao = a.split("|").map(x => x.trim()); return ""; });
+    resp = resp.replace(/\[\[lembrar:\s*([\s\S]+?)\]\]/gi, (_, f) => { f = f.trim(); if (f && !memoria.includes(f)) { memoria.push(f); gravar("golias_mem", memoria); } return ""; }).trim();
+    historico.push({ role:"user", content: txt }, { role:"assistant", content: resp || "(ação executada)" });
+    historico = historico.slice(-16);
+    let extra = null;
+    if (acao){ try { extra = await executar(acao); } catch { extra = "Não consegui executar essa ação."; } }
+    const dito = [resp, extra].filter(Boolean).join(" ");
+    $("fala").innerHTML = `<div class="voce">${esc(txt)}</div>${esc(dito)}`;
+    falar(dito || "Feito.");
+  } catch(e){
+    const msg = e.code === "sem_chave" ? "Coloque sua chave da API em ⚙ Configurações"
+      : e.status === 401 ? "Chave da API inválida (veja ⚙ Configurações)"
+      : e.status === 429 ? "Muitas perguntas seguidas, espere um pouco"
+      : e.status === 529 || e.status === 503 ? "A IA está sobrecarregada, tente de novo"
+      : e.code === "not_granted" ? "Acesso à IA recusado"
+      : !navigator.onLine ? "Sem internet"
+      : "Falha na IA: " + (e.message || "erro");
+    setEstado("parado", msg);
+    if (e.code === "sem_chave" || e.status === 401 || e.code === "not_granted"){ ativo = false; return; }
+    if (sempreOuvindo()) setTimeout(ouvir, 1500);
+  }
+}
+
+// ---------- ações ----------
+const enc = encodeURIComponent;
+const digitos = s => (s || "").replace(/\D/g, "");
+function botao(rotulo, url){
+  const a = document.createElement("a"); a.href = url; a.textContent = rotulo;
+  if (/^https?:/i.test(url)){ a.target = "_blank"; a.rel = "noopener"; }
+  $("acoes").appendChild(a);
+  // Com gesto recente (texto digitado / toque), tenta abrir sozinho
+  if (navigator.userActivation && navigator.userActivation.isActive) a.click();
+}
+async function executar([tipo, a = "", b = "", c = ""]){
+  const t = semAcento(tipo || "");
+  switch (t){
+    case "whatsapp": {
+      const n = digitos(a), txt = b || (n ? "" : a);
+      botao("Abrir WhatsApp", `https://wa.me/${n}${txt ? "?text=" + enc(txt) : ""}`); return null;
+    }
+    case "sms": botao("Abrir SMS", `sms:${a.replace(/[^\d+]/g,"")}${b ? "?body=" + enc(b) : ""}`); return null;
+    case "ligar": botao("Ligar", `tel:${a.replace(/[^\d+]/g,"")}`); return null;
+    case "email": botao("Abrir e-mail", `mailto:${a}?subject=${enc(b)}&body=${enc(c)}`); return null;
+    case "mapa": botao("Abrir no Maps", `https://www.google.com/maps/search/?api=1&query=${enc(a)}`); return null;
+    case "navegar": botao("Iniciar rota", `https://www.google.com/maps/dir/?api=1&destination=${enc(a)}&travelmode=driving`); return null;
+    case "musica": botao("Tocar no YouTube Music", `https://music.youtube.com/search?q=${enc(a)}`);
+      botao("Spotify", `https://open.spotify.com/search/${enc(a)}`); return null;
+    case "youtube": botao("Abrir YouTube", `https://www.youtube.com/results?search_query=${enc(a)}`); return null;
+    case "pesquisar": botao("Ver no Google", `https://www.google.com/search?q=${enc(a)}`); return null;
+    case "abrir": if (/^https?:\/\//i.test(a)) botao("Abrir site", a); return null;
+    case "lembrete": return lembrete(a, b);
+    case "timer": return criarTimer(Number(digitos(a)) || 60, b || "Timer");
+    case "alarme": return criarAlarme(a, b);
+    case "lanterna": return lanterna(!/deslig|apag|off/i.test(a));
+    case "clima": return clima();
+  }
+  return null;
+}
+
+function lembrete(quando, texto){
+  const d = new Date(quando);
+  if (isNaN(d)) { botao("Criar na agenda", `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${enc(texto)}`); return null; }
+  const f = x => x.toISOString().replace(/[-:]/g,"").replace(/\.\d+/,"");
+  const fim = new Date(d.getTime() + 30*60000);
+  botao("Salvar na Agenda", `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${enc(texto)}&dates=${f(d)}/${f(fim)}`);
+  agendar(d.getTime(), texto || "Lembrete");
+  return null;
+}
+
+// Timers e alarmes rodam no próprio app (precisa ficar aberto; a tela é mantida acesa).
+let agenda = [];
+function agendar(quando, rotulo, tipo = "lembrete"){
+  const id = Math.random().toString(36).slice(2);
+  agenda.push({ id, quando, rotulo, tipo });
+  desenharTimers();
+  pedirNotificacao();
+  return id;
+}
+function criarTimer(seg, rotulo){
+  agendar(Date.now() + seg*1000, rotulo, "timer");
+  return null;
+}
+function criarAlarme(hhmm, rotulo){
+  const m = /(\d{1,2})[:h]?(\d{2})?/.exec(hhmm || ""); if (!m) return "Não entendi o horário do alarme.";
+  const d = new Date(); d.setHours(+m[1], +(m[2] || 0), 0, 0);
+  if (d <= new Date()) d.setDate(d.getDate() + 1);
+  agendar(d.getTime(), rotulo || "Alarme", "alarme");
+  if (isAndroid){
+    const intent = `intent:#Intent;action=android.intent.action.SET_ALARM;i.android.intent.extra.alarm.HOUR=${+m[1]};i.android.intent.extra.alarm.MINUTES=${+(m[2]||0)};S.android.intent.extra.alarm.MESSAGE=${enc(rotulo || "Golias")};end`;
+    const a = document.createElement("a"); a.href = intent; a.textContent = "Criar também no Relógio"; a.className = "sec"; $("acoes").appendChild(a);
+  }
+  return null;
+}
+function desenharTimers(){
+  const box = $("timers"); box.innerHTML = "";
+  agenda.sort((x,y) => x.quando - y.quando).forEach(t => {
+    const s = Math.max(0, Math.round((t.quando - Date.now())/1000));
+    const txt = t.tipo === "alarme" || s > 3600 ? new Date(t.quando).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})
+      : `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
+    const b = document.createElement("button"); b.className = "chip"; b.title = "Toque para cancelar";
+    b.textContent = `${t.rotulo} · ${txt} ✕`;
+    b.onclick = () => { agenda = agenda.filter(x => x.id !== t.id); desenharTimers(); };
+    box.appendChild(b);
+  });
+}
+setInterval(() => {
+  if (!agenda.length) return;
+  const agora = Date.now();
+  const vencidos = agenda.filter(t => t.quando <= agora);
+  agenda = agenda.filter(t => t.quando > agora);
+  vencidos.forEach(disparar);
+  desenharTimers();
+}, 1000);
+function disparar(t){
+  bipe();
+  if (navigator.vibrate) navigator.vibrate([400,200,400,200,400]);
+  notificar(`${cfg.nome}: ${t.rotulo}`, t.tipo === "timer" ? "O tempo acabou." : "Está na hora.");
+  const frase = t.tipo === "timer" ? `Senhor, o tempo do ${t.rotulo} acabou.` : `Senhor, lembrete: ${t.rotulo}.`;
+  if (estado === "ouvindo" && reco){ estado = "parado"; try { reco.abort(); } catch {} }
+  falar(frase);
+}
+let audioCtx = null;
+function bipe(){
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    for (let i = 0; i < 3; i++){
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain(), t0 = audioCtx.currentTime + i*0.35;
+      o.frequency.value = 880; g.gain.setValueAtTime(0.25, t0); g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.25);
+      o.connect(g).connect(audioCtx.destination); o.start(t0); o.stop(t0 + 0.26);
+    }
+  } catch {}
+}
+function pedirNotificacao(){ try { if ("Notification" in window && Notification.permission === "default") Notification.requestPermission(); } catch {} }
+async function notificar(titulo, corpo){
+  try {
+    if (!("Notification" in window) || Notification.permission !== "granted") return;
+    const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
+    if (reg) reg.showNotification(titulo, { body: corpo, icon:"icons/icon-192.png", badge:"icons/icon-192.png", vibrate:[400,200,400], tag:"golias" });
+    else new Notification(titulo, { body: corpo });
+  } catch {}
+}
+
+// Clima pela localização (Open-Meteo, sem chave)
+const TEMPO = { 0:"céu limpo",1:"poucas nuvens",2:"parcialmente nublado",3:"nublado",45:"neblina",48:"neblina",51:"garoa fraca",53:"garoa",55:"garoa forte",
+  61:"chuva fraca",63:"chuva",65:"chuva forte",66:"chuva congelada",67:"chuva congelada",71:"neve",73:"neve",75:"neve forte",80:"pancadas de chuva",81:"pancadas de chuva",82:"pancadas fortes de chuva",95:"trovoadas",96:"trovoadas com granizo",99:"trovoadas com granizo" };
+function posicao(){
+  return new Promise((res, rej) => {
+    if (!navigator.geolocation) return rej(new Error("sem gps"));
+    navigator.geolocation.getCurrentPosition(p => res(p.coords), rej, { timeout:10000, maximumAge:600000 });
+  });
+}
+async function clima(){
+  let c; try { c = await posicao(); } catch { return "Preciso da permissão de localização para ver o clima."; }
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${c.latitude}&longitude=${c.longitude}&current=temperature_2m,apparent_temperature,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto&forecast_days=1`;
+  const d = await (await fetch(url)).json();
+  const r = Math.round, a = d.current, dia = d.daily;
+  return `Agora faz ${r(a.temperature_2m)} graus, com sensação de ${r(a.apparent_temperature)}, ${TEMPO[a.weather_code] || "tempo estável"}. Hoje a máxima é ${r(dia.temperature_2m_max[0])} e a mínima ${r(dia.temperature_2m_min[0])}, com ${dia.precipitation_probability_max[0] ?? 0} por cento de chance de chuva.`;
+}
+
+// ---------- falar ----------
+function vozes(){ return speechSynthesis.getVoices().filter(v => v.lang.toLowerCase().replace("_","-").startsWith("pt")); }
+function falar(t, depois){
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(t.replace(/[*_#`]/g, ""));
+  u.lang = "pt-BR"; u.rate = cfg.vel;
+  const vs = vozes();
+  const v = vs.find(v => v.name === cfg.voz) || vs.find(v => /pt[-_]BR/i.test(v.lang));
+  if (v) u.voice = v;
+  let feito = false;
+  const fim = () => {
+    if (feito) return; feito = true; clearInterval(vigia);
+    if (depois) depois();
+    if (estado === "falando") setEstado("parado");
+    janelaAte = Math.max(janelaAte, Date.now() + 8000);
+    if (sempreOuvindo()) setTimeout(ouvir, 300);
+  };
+  u.onstart = () => setEstado("falando");
+  u.onend = u.onerror = fim;
+  // Alguns Androids não disparam onend: vigia
+  const vigia = setInterval(() => { if (!speechSynthesis.speaking && !speechSynthesis.pending) fim(); }, 700);
+  setEstado("falando");
+  speechSynthesis.speak(u);
+}
+
+// ---------- painel ----------
+function preencherVozes(){
+  const s = $("cfgVoz"); s.innerHTML = "";
+  vozes().forEach(v => { const o = document.createElement("option"); o.value = v.name; o.textContent = `${v.name} (${v.lang})`; if (v.name === cfg.voz) o.selected = true; s.appendChild(o); });
+  if (!s.options.length) s.innerHTML = "<option value=''>Voz padrão do aparelho</option>";
+}
+speechSynthesis.onvoiceschanged = preencherVozes;
+function abrirPainel(){
+  if (reco && estado === "ouvindo"){ estado = "parado"; try { reco.abort(); } catch {} setEstado("parado"); }
+  $("cfgNome").value = cfg.nome; $("cfgChave").value = cfg.chave;
+  $("cfgModelo").value = cfg.modelo; $("cfgFoto").value = cfg.foto;
+  $("cfgVel").value = cfg.vel; $("velTxt").textContent = cfg.vel.toFixed(2) + "×";
+  $("cfgContinuo").checked = cfg.continuo; $("cfgWake").checked = cfg.wake; $("cfgVibrar").checked = cfg.vibrar;
+  preencherVozes();
+  $("memlista").innerHTML = memoria.length ? memoria.map(m => "• " + esc(m)).join("<br>") : "Nada ainda. Conte coisas sobre você e ele vai guardando.";
+  $("painel").classList.add("aberto");
+}
+function fecharPainel(){ $("painel").classList.remove("aberto"); if (sempreOuvindo() && estado === "parado") setTimeout(ouvir, 300); }
+$("cfgVel").oninput = e => $("velTxt").textContent = Number(e.target.value).toFixed(2) + "×";
+$("btnConfig").onclick = () => $("painel").classList.contains("aberto") ? fecharPainel() : abrirPainel();
+$("btnFechar").onclick = fecharPainel;
+$("btnSalvar").onclick = () => {
+  cfg.nome = $("cfgNome").value.trim() || "Golias"; cfg.voz = $("cfgVoz").value;
+  cfg.chave = $("cfgChave").value.trim(); cfg.modelo = $("cfgModelo").value; cfg.foto = $("cfgFoto").value;
+  cfg.vel = Number($("cfgVel").value) || 1.05;
+  cfg.continuo = $("cfgContinuo").checked; cfg.wake = $("cfgWake").checked; cfg.vibrar = $("cfgVibrar").checked;
+  gravar("golias_cfg", cfg); $("nome").textContent = cfg.nome.toUpperCase();
+  $("painel").classList.remove("aberto"); $("avisoChave").hidden = true;
+  setEstado("parado", ativo ? null : "Desligado");
+  if (ativo && estado === "parado") falar(cfg.wake ? `${cfg.nome} pronto. Me chame pelo nome quando precisar.` : `${cfg.nome} pronto.`);
+};
+$("btnEsquecer").onclick = () => { if (confirm("Apagar tudo que ele sabe sobre você?")) { memoria = []; gravar("golias_mem", memoria); abrirPainel(); } };
+
+// ---------- instalar (PWA) ----------
+let pedidoInstalar = null;
+addEventListener("beforeinstallprompt", e => { e.preventDefault(); pedidoInstalar = e; $("btnInstalar").hidden = false; });
+$("btnInstalar").onclick = async () => { if (!pedidoInstalar) return; pedidoInstalar.prompt(); await pedidoInstalar.userChoice; pedidoInstalar = null; $("btnInstalar").hidden = true; };
+if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+
+// ---------- ativar ----------
+$("btnAtivar").onclick = async () => {
+  speechSynthesis.speak(new SpeechSynthesisUtterance("")); // libera o áudio
+  try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch {}
+  $("ativar").remove();
+  await ligarCamera();
+  ativo = true;
+  manterTela();
+  const semIA = !cfg.chave && !(await samplePromise);
+  if (semIA){ setEstado("parado","Coloque sua chave da API em ⚙ Configurações"); abrirPainel(); return; }
+  falar(cfg.wake ? `${cfg.nome} conectado. Me chame pelo nome quando precisar.` : `${cfg.nome} conectado. Pode falar.`);
+};
+if (!cfg.chave && !(window.claude && claude.use)) $("avisoChave").hidden = false;
+
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c])); }
+setEstado("parado","Desligado");
+</script>
+</body>
+</html>
