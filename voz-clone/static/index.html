@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voz Clone</title>
+<style>
+  :root { --bg:#f6f5f2; --card:#fff; --ink:#1d1d1f; --muted:#6b6b70; --line:#e3e1dc; --accent:#3a5bd9; --rec:#d93a3a; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#141416; --card:#1e1e21; --ink:#ececee; --muted:#9a9aa2; --line:#2e2e33; --accent:#7d95f0; --rec:#f06a6a; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, sans-serif; }
+  main { max-width:760px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:1.6rem; margin:0 0 4px; }
+  h2 { font-size:1.15rem; margin:0 0 12px; }
+  p.sub { color:var(--muted); margin:0 0 24px; }
+  section { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; margin-bottom:20px; }
+  label { display:block; font-weight:600; margin:12px 0 6px; }
+  input[type=text], textarea, select { width:100%; padding:10px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink); font:inherit; }
+  textarea { min-height:140px; resize:vertical; }
+  button { font:inherit; padding:10px 16px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--ink); cursor:pointer; }
+  button.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  button.rec { background:var(--rec); border-color:var(--rec); color:#fff; }
+  button:disabled { opacity:.5; cursor:default; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:12px; }
+  .script { background:var(--bg); border-left:3px solid var(--accent); padding:10px 14px; border-radius:6px; font-size:.95rem; }
+  .muted { color:var(--muted); font-size:.9rem; }
+  ul.clips { list-style:none; padding:0; margin:10px 0 0; }
+  ul.clips li { display:flex; gap:10px; align-items:center; margin-bottom:6px; }
+  ul.clips audio { flex:1; min-width:0; }
+  .check { display:flex; gap:8px; align-items:flex-start; font-weight:400; }
+  #status { min-height:1.5em; margin-top:10px; }
+  .err { color:var(--rec); }
+</style>
+</head>
+<body>
+<main>
+  <h1>🎙️ Voz Clone</h1>
+  <p class="sub">1) Grave sua voz &nbsp;→&nbsp; 2) Cole um texto &nbsp;→&nbsp; 3) Ouça você mesmo lendo.</p>
+
+  <section>
+    <h2>1. Clonar minha voz</h2>
+    <p class="muted">Grave de 1 a 3 minutos no total, em lugar silencioso, falando como você fala no dia a dia. Pode ler o texto abaixo:</p>
+    <div class="script" id="script"></div>
+    <div class="row">
+      <button id="recBtn" class="rec">● Gravar</button>
+      <span id="timer" class="muted"></span>
+      <span class="muted">ou</span>
+      <input type="file" id="fileInput" accept="audio/*" multiple>
+    </div>
+    <ul class="clips" id="clips"></ul>
+
+    <label for="voiceName">Nome da voz</label>
+    <input type="text" id="voiceName" placeholder="Ex.: Minha voz">
+    <label class="check"><input type="checkbox" id="consent"> Esta voz é minha, ou tenho autorização expressa do dono para cloná-la.</label>
+    <div class="row"><button id="cloneBtn" class="primary">Criar clone da voz</button></div>
+  </section>
+
+  <section>
+    <h2>2. Fazer minha voz ler um texto</h2>
+    <label for="voiceSel">Voz</label>
+    <div class="row" style="margin-top:0">
+      <select id="voiceSel" style="flex:1"></select>
+      <button id="delBtn" title="Apagar voz">Apagar</button>
+    </div>
+    <label for="text">Texto</label>
+    <textarea id="text" maxlength="5000" placeholder="Cole aqui o texto que você quer que sua voz leia..."></textarea>
+    <span class="muted" id="count">0 / 5000</span>
+    <label for="style">Expressividade: <span id="styleVal">0.3</span></label>
+    <input type="range" id="style" min="0" max="1" step="0.1" value="0.3" style="width:100%">
+    <div class="row"><button id="speakBtn" class="primary">▶ Falar</button></div>
+    <ul class="clips" id="results"></ul>
+  </section>
+
+  <div id="status"></div>
+</main>
+
+<script>
+const SCRIPT = `Oi, tudo bem? Hoje eu vou gravar alguns trechos para que o aplicativo aprenda como eu falo.
+Gosto de acordar cedo, tomar um café bem quente e ver o sol nascer pela janela.
+Você já parou para pensar em quantas coisas acontecem ao mesmo tempo numa cidade grande?
+Ontem choveu muito! As ruas ficaram alagadas e o trânsito parou por quase duas horas.
+Se eu pudesse viajar para qualquer lugar do mundo, acho que escolheria o Japão… ou talvez a Islândia.
+Um, dois, três, quatro, cinco. Seis, sete, oito, nove, dez.
+Obrigado por ouvir até aqui. Até a próxima!`;
+document.getElementById('script').innerText = SCRIPT;
+
+const $ = id => document.getElementById(id);
+const clips = [];   // {blob, name}
+let recorder, chunks = [], t0, tick;
+
+function status(msg, err=false){ $('status').textContent = msg; $('status').className = err ? 'err' : 'muted'; }
+
+function renderClips(){
+  $('clips').innerHTML = '';
+  clips.forEach((c, i) => {
+    const li = document.createElement('li');
+    const a = document.createElement('audio'); a.controls = true; a.src = URL.createObjectURL(c.blob);
+    const b = document.createElement('button'); b.textContent = '✕';
+    b.onclick = () => { clips.splice(i,1); renderClips(); };
+    li.append(c.name, a, b); $('clips').append(li);
+  });
+}
+
+$('recBtn').onclick = async () => {
+  if (recorder && recorder.state === 'recording') { recorder.stop(); return; }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation:false, noiseSuppression:true } });
+    recorder = new MediaRecorder(stream); chunks = [];
+    recorder.ondataavailable = e => chunks.push(e.data);
+    recorder.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      clearInterval(tick); $('timer').textContent = '';
+      clips.push({ blob: new Blob(chunks, { type: recorder.mimeType }), name: `gravação ${clips.length+1}` });
+      renderClips(); $('recBtn').textContent = '● Gravar';
+    };
+    recorder.start(); t0 = Date.now();
+    $('recBtn').textContent = '■ Parar';
+    tick = setInterval(() => $('timer').textContent = Math.floor((Date.now()-t0)/1000) + 's', 250);
+  } catch (e) { status('Não consegui acessar o microfone: ' + e.message, true); }
+};
+
+$('fileInput').onchange = e => {
+  for (const f of e.target.files) clips.push({ blob: f, name: f.name });
+  e.target.value = ''; renderClips();
+};
+
+async function api(url, opts){
+  const r = await fetch(url, opts);
+  if (!r.ok) { let d; try { d = (await r.json()).detail; } catch { d = r.statusText; } throw new Error(typeof d === 'string' ? d : JSON.stringify(d)); }
+  return r;
+}
+
+async function loadVoices(select){
+  const voices = await (await api('/api/voices')).json();
+  $('voiceSel').innerHTML = voices.length ? '' : '<option value="">Nenhuma voz ainda</option>';
+  voices.forEach(v => $('voiceSel').add(new Option(`${v.name} (${v.backend})`, v.id)));
+  if (select) $('voiceSel').value = select;
+}
+
+$('cloneBtn').onclick = async () => {
+  if (!clips.length) return status('Grave ou envie pelo menos uma amostra.', true);
+  if (!$('consent').checked) return status('Marque a confirmação de que a voz é sua.', true);
+  const fd = new FormData();
+  fd.append('name', $('voiceName').value.trim() || 'Minha voz');
+  fd.append('consent', 'true');
+  clips.forEach((c, i) => {
+    const ext = c.blob.name ? c.blob.name.split('.').pop() : (c.blob.type.includes('ogg') ? 'ogg' : c.blob.type.includes('mp4') ? 'm4a' : 'webm');
+    fd.append('files', c.blob, `amostra_${i}.${ext}`);
+  });
+  $('cloneBtn').disabled = true; status('Criando o clone da sua voz...');
+  try {
+    const v = await (await api('/api/voices', { method:'POST', body: fd })).json();
+    await loadVoices(v.id); status(`Pronto! Voz "${v.name}" criada. Agora cole um texto abaixo.`);
+  } catch (e) { status(e.message, true); }
+  $('cloneBtn').disabled = false;
+};
+
+$('text').oninput = () => $('count').textContent = `${$('text').value.length} / 5000`;
+$('style').oninput = () => $('styleVal').textContent = $('style').value;
+
+$('speakBtn').onclick = async () => {
+  const voice_id = $('voiceSel').value, text = $('text').value.trim();
+  if (!voice_id) return status('Crie uma voz primeiro.', true);
+  if (!text) return status('Escreva um texto.', true);
+  $('speakBtn').disabled = true; status('Gerando áudio...');
+  try {
+    const r = await api('/api/speak', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ voice_id, text, style: parseFloat($('style').value) }) });
+    const blob = await r.blob(), url = URL.createObjectURL(blob);
+    const li = document.createElement('li');
+    const a = document.createElement('audio'); a.controls = true; a.src = url;
+    const dl = document.createElement('a'); dl.href = url; dl.textContent = 'baixar';
+    dl.download = `fala.${blob.type.includes('wav') ? 'wav' : 'mp3'}`;
+    li.append(text.slice(0, 30) + (text.length > 30 ? '…' : ''), a, dl);
+    $('results').prepend(li); a.play(); status('');
+  } catch (e) { status(e.message, true); }
+  $('speakBtn').disabled = false;
+};
+
+$('delBtn').onclick = async () => {
+  const id = $('voiceSel').value; if (!id || !confirm('Apagar esta voz?')) return;
+  try { await api('/api/voices/' + id, { method:'DELETE' }); await loadVoices(); status('Voz apagada.'); }
+  catch (e) { status(e.message, true); }
+};
+
+loadVoices().catch(e => status(e.message, true));
+</script>
+</body>
+</html>

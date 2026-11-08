@@ -1,0 +1,7 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9
+httpx>=0.27
+python-dotenv>=1.0
+# Motor local (opcional, pesado — ideal com GPU):
+# coqui-tts>=0.24
