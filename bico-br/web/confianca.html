@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Central de Confiança — Bico BR</title>
+  <meta name="description" content="Como o Bico BR registra contratos, pagamentos e entregas, e o que fazer quando algo sai do combinado.">
+  <link rel="canonical" href="{{PUBLIC_URL}}/confianca">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Bico BR">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:title" content="Central de Confiança — Bico BR">
+  <meta property="og:description" content="Como o Bico BR registra contratos, pagamentos e entregas, e o que fazer quando algo sai do combinado.">
+  <meta property="og:url" content="{{PUBLIC_URL}}/confianca">
+  <meta name="twitter:card" content="summary">
+  <meta name="theme-color" content="#0d7a4b">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/app.css">
+</head>
+<body class="flex min-h-screen flex-col">
+  <a href="#conteudo" class="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-white focus:px-3 focus:py-2">Pular para o conteúdo</a>
+  <header id="site-header" class="sticky top-0 z-40 border-b border-tinta/10 bg-areia/95 backdrop-blur">
+    <div class="wrap flex items-center justify-between py-3">
+      <a href="/" class="text-lg font-extrabold tracking-tight">Bico<span class="text-mata-600"> BR</span></a>
+      <a class="btn-primary" href="/cadastro">Criar conta</a>
+    </div>
+  </header>
+  <main id="conteudo" class="flex-1">
+    <section class="wrap max-w-3xl py-10">
+      <h1 class="text-3xl font-extrabold tracking-tight">Central de Confiança</h1>
+      <p class="mt-3 text-tinta-700">Contratar e trabalhar à distância exige registro claro do que foi combinado. É isso que a plataforma guarda — e é com base nesses registros que os casos são analisados.</p>
+      <div class="mt-8 space-y-4">
+        <div class="card"><h2 class="font-semibold">O que fica registrado</h2><ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-tinta-700"><li>Proposta aceita, escopo, prazo, valor e entregáveis do contrato.</li><li>Confirmação de pagamento recebida diretamente do provedor de pagamentos.</li><li>Entregas, pedidos de ajuste, aprovação e avaliações.</li><li>Conversas vinculadas ao projeto.</li></ul></div>
+        <div class="card"><h2 class="font-semibold">Quando algo sai do combinado</h2><ol class="mt-2 list-decimal space-y-1 pl-5 text-sm text-tinta-700"><li>Qualquer das partes abre uma solicitação a partir do contrato.</li><li>O caso recebe um número de protocolo e a outra parte é avisada.</li><li>As duas partes enviam evidências e explicações.</li><li>A equipe analisa o caso. Não há multa nem retenção automática.</li></ol></div>
+        <div class="card"><h2 class="font-semibold">Assinaturas sem surpresa</h2><p class="mt-2 text-sm text-tinta-700">Nenhum plano começa sem que o preço e as condições sejam exibidos e aceitos por você. Cancelar não afeta contratos em andamento.</p></div>
+        <div class="card"><h2 class="font-semibold">Consulta de CNPJ</h2><p class="mt-2 text-sm text-tinta-700">Exibimos a situação cadastral pública e a data da consulta. Isso não é um atestado de idoneidade, solvência ou confiabilidade da empresa.</p></div>
+        <div class="card"><h2 class="font-semibold">Denúncias e seus dados</h2><p class="mt-2 text-sm text-tinta-700">Perfis, projetos, vagas e mensagens podem ser denunciados e são analisados pela moderação. Você pode solicitar acesso, correção ou eliminação dos seus dados pessoais pelo painel.</p></div>
+      </div>
+      <p class="notice-warn mt-8">Os Termos de Uso, a Política de Privacidade e o modelo de contrato estão em elaboração e passarão por revisão jurídica antes da abertura ao público.</p>
+    </section>
+  </main>
+  <footer id="site-footer" class="border-t border-tinta/10 bg-white"></footer>
+  <script src="/vendor/supabase.js" defer></script>
+  <script type="module" src="/js/pagina.js"></script>
+</body>
+</html>

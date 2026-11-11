@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Criar conta — Bico BR</title>
+  <meta name="description" content="Crie sua conta gratuita no Bico BR.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0d7a4b">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/app.css">
+</head>
+<body class="flex min-h-screen flex-col">
+  <a href="#conteudo" class="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-white focus:px-3 focus:py-2">Pular para o conteúdo</a>
+  <header id="site-header" class="sticky top-0 z-40 border-b border-tinta/10 bg-areia/95 backdrop-blur">
+    <div class="wrap flex items-center justify-between py-3">
+      <a href="/" class="text-lg font-extrabold tracking-tight">Bico<span class="text-mata-600"> BR</span></a>
+      <a class="btn-primary" href="/cadastro">Criar conta</a>
+    </div>
+  </header>
+  <main id="conteudo" class="flex-1">
+    <section class="wrap flex justify-center py-12">
+      <div class="card w-full max-w-lg">
+        <h1 class="text-2xl font-bold tracking-tight">Criar conta</h1>
+        <p class="mt-1 text-sm text-tinta-500">Leva menos de um minuto. Depois você completa o perfil.</p>
+        <p id="aviso" class="mt-4" hidden></p>
+        <form id="form" class="mt-5 space-y-4" novalidate>
+          <fieldset>
+            <legend class="label">Como você vai usar o Bico BR?</legend>
+            <div class="grid gap-2 sm:grid-cols-2">
+              <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-tinta/20 bg-white p-3 has-[:checked]:border-mata-600 has-[:checked]:bg-mata-50">
+                <input class="mt-1 accent-mata-600" type="radio" name="tipo" value="freelancer" checked>
+                <span><strong class="block text-sm">Quero trabalhar</strong><span class="text-xs text-tinta-500">Freelancer, autônomo ou em busca de vaga remota</span></span>
+              </label>
+              <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-tinta/20 bg-white p-3 has-[:checked]:border-mata-600 has-[:checked]:bg-mata-50">
+                <input class="mt-1 accent-mata-600" type="radio" name="tipo" value="company">
+                <span><strong class="block text-sm">Quero contratar</strong><span class="text-xs text-tinta-500">Empresa, startup ou pequeno negócio</span></span>
+              </label>
+            </div>
+          </fieldset>
+          <div><label class="label" for="nome">Seu nome</label><input class="input" id="nome" autocomplete="name" maxlength="120" required></div>
+          <div><label class="label" for="email">E-mail</label><input class="input" id="email" type="email" autocomplete="email" required></div>
+          <div>
+            <label class="label" for="senha">Senha</label>
+            <input class="input" id="senha" type="password" autocomplete="new-password" minlength="8" required aria-describedby="senha-dica">
+            <p class="hint" id="senha-dica">Mínimo de 8 caracteres.</p>
+          </div>
+          <button class="btn-primary w-full" type="submit">Criar conta gratuita</button>
+          <p class="text-xs text-tinta-500">Os Termos de Uso e a Política de Privacidade serão apresentados para aceite na próxima etapa, antes de qualquer uso da plataforma.</p>
+        </form>
+        <p class="mt-4 text-sm text-tinta-500">Já tem conta? <a class="linkish" href="/entrar">Entrar</a></p>
+      </div>
+    </section>
+  </main>
+  <footer id="site-footer" class="border-t border-tinta/10 bg-white"></footer>
+  <script src="/vendor/supabase.js" defer></script>
+  <script type="module" src="/js/cadastro.js"></script>
+</body>
+</html>

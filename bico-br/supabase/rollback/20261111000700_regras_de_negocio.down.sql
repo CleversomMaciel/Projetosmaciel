@@ -1,0 +1,17 @@
+drop function if exists public.start_project_conversation(uuid, uuid);
+drop function if exists public.process_payment_update(uuid, text, text, text, bigint);
+drop function if exists public.open_dispute(uuid, text, text);
+drop function if exists public.cancel_contract(uuid, text);
+drop function if exists public.approve_delivery(uuid);
+drop function if exists public.request_changes(uuid, text);
+drop function if exists public.deliver_contract(uuid, text, jsonb);
+drop function if exists public.confirm_contract(uuid);
+drop function if exists private.activate_contract(uuid, uuid);
+drop function if exists public.accept_proposal(uuid);
+drop function if exists public.expire_subscriptions();
+drop function if exists public.cancel_pro();
+drop function if exists public.request_pro(text, boolean);
+drop function if exists public.submit_proposal(uuid, bigint, integer, text, text, jsonb, text);
+drop function if exists private.billing_transition(uuid, text, text, jsonb);
+drop function if exists private.notify(uuid, text, jsonb);
+drop function if exists private.setting(text);

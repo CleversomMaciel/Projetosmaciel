@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Entrar — Bico BR</title>
+  <meta name="description" content="Acesse sua conta no Bico BR.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0d7a4b">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/app.css">
+</head>
+<body class="flex min-h-screen flex-col">
+  <a href="#conteudo" class="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-white focus:px-3 focus:py-2">Pular para o conteúdo</a>
+  <header id="site-header" class="sticky top-0 z-40 border-b border-tinta/10 bg-areia/95 backdrop-blur">
+    <div class="wrap flex items-center justify-between py-3">
+      <a href="/" class="text-lg font-extrabold tracking-tight">Bico<span class="text-mata-600"> BR</span></a>
+      <a class="btn-primary" href="/cadastro">Criar conta</a>
+    </div>
+  </header>
+  <main id="conteudo" class="flex-1">
+    <section class="wrap flex justify-center py-12">
+      <div class="card w-full max-w-md">
+        <h1 class="text-2xl font-bold tracking-tight">Entrar</h1>
+        <p id="aviso" class="mt-4" hidden></p>
+        <form id="form" class="mt-5 space-y-4" novalidate>
+          <div><label class="label" for="email">E-mail</label><input class="input" id="email" type="email" autocomplete="email" required></div>
+          <div><label class="label" for="senha">Senha</label><input class="input" id="senha" type="password" autocomplete="current-password" required></div>
+          <button class="btn-primary w-full" type="submit">Entrar</button>
+        </form>
+        <p class="mt-4 text-sm text-tinta-500"><button id="esqueci" type="button" class="linkish">Esqueci minha senha</button></p>
+        <p class="mt-2 text-sm text-tinta-500">Ainda não tem conta? <a class="linkish" href="/cadastro">Criar conta</a></p>
+      </div>
+    </section>
+  </main>
+  <footer id="site-footer" class="border-t border-tinta/10 bg-white"></footer>
+  <script src="/vendor/supabase.js" defer></script>
+  <script type="module" src="/js/entrar.js"></script>
+</body>
+</html>

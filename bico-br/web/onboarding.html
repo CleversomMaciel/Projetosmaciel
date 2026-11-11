@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Complete seu cadastro — Bico BR</title>
+  <meta name="description" content="Complete seu cadastro no Bico BR.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0d7a4b">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/app.css">
+</head>
+<body class="flex min-h-screen flex-col">
+  <a href="#conteudo" class="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-white focus:px-3 focus:py-2">Pular para o conteúdo</a>
+  <header id="site-header" class="sticky top-0 z-40 border-b border-tinta/10 bg-areia/95 backdrop-blur">
+    <div class="wrap flex items-center justify-between py-3">
+      <a href="/" class="text-lg font-extrabold tracking-tight">Bico<span class="text-mata-600"> BR</span></a>
+      <a class="btn-primary" href="/cadastro">Criar conta</a>
+    </div>
+  </header>
+  <main id="conteudo" class="flex-1">
+    <section class="wrap max-w-3xl py-10">
+      <h1 class="text-2xl font-bold tracking-tight">Complete seu cadastro</h1>
+      <p id="aviso" class="mt-4" hidden></p>
+      <p id="carregando" class="mt-6 text-sm text-tinta-500">Carregando…</p>
+
+      <form id="form-empresa" class="mt-6 space-y-6" hidden novalidate>
+        <div class="card space-y-4">
+          <h2 class="font-semibold">Dados da empresa</h2>
+          <div class="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+            <div>
+              <label class="label" for="cnpj">CNPJ</label>
+              <input class="input uppercase" id="cnpj" maxlength="18" placeholder="00.000.000/0000-00" autocomplete="off" required aria-describedby="cnpj-status">
+            </div>
+            <button class="btn-ghost" type="button" id="buscar-cnpj">Buscar dados</button>
+          </div>
+          <p id="cnpj-status" class="text-sm text-tinta-500" aria-live="polite">Aceita o formato numérico e o novo formato alfanumérico.</p>
+          <dl id="cnpj-dados" class="grid gap-x-6 gap-y-2 rounded-xl bg-areia p-4 text-sm sm:grid-cols-2" hidden></dl>
+          <div id="manual" class="space-y-4" hidden>
+            <div><label class="label" for="legalName">Razão social</label><input class="input" id="legalName" maxlength="200"></div>
+          </div>
+          <div><label class="label" for="displayName">Nome de exibição</label><input class="input" id="displayName" maxlength="160" required><p class="hint">É o nome que os profissionais verão.</p></div>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div><label class="label" for="segment">Segmento <span class="font-normal text-tinta-500">(opcional)</span></label><input class="input" id="segment" maxlength="120"></div>
+            <div><label class="label" for="website">Site <span class="font-normal text-tinta-500">(opcional)</span></label><input class="input" id="website" type="url" placeholder="https://"></div>
+          </div>
+          <div><label class="label" for="description">Sobre a empresa <span class="font-normal text-tinta-500">(opcional)</span></label><textarea class="input" id="description" rows="3" maxlength="5000"></textarea></div>
+        </div>
+        <div class="card space-y-4">
+          <h2 class="font-semibold">Endereço</h2>
+            <div class="grid gap-4 sm:grid-cols-[10rem_1fr]">
+              <div>
+                <label class="label" for="cep">CEP</label>
+                <input class="input" id="cep" inputmode="numeric" autocomplete="postal-code" maxlength="9" placeholder="00000-000" required aria-describedby="cep-status">
+              </div>
+              <p id="cep-status" class="self-end pb-2 text-sm text-tinta-500" aria-live="polite"></p>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-[1fr_8rem]">
+              <div><label class="label" for="street">Logradouro</label><input class="input" id="street" autocomplete="address-line1" maxlength="200" required></div>
+              <div><label class="label" for="number">Número</label><input class="input" id="number" maxlength="20"></div>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div><label class="label" for="complement">Complemento <span class="font-normal text-tinta-500">(opcional)</span></label><input class="input" id="complement" autocomplete="address-line2" maxlength="120"></div>
+              <div><label class="label" for="district">Bairro</label><input class="input" id="district" maxlength="120"></div>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-[1fr_6rem]">
+              <div><label class="label" for="city">Cidade</label><input class="input" id="city" autocomplete="address-level2" maxlength="120" required></div>
+              <div><label class="label" for="uf">UF</label><input class="input uppercase" id="uf" autocomplete="address-level1" maxlength="2" required></div>
+            </div>
+            <input type="hidden" id="ibge">
+            <label class="flex items-start gap-3 text-sm">
+              <input class="mt-1 accent-mata-600" type="checkbox" id="confirma-endereco" required>
+              <span>Conferi o endereço acima e ele está correto.</span>
+            </label>
+        </div>
+        <div class="card space-y-3" data-termos></div>
+        <button class="btn-primary w-full sm:w-auto" type="submit">Salvar e continuar</button>
+      </form>
+
+      <form id="form-freelancer" class="mt-6 space-y-6" hidden novalidate>
+        <div class="card space-y-4">
+          <h2 class="font-semibold">Seu perfil profissional</h2>
+          <div><label class="label" for="headline">Título profissional</label><input class="input" id="headline" maxlength="140" placeholder="Ex.: Analista de dados · Power BI e SQL" required></div>
+          <div><label class="label" for="bio">Sobre você</label><textarea class="input" id="bio" rows="4" maxlength="5000" placeholder="Conte o que você faz, para quem e que resultados já entregou."></textarea></div>
+          <label class="flex items-start gap-3 text-sm">
+            <input class="mt-1 accent-mata-600" type="checkbox" id="perfil-publico">
+            <span><strong>Deixar meu perfil público.</strong> Ele poderá aparecer para visitantes e em buscadores como o Google. Você pode mudar isso quando quiser.</span>
+          </label>
+        </div>
+        <div class="card space-y-4">
+          <h2 class="font-semibold">Endereço</h2>
+          <p class="text-sm text-tinta-500">Usado para dados de cobrança e documentos. Não aparece no seu perfil.</p>
+            <div class="grid gap-4 sm:grid-cols-[10rem_1fr]">
+              <div>
+                <label class="label" for="f-cep">CEP</label>
+                <input class="input" id="f-cep" inputmode="numeric" autocomplete="postal-code" maxlength="9" placeholder="00000-000" required aria-describedby="f-cep-status">
+              </div>
+              <p id="f-cep-status" class="self-end pb-2 text-sm text-tinta-500" aria-live="polite"></p>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-[1fr_8rem]">
+              <div><label class="label" for="f-street">Logradouro</label><input class="input" id="f-street" autocomplete="address-line1" maxlength="200" required></div>
+              <div><label class="label" for="f-number">Número</label><input class="input" id="f-number" maxlength="20"></div>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div><label class="label" for="f-complement">Complemento <span class="font-normal text-tinta-500">(opcional)</span></label><input class="input" id="f-complement" autocomplete="address-line2" maxlength="120"></div>
+              <div><label class="label" for="f-district">Bairro</label><input class="input" id="f-district" maxlength="120"></div>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-[1fr_6rem]">
+              <div><label class="label" for="f-city">Cidade</label><input class="input" id="f-city" autocomplete="address-level2" maxlength="120" required></div>
+              <div><label class="label" for="f-uf">UF</label><input class="input uppercase" id="f-uf" autocomplete="address-level1" maxlength="2" required></div>
+            </div>
+            <input type="hidden" id="f-ibge">
+            <label class="flex items-start gap-3 text-sm">
+              <input class="mt-1 accent-mata-600" type="checkbox" id="f-confirma-endereco" required>
+              <span>Conferi o endereço acima e ele está correto.</span>
+            </label>
+        </div>
+        <div class="card space-y-3" data-termos></div>
+        <button class="btn-primary w-full sm:w-auto" type="submit">Salvar e continuar</button>
+      </form>
+    </section>
+  </main>
+  <footer id="site-footer" class="border-t border-tinta/10 bg-white"></footer>
+  <script src="/vendor/supabase.js" defer></script>
+  <script type="module" src="/js/onboarding.js"></script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Publicar projeto — Bico BR</title>
+  <meta name="description" content="Publique um projeto ou um Bico Rápido.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0d7a4b">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/app.css">
+</head>
+<body class="flex min-h-screen flex-col">
+  <a href="#conteudo" class="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-white focus:px-3 focus:py-2">Pular para o conteúdo</a>
+  <header id="site-header" class="sticky top-0 z-40 border-b border-tinta/10 bg-areia/95 backdrop-blur">
+    <div class="wrap flex items-center justify-between py-3">
+      <a href="/" class="text-lg font-extrabold tracking-tight">Bico<span class="text-mata-600"> BR</span></a>
+      <a class="btn-primary" href="/cadastro">Criar conta</a>
+    </div>
+  </header>
+  <main id="conteudo" class="flex-1">
+    <section class="wrap max-w-3xl py-10">
+      <h1 class="text-2xl font-bold tracking-tight">Publicar projeto</h1>
+      <p id="aviso" class="mt-4" hidden></p>
+      <form id="form" class="mt-6 space-y-6" novalidate hidden>
+        <div class="card space-y-4">
+          <fieldset>
+            <legend class="label">Tipo</legend>
+            <div class="grid gap-2 sm:grid-cols-2">
+              <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-tinta/20 p-3 has-[:checked]:border-mata-600 has-[:checked]:bg-mata-50">
+                <input class="mt-1 accent-mata-600" type="radio" name="kind" value="project" checked>
+                <span><strong class="block text-sm">Projeto freelance</strong><span class="text-xs text-tinta-500">Recebe propostas com valor e prazo</span></span>
+              </label>
+              <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-tinta/20 p-3 has-[:checked]:border-mata-600 has-[:checked]:bg-mata-50">
+                <input class="mt-1 accent-mata-600" type="radio" name="kind" value="quick">
+                <span><strong class="block text-sm">Bico Rápido</strong><span class="text-xs text-tinta-500">Preço fechado, entrega em até 15 dias</span></span>
+              </label>
+            </div>
+          </fieldset>
+          <div><label class="label" for="title">Título</label><input class="input" id="title" minlength="8" maxlength="140" required placeholder="Ex.: Dashboard de vendas em Power BI"></div>
+          <div><label class="label" for="description">Descrição</label><textarea class="input" id="description" rows="6" minlength="30" maxlength="10000" required placeholder="O que precisa ser feito, contexto, o que você já tem pronto."></textarea></div>
+          <div><label class="label" for="deliverables">Entregáveis <span class="font-normal text-tinta-500">(opcional)</span></label><textarea class="input" id="deliverables" rows="3" maxlength="5000" placeholder="Ex.: arquivo .pbix, documentação, 1 reunião de repasse"></textarea></div>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div><label class="label" for="category">Área</label><select class="input" id="category" required><option value="">Selecione</option></select></div>
+            <div><label class="label" for="subcategory">Especialidade <span class="font-normal text-tinta-500">(opcional)</span></label><select class="input" id="subcategory"><option value="">—</option></select></div>
+          </div>
+        </div>
+        <div class="card space-y-4">
+          <div class="grid gap-4 sm:grid-cols-3">
+            <div id="campo-min"><label class="label" for="min" id="label-min">Orçamento mínimo (R$)</label><input class="input" id="min" inputmode="decimal" placeholder="1.000"></div>
+            <div id="campo-max"><label class="label" for="max">Orçamento máximo (R$)</label><input class="input" id="max" inputmode="decimal" placeholder="2.500"></div>
+            <div><label class="label" for="deadline">Prazo (dias)</label><input class="input" id="deadline" type="number" min="1" max="730" inputmode="numeric"></div>
+          </div>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div><label class="label" for="level">Nível de experiência</label><select class="input" id="level"><option value="">Indiferente</option><option value="junior">Júnior</option><option value="pleno">Pleno</option><option value="senior">Sênior</option><option value="especialista">Especialista</option></select></div>
+            <div><label class="label" for="wanted">Profissionais desejados</label><input class="input" id="wanted" type="number" min="1" max="50" value="1"></div>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <button class="btn-primary" type="submit" data-status="open">Publicar agora</button>
+          <button class="btn-ghost" type="submit" data-status="draft">Salvar rascunho</button>
+        </div>
+      </form>
+    </section>
+  </main>
+  <footer id="site-footer" class="border-t border-tinta/10 bg-white"></footer>
+  <script src="/vendor/supabase.js" defer></script>
+  <script type="module" src="/js/publicar-projeto.js"></script>
+</body>
+</html>

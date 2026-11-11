@@ -1,0 +1,83 @@
+import { $, brl, esc, getClient, getProfile, mountChrome, requireSession, showNotice } from './core.js';
+
+mountChrome();
+const aviso = $('#aviso');
+const blocos = $('#blocos');
+
+const BILLING = {
+  FREE_UNLIMITED: ['Propostas ilimitadas', 'Você pode enviar propostas sem limite até fechar e concluir o seu primeiro projeto.'],
+  FIRST_PROJECT_ACTIVE: ['Primeiro bico em andamento', 'Seu primeiro projeto está em execução, sem assinatura antecipada.'],
+  FIRST_PROJECT_COMPLETED: ['Primeiro bico concluído', 'Para enviar novas propostas, escolha um plano Bico BR Pro. Nada é cobrado sem o seu aceite.'],
+  PRO_PENDING_ACTIVATION: ['Plano aguardando pagamento', 'Assim que o pagamento for confirmado, seu plano é ativado.'],
+  PRO_ACTIVE: ['Bico BR Pro ativo', ''],
+  PRO_CANCELLED: ['Plano cancelado', 'Você mantém os benefícios até o fim do ciclo já pago. Contratos em andamento não são afetados.'],
+  PRO_EXPIRED: ['Plano expirado', 'Seus contratos em andamento continuam normalmente. Para enviar novas propostas, renove o plano.'],
+};
+const CONTRACT = {
+  awaiting_freelancer: 'Aguardando confirmação do profissional', awaiting_deposit: 'Aguardando pagamento da entrada',
+  active: 'Em execução', delivered: 'Entregue — aguardando aprovação', completed: 'Concluído', cancelled: 'Cancelado', disputed: 'Em análise na Central de Confiança',
+};
+const card = (title, body) => `<section class="card"><h2 class="font-semibold">${title}</h2><div class="mt-3 space-y-3 text-sm">${body}</div></section>`;
+const empty = (t) => `<p class="text-tinta-500">${t}</p>`;
+
+(async () => {
+  await requireSession();
+  const { sb } = await getClient();
+  const profile = await getProfile();
+  if (!profile) return showNotice(aviso, 'error', 'Não encontramos seu perfil.');
+  if (!profile.onboarded_at) return location.replace('/onboarding');
+  $('#saudacao').textContent = `Olá, ${profile.display_name || 'bem-vindo(a)'}`;
+  const isCompany = profile.account_type === 'company';
+  $('#acoes').innerHTML = isCompany ? '<a class="btn-primary" href="/publicar-projeto">Publicar projeto</a>' : '<a class="btn-primary" href="/projetos">Buscar projetos</a>';
+
+  const { data: contracts } = await sb.from('contracts')
+    .select('id, status, amount_cents, deposit_cents, due_at, projects(title)').order('created_at', { ascending: false }).limit(20);
+  const actions = (c) => {
+    if (!isCompany && c.status === 'awaiting_freelancer') return `<button class="btn-primary" data-rpc="confirm_contract" data-id="${c.id}">Confirmar contrato</button>`;
+    if (!isCompany && c.status === 'active') return `<button class="btn-primary" data-rpc="deliver_contract" data-id="${c.id}" data-note="Descreva a entrega (links, arquivos, observações):">Registrar entrega</button>`;
+    if (isCompany && c.status === 'delivered') return `<button class="btn-primary" data-rpc="approve_delivery" data-id="${c.id}">Aprovar entrega</button> <button class="btn-ghost" data-rpc="request_changes" data-id="${c.id}" data-note="O que precisa ser ajustado?">Pedir ajustes</button>`;
+    if (isCompany && c.status === 'awaiting_deposit') return `<p class="notice-warn">Entrada de ${brl(c.deposit_cents)}. O pagamento online ainda não está habilitado neste ambiente.</p>`;
+    return '';
+  };
+  const contractsHtml = (contracts ?? []).map((c) => `
+    <div class="border-t border-tinta/10 pt-3 first:border-0 first:pt-0">
+      <p class="font-medium">${esc(c.projects?.title)}</p>
+      <p class="text-tinta-500">${brl(c.amount_cents)} · ${esc(CONTRACT[c.status] ?? c.status)}</p>
+      <div class="mt-2 flex flex-wrap gap-2">${actions(c)}</div>
+    </div>`).join('') || empty('Nenhum contrato ainda.');
+
+  if (isCompany) {
+    const { data: company } = await sb.from('companies').select('id').eq('owner_id', profile.id).maybeSingle();
+    const { data: projects } = company ? await sb.from('projects').select('id, title, status, proposals_count').eq('company_id', company.id).order('created_at', { ascending: false }).limit(20) : { data: [] };
+    blocos.innerHTML = card('Meus projetos', (projects ?? []).map((p) => `
+      <p><a class="linkish" href="/projeto?id=${p.id}">${esc(p.title)}</a><span class="ml-2 text-tinta-500">${esc(p.status)} · ${p.proposals_count} proposta(s)</span></p>`).join('') || empty('Você ainda não publicou projetos.'))
+      + card('Contratos', contractsHtml);
+  } else {
+    const [{ data: billing }, { data: proposals }] = await Promise.all([
+      sb.from('freelancer_billing').select('state, proposals_used, cycle_end, plans(name, proposals_per_cycle)').maybeSingle(),
+      sb.from('proposals').select('id, amount_cents, status, projects(id, title)').eq('freelancer_id', profile.id).order('created_at', { ascending: false }).limit(20),
+    ]);
+    const [title, text] = BILLING[billing?.state] ?? ['—', ''];
+    const quota = billing?.state === 'PRO_ACTIVE' && billing.plans
+      ? `${esc(billing.plans.name)}: ${billing.proposals_used} de ${billing.plans.proposals_per_cycle} propostas usadas · renova em ${new Date(billing.cycle_end).toLocaleDateString('pt-BR')}` : text;
+    blocos.innerHTML = card('Meu plano', `<p class="chip">${esc(title)}</p><p>${quota}</p>`)
+      + card('Minhas propostas', (proposals ?? []).map((p) => `
+        <p><a class="linkish" href="/projeto?id=${p.projects?.id}">${esc(p.projects?.title)}</a><span class="ml-2 text-tinta-500">${brl(p.amount_cents)} · ${esc(p.status)}</span></p>`).join('') || empty('Você ainda não enviou propostas.'))
+      + card('Contratos', contractsHtml);
+  }
+
+  blocos.addEventListener('click', async (ev) => {
+    const btn = ev.target.closest('[data-rpc]');
+    if (!btn) return;
+    const args = { p_contract_id: btn.dataset.id };
+    if (btn.dataset.note) {
+      const note = prompt(btn.dataset.note);
+      if (!note) return;
+      args.p_note = note;
+    }
+    btn.disabled = true;
+    const { error } = await sb.rpc(btn.dataset.rpc, args);
+    if (error) { btn.disabled = false; return showNotice(aviso, 'error', error.message); }
+    location.reload();
+  });
+})();

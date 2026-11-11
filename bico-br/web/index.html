@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bico BR — Projetos freelance e vagas remotas em todo o Brasil</title>
+  <meta name="description" content="Encontre freelancers, publique projetos e descubra vagas 100% remotas. Seu próximo bico começa aqui.">
+  <link rel="canonical" href="{{PUBLIC_URL}}/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Bico BR">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:title" content="Bico BR — Projetos freelance e vagas remotas em todo o Brasil">
+  <meta property="og:description" content="Encontre freelancers, publique projetos e descubra vagas 100% remotas. Seu próximo bico começa aqui.">
+  <meta property="og:url" content="{{PUBLIC_URL}}/">
+  <meta name="twitter:card" content="summary">
+  <meta name="theme-color" content="#0d7a4b">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/app.css">
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"WebSite","name":"Bico BR","url":"{{PUBLIC_URL}}/","inLanguage":"pt-BR",
+   "description":"Marketplace brasileiro de trabalho remoto: projetos freelance, serviços rápidos e vagas remotas.",
+   "potentialAction":{"@type":"SearchAction","target":"{{PUBLIC_URL}}/projetos?q={search_term_string}","query-input":"required name=search_term_string"}}
+  </script>
+</head>
+<body class="flex min-h-screen flex-col">
+  <a href="#conteudo" class="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-white focus:px-3 focus:py-2">Pular para o conteúdo</a>
+  <header id="site-header" class="sticky top-0 z-40 border-b border-tinta/10 bg-areia/95 backdrop-blur">
+    <div class="wrap flex items-center justify-between py-3">
+      <a href="/" class="text-lg font-extrabold tracking-tight">Bico<span class="text-mata-600"> BR</span></a>
+      <a class="btn-primary" href="/cadastro">Criar conta</a>
+    </div>
+  </header>
+  <main id="conteudo" class="flex-1">
+    <section class="relative overflow-hidden bg-mata-900 text-white">
+      <div class="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-mata-500/30 blur-3xl" aria-hidden="true"></div>
+      <div class="wrap relative grid gap-10 py-14 md:grid-cols-[1.15fr_.85fr] md:items-center md:py-20">
+        <div>
+          <p class="chip-sol">100% remoto · todo o Brasil</p>
+          <h1 class="mt-4 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">Seu próximo bico começa aqui.</h1>
+          <p class="mt-4 max-w-xl text-lg text-white/80">Empresas publicam projetos e vagas remotas. Profissionais de qualquer área mostram o que sabem fazer, enviam propostas e constroem reputação.</p>
+          <form action="/projetos" method="get" class="mt-7 flex max-w-xl flex-col gap-2 sm:flex-row" role="search">
+            <label class="sr-only" for="busca">O que você procura?</label>
+            <input id="busca" name="q" class="input flex-1" placeholder="Ex.: dashboard em Power BI, edição de vídeo…" autocomplete="off">
+            <button class="btn-sol" type="submit">Buscar projetos</button>
+          </form>
+          <div class="mt-6 flex flex-wrap gap-3">
+            <a class="btn bg-white text-tinta hover:bg-mata-50" href="/cadastro?tipo=company">Quero contratar</a>
+            <a class="btn border border-white/40 text-white hover:bg-white/10" href="/cadastro?tipo=freelancer">Quero trabalhar</a>
+          </div>
+        </div>
+        <ul class="grid gap-3 text-sm">
+          <li class="rounded-2xl bg-white/10 p-4 ring-1 ring-white/15"><strong class="block text-base">Projetos freelance</strong>Escopo, prazo e orçamento definidos. Propostas comparáveis lado a lado.</li>
+          <li class="rounded-2xl bg-white/10 p-4 ring-1 ring-white/15"><strong class="block text-base">Bico Rápido</strong>Serviços pequenos com preço fechado e entrega em poucos dias.</li>
+          <li class="rounded-2xl bg-white/10 p-4 ring-1 ring-white/15"><strong class="block text-base">Vagas remotas</strong>CLT, PJ, estágio e temporário — só oportunidades 100% remotas.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="wrap py-12" aria-labelledby="t-categorias">
+      <div class="flex items-end justify-between gap-4">
+        <h2 id="t-categorias" class="text-2xl font-bold tracking-tight">Áreas de atuação</h2>
+        <a class="linkish text-sm" href="/projetos">Ver todos os projetos</a>
+      </div>
+      <p id="aviso" hidden></p>
+      <ul id="categorias" class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <li class="card text-sm text-tinta-500">Carregando áreas…</li>
+      </ul>
+    </section>
+
+    <section class="bg-white py-12" aria-labelledby="t-como">
+      <div class="wrap">
+        <h2 id="t-como" class="text-2xl font-bold tracking-tight">Como funciona</h2>
+        <div class="mt-6 grid gap-6 md:grid-cols-2">
+          <div class="card">
+            <h3 class="font-semibold">Para quem contrata</h3>
+            <ol class="mt-3 list-decimal space-y-2 pl-5 text-sm text-tinta-700">
+              <li>Cadastre a empresa — o CNPJ preenche os dados automaticamente.</li>
+              <li>Publique o projeto, o bico rápido ou a vaga remota.</li>
+              <li>Compare propostas, converse e feche o contrato dentro da plataforma.</li>
+              <li>Acompanhe a entrega, aprove e avalie o profissional.</li>
+            </ol>
+          </div>
+          <div class="card">
+            <h3 class="font-semibold">Para quem trabalha</h3>
+            <ol class="mt-3 list-decimal space-y-2 pl-5 text-sm text-tinta-700">
+              <li>Entre de graça e monte seu perfil e portfólio.</li>
+              <li>Envie propostas sem limite até fechar o primeiro projeto.</li>
+              <li>Execute o primeiro bico sem pagar assinatura antecipada.</li>
+              <li>Depois da primeira entrega aprovada, você decide se quer um plano Pro — nada é cobrado sem o seu aceite.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap py-12" aria-labelledby="t-confianca">
+      <div class="card flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h2 id="t-confianca" class="text-xl font-bold tracking-tight">Contratação com registro de ponta a ponta</h2>
+          <p class="mt-1 max-w-2xl text-sm text-tinta-700">Proposta, contrato, pagamento, entrega e avaliação ficam registrados. Se algo sair do combinado, a Central de Confiança abre um protocolo e acompanha o caso.</p>
+        </div>
+        <a class="btn-ghost shrink-0" href="/confianca">Conhecer a Central de Confiança</a>
+      </div>
+    </section>
+  </main>
+  <footer id="site-footer" class="border-t border-tinta/10 bg-white"></footer>
+  <script src="/vendor/supabase.js" defer></script>
+  <script type="module" src="/js/home.js"></script>
+</body>
+</html>
