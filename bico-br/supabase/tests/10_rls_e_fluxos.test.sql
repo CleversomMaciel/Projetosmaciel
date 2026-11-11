@@ -420,6 +420,56 @@ reset role;
 select t.ok((select count(*) from public.audit_logs where entity_type = 'plans' and actor_id = t.id('d')) = 1, 'alteração de preço é auditada com autor');
 
 
+-- ------------------------------------------------------------ 0013: casos de borda de pagamento
+-- (a) plano pago depois da desistência: dinheiro recebido é honrado
+select t.ok(public.process_payment_update(:'renew_1', 'MP-9', 'pending', null, 2990) = 'ignored_cancelled',
+            'cobrança cancelada por nós não volta a pendente');
+select t.ok(public.process_payment_update(:'renew_1', 'MP-9', 'approved', 'accredited', 2990) = 'approved',
+            'pagamento aprovado após desistência é aceito (não trava o webhook)');
+select t.ok((select state from public.freelancer_billing where user_id = t.id('f')) = 'PRO_ACTIVE',
+            'plano pago é ativado mesmo após desistência');
+select t.ok(public.process_payment_update(:'renew_1', 'MP-OUTRO', 'approved', 'accredited', 2990) = 'provider_id_conflict',
+            'registro aprovado não é reassociado a outro pagamento do provedor');
+-- (b) segundo pagamento de plano com plano vigente => reembolso automático, sem sobrepor ciclo
+insert into public.payments (id, kind, plan_id, payer_id, amount_cents)
+select '00000000-0000-0000-0000-0000000000f2', 'subscription', id, t.id('f'), 5990 from public.plans where code = 'pro_plus';
+select t.ok(public.process_payment_update('00000000-0000-0000-0000-0000000000f2', 'MP-10', 'approved', 'accredited', 5990) = 'approved_needs_refund',
+            'pagamento em duplicidade de plano vira pedido de reembolso');
+select t.ok((select p.code from public.freelancer_billing b join public.plans p on p.id = b.plan_id where b.user_id = t.id('f')) = 'pro',
+            'plano vigente não é sobreposto');
+-- (c) taxa de serviço paga para contrato cancelado
+update public.freelancer_billing set proposals_used = 0 where user_id = t.id('g');
+select t.login('g');
+select id as prop_g2 from public.submit_proposal('00000000-0000-0000-0000-00000000aaa2', 15000, 2, 'Faço o ajuste da planilha hoje mesmo.') \gset
+reset role;
+select t.login('c');
+select id as contract_2 from public.accept_proposal(:'prop_g2') \gset
+reset role;
+select t.login('g');
+select public.confirm_contract(:'contract_2') \gset x_
+reset role;
+select id as pay_2 from public.payments where contract_id = :'contract_2' \gset
+select t.login('c');
+select public.cancel_contract(:'contract_2', 'Desisti do serviço');
+reset role;
+select t.ok(public.process_payment_update(:'pay_2', 'MP-11', 'approved', 'accredited', 1500) = 'approved_needs_refund',
+            'taxa paga para contrato cancelado gera reembolso automático');
+select t.ok((select status from public.contracts where id = :'contract_2') = 'cancelled', 'contrato cancelado não é reativado por pagamento tardio');
+select t.ok((select count(*) from public.refunds where origin = 'system' and status = 'requested') = 2, 'reembolsos automáticos ficam na fila do financeiro');
+select t.login('d', 'aal2');
+select t.ok((select count(*) from public.refunds) = 2, 'financeiro com MFA vê os reembolsos');
+select t.ok(t.affected(format($$update public.refunds set status = 'approved', decided_by = %L, decided_at = now(), decision_note = 'Devolver' where payment_id = %L$$, t.id('d'), :'pay_2')) = 1,
+            'financeiro decide o reembolso');
+select t.fails($$update public.refunds set status = 'processed'$$, 'row-level security', 'financeiro não marca reembolso como processado pela API');
+reset role;
+select t.login('c');
+select t.ok((select count(*) from public.refunds) = 0, 'empresa não vê reembolsos automáticos de terceiros nem os do sistema');
+reset role;
+select t.ok(public.purge_expired_cache() >= 0, 'limpeza agendada executa');
+select t.login('f');
+select t.fails($$select public.purge_expired_cache()$$, 'permission denied', 'usuário não executa a limpeza');
+reset role;
+
 -- ------------------------------------------------------------ vagas: somente remoto
 select t.fails($$insert into public.jobs (company_id, created_by, title, description, category_id, contract_type, work_mode)
                  select '00000000-0000-0000-0000-0000000000c1', t.id('c'), 'Analista de marketing',

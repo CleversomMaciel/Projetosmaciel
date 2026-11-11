@@ -39,6 +39,7 @@ export function fakeStore(overrides = {}) {
     getPaymentForCheckout: async function (id) { return this.payments.get(id) ?? null; },
     saveCheckout: async function (id, c) { Object.assign(this.payments.get(id), { checkout_url: c.checkoutUrl, provider_preference_id: c.preferenceId }); },
     processPaymentUpdate: async (u) => { state.paymentUpdates.push(u); return 'approved'; },
+    public: { project: async () => null, freelancer: async () => null, category: async () => null },
     sitemapEntries: async () => ({ categories: [{ slug: 'design', updated_at: '2026-11-01T00:00:00Z' }], projects: [], jobs: [], freelancers: [{ slug: 'ana&bia', updated_at: null }] }),
     ...overrides,
   };

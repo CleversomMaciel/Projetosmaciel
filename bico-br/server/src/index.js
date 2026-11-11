@@ -19,7 +19,7 @@ if (problems.length) {
 
 const hasDb = Boolean(config.supabase.url && config.supabase.serviceRoleKey);
 // Sem Supabase configurado o servidor sobe só com páginas estáticas e consulta de CEP.
-const store = hasDb ? createSupabaseStore(config.supabase) : {
+const store = hasDb ? createSupabaseStore({ url: config.supabase.url, serviceRoleKey: config.supabase.serviceRoleKey, anonKey: config.supabase.anonKey }) : {
   getUserFromToken: async () => null,
 };
 const registries = buildRegistries({

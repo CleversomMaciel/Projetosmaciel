@@ -4,8 +4,11 @@ import { createClient } from '@supabase/supabase-js';
  * Único ponto do backend que fala com o Supabase usando a service role key.
  * As rotas dependem desta interface (nos testes ela é substituída por um fake em memória).
  */
-export function createSupabaseStore({ url, serviceRoleKey }) {
+export function createSupabaseStore({ url, serviceRoleKey, anonKey }) {
   const db = createClient(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
+  // Cliente ANÔNIMO para páginas públicas: tudo o que o servidor pré-renderiza passa pela RLS
+  // exatamente como um visitante veria. A service role nunca é usada para montar HTML público.
+  const pub = createClient(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } });
   const must = ({ data, error }) => { if (error) throw Object.assign(new Error(error.message), { pg: error }); return data; };
 
   return {
@@ -90,6 +93,23 @@ export function createSupabaseStore({ url, serviceRoleKey }) {
         p_payment_id: paymentId, p_provider_payment_id: providerPaymentId, p_provider_status: status,
         p_status_detail: statusDetail, p_amount_cents: amountCents,
       }));
+    },
+
+    // ---- páginas públicas (somente leitura, via papel anon)
+    public: {
+      async project(id) {
+        return must(await pub.from('projects')
+          .select('id, kind, title, description, budget_type, budget_min_cents, budget_max_cents, deadline_days, published_at, updated_at, status, categories(name, slug), companies(display_name, uf)')
+          .eq('id', id).maybeSingle());
+      },
+      async freelancer(slug) {
+        return must(await pub.from('freelancer_profiles')
+          .select('slug, headline, bio, tools, completed_projects, rating_avg, rating_count, updated_at, profiles(display_name, city, uf)')
+          .eq('slug', slug).maybeSingle());
+      },
+      async category(slug) {
+        return must(await pub.from('categories').select('slug, name, description, seo_title, seo_description').eq('slug', slug).maybeSingle());
+      },
     },
 
     // ---- SEO

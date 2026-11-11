@@ -12,6 +12,7 @@ import { companyRoutes } from './routes/companies.js';
 import { webhookRoutes } from './routes/webhooks.js';
 import { paymentRoutes } from './routes/payments.js';
 import { seoRoutes } from './routes/seo.js';
+import { publicPageRoutes } from './routes/publicPages.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const webDir = path.resolve(here, '../../web');
@@ -82,6 +83,7 @@ export function createApp({ config, store, registries, mp, logger }) {
       res.status(status).type('html').set('cache-control', 'no-cache').send(renderPage(name));
     } catch (err) { next(err.code === 'ENOENT' ? undefined : err); }
   };
+  app.use(publicPageRoutes({ store, config, logger, renderPage }));
   app.get(['/', '/index.html'], sendPage('index'));
   app.get('/:page', (req, res, next) => {
     const page = req.params.page.replace(/\.html$/, '');

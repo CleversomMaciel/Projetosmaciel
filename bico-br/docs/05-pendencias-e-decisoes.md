@@ -25,6 +25,8 @@ Se no futuro a decisão for intermediar 100% do valor, isso exige o modelo de sp
 - Nenhuma tabela acessível por padrão; 101 políticas RLS e privilégios por coluna.
 - Funções internas (assinatura, contrato, notificação) não são executáveis pelos papéis de API — testado.
 - Estado de assinatura, cota, contrato, pagamento e reputação só mudam por funções transacionais no banco.
+- Páginas públicas pré-renderizadas pelo servidor usam o papel anônimo (a RLS decide o que é público) e escapam todo dado do banco — testado com cargas de injeção.
+- Pagamento recebido fora do fluxo (contrato cancelado, plano em duplicidade) abre reembolso automático em vez de ficar silencioso.
 - Pagamento: valor lido do banco (nunca do navegador); só o pagador inicia; confirmação apenas por webhook com assinatura HMAC + consulta à API do Mercado Pago + conferência de valor e moeda; idempotente; sem regressão de estado.
 - Dados cadastrais da empresa vêm da consulta feita pelo servidor; o que o navegador envia nesses campos é descartado.
 - Administração exige segundo fator (aal2) no nível do banco, não só na tela.
@@ -37,7 +39,7 @@ Se no futuro a decisão for intermediar 100% do valor, isso exige o modelo de sp
 
 ## Segurança: o que ainda falta antes de abrir ao público
 
-1. **Teste de ponta a ponta e teste de invasão em homologação.** As regras do banco estão testadas (126 verificações); as telas com login ainda não rodaram contra um Supabase real.
+1. **Teste de ponta a ponta e teste de invasão em homologação.** As regras do banco estão testadas (141 verificações); as telas com login ainda não rodaram contra um Supabase real.
 2. **CAPTCHA no cadastro e no login** (o Supabase Auth integra Turnstile/hCaptcha) e política de senha forte no painel do Supabase.
 3. **Rate limit compartilhado** (Redis) quando houver mais de uma instância do backend.
 4. **Verificação de arquivos enviados** (tipo real e antivírus) antes de habilitar upload de portfólio e anexos.
@@ -53,14 +55,13 @@ Se no futuro a decisão for intermediar 100% do valor, isso exige o modelo de sp
 | Upload de arquivos (avatar, portfólio, anexos do chat, evidências de disputa) | Buckets e políticas escritos, não validados; telas usam apenas texto e links |
 | Perfil público da empresa | Banco pronto; sem tela |
 | Página individual de vaga; gestão de candidaturas pela empresa | Listagem e candidatura prontas; falta a tela de gestão |
-| Reembolso: tela de solicitação e de decisão | Tabela, políticas e auditoria prontas |
-| Renderização no servidor das páginas públicas | Conteúdo de projeto e perfil é montado no navegador; para SEO pleno precisa vir pronto do servidor |
+| Reembolso: tela de solicitação e de decisão; execução do estorno no Mercado Pago | Tabela, políticas, auditoria e abertura automática prontas |
+| Inteligência competitiva | Primeira rodada em `06-inteligencia-competitiva.md`; falta leitura de amostra de reclamações e as páginas do 99Freelas e do Fiverr |
+| Agendamentos | Criados automaticamente se a extensão pg_cron estiver habilitada antes das migrations |
 | Páginas de destino por busca | Não iniciado |
 | Programa de indicação, cupons, campanhas, planos empresariais | Indicação tem tabelas e regra de qualificação; o resto não foi iniciado |
 | Gestão de usuários e de habilidades no painel administrativo | Painel cobre indicadores, planos, disputas, denúncias e categorias |
 | Tela de solicitações LGPD do titular | Tabela e políticas prontas |
-| Inteligência competitiva | Não iniciada |
-| Agendamentos (expirar planos, limpar cache) | Funções prontas; falta agendar com pg_cron |
 | Testes de carga | Roteiro pronto, não executado |
 
 ## Não verificado

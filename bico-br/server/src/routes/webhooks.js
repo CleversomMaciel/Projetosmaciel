@@ -51,7 +51,7 @@ export function webhookRoutes({ store, mp, config, logger }) {
           });
         }
       }
-      if (['amount_mismatch', 'unexpected_currency', 'payment_not_found'].includes(outcome)) {
+      if (['amount_mismatch', 'unexpected_currency', 'payment_not_found', 'approved_needs_refund', 'provider_id_conflict'].includes(outcome)) {
         logger.error('webhook mercadopago requer conferência manual', { outcome, dataId });
       }
       await store.finishWebhookEvent({ provider: 'mercadopago', dedupeKey });
