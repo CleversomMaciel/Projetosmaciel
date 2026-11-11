@@ -76,6 +76,15 @@ export function createSupabaseStore({ url, serviceRoleKey }) {
         .update(error ? { error: String(error).slice(0, 1000) } : { processed_at: new Date().toISOString(), error: null })
         .eq('provider', provider).eq('dedupe_key', dedupeKey);
     },
+    async getPaymentForCheckout(paymentId) {
+      return must(await db.from('payments')
+        .select('id, kind, status, amount_cents, payer_id, contract_id, checkout_url, plans(name), contracts(projects(title))')
+        .eq('id', paymentId).maybeSingle());
+    },
+    async saveCheckout(paymentId, { preferenceId, checkoutUrl }) {
+      must(await db.from('payments').update({ provider_preference_id: preferenceId, checkout_url: checkoutUrl })
+        .eq('id', paymentId).eq('status', 'pending'));
+    },
     async processPaymentUpdate({ paymentId, providerPaymentId, status, statusDetail, amountCents }) {
       return must(await db.rpc('process_payment_update', {
         p_payment_id: paymentId, p_provider_payment_id: providerPaymentId, p_provider_status: status,

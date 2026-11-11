@@ -10,6 +10,7 @@ import { limiter } from './middleware/rateLimit.js';
 import { lookupRoutes } from './routes/lookup.js';
 import { companyRoutes } from './routes/companies.js';
 import { webhookRoutes } from './routes/webhooks.js';
+import { paymentRoutes } from './routes/payments.js';
 import { seoRoutes } from './routes/seo.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -17,8 +18,8 @@ const webDir = path.resolve(here, '../../web');
 const require = createRequire(import.meta.url);
 
 // páginas privadas: servidas normalmente, mas marcadas para não indexar
-const PRIVATE_PAGES = new Set(['entrar', 'cadastro', 'onboarding', 'painel', 'publicar-projeto', 'publicar-vaga']);
-const PUBLIC_PAGES = new Set(['index', 'projetos', 'projeto', 'vagas', 'confianca']);
+const PRIVATE_PAGES = new Set(['entrar', 'cadastro', 'onboarding', 'painel', 'publicar-projeto', 'publicar-vaga', 'contrato', 'plano', 'mensagens', 'admin', 'perfil']);
+const PUBLIC_PAGES = new Set(['index', 'projetos', 'projeto', 'vagas', 'confianca', 'profissional']);
 
 export function createApp({ config, store, registries, mp, logger }) {
   const app = express();
@@ -56,6 +57,7 @@ export function createApp({ config, store, registries, mp, logger }) {
   }));
   api.use(lookupRoutes({ registries, auth }));
   api.use(companyRoutes({ store, registries, auth, config }));
+  api.use(paymentRoutes({ store, mp, auth, config }));
   api.use(webhookRoutes({ store, mp, config, logger }));
   api.use((_req, res) => res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Rota não encontrada' } }));
   app.use('/api', api);

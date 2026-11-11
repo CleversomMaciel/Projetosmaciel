@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Meu perfil — Bico BR</title>
+  <meta name="description" content="Edite seu perfil profissional e portfólio.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0d7a4b">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/app.css">
+</head>
+<body class="flex min-h-screen flex-col">
+  <a href="#conteudo" class="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-white focus:px-3 focus:py-2">Pular para o conteúdo</a>
+  <header id="site-header" class="sticky top-0 z-40 border-b border-tinta/10 bg-areia/95 backdrop-blur">
+    <div class="wrap flex items-center justify-between py-3">
+      <a href="/" class="text-lg font-extrabold tracking-tight">Bico<span class="text-mata-600"> BR</span></a>
+      <a class="btn-primary" href="/cadastro">Criar conta</a>
+    </div>
+  </header>
+  <main id="conteudo" class="flex-1">
+    <section class="wrap max-w-3xl py-10">
+      <p class="text-sm"><a class="linkish" href="/painel">← Meu painel</a></p>
+      <h1 class="mt-2 text-2xl font-bold tracking-tight">Meu perfil profissional</h1>
+      <p id="aviso" class="mt-4" hidden></p>
+      <form id="form" class="card mt-6 space-y-4" hidden novalidate>
+        <div><label class="label" for="headline">Título profissional</label><input class="input" id="headline" maxlength="140" required></div>
+        <div><label class="label" for="bio">Sobre você</label><textarea class="input" id="bio" rows="5" maxlength="5000"></textarea></div>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div><label class="label" for="availability">Disponibilidade</label><select class="input" id="availability"><option value="">Não informar</option><option value="full_time">Tempo integral</option><option value="part_time">Meio período</option><option value="weekends">Fins de semana</option><option value="unavailable">Indisponível</option></select></div>
+          <div><label class="label" for="tools">Ferramentas <span class="font-normal text-tinta-500">(separe por vírgula)</span></label><input class="input" id="tools" maxlength="600" placeholder="Power BI, Excel, SQL"></div>
+        </div>
+        <div><label class="label" for="slug">Endereço do perfil</label><div class="flex items-center gap-2"><span class="text-sm text-tinta-500">/profissional?u=</span><input class="input lowercase" id="slug" maxlength="60" pattern="[a-z0-9-]{3,60}" required></div></div>
+        <label class="flex items-start gap-3 text-sm"><input class="mt-1 accent-mata-600" type="checkbox" id="publico"><span><strong>Perfil público.</strong> Visível para visitantes e buscadores.</span></label>
+        <div class="flex flex-wrap items-center gap-3"><button class="btn-primary" type="submit">Salvar perfil</button><a id="ver" class="linkish text-sm" href="#">Ver como os outros veem</a></div>
+      </form>
+      <div id="portfolio" class="mt-8" hidden>
+        <h2 class="text-xl font-bold tracking-tight">Portfólio</h2>
+        <form id="novo-item" class="card mt-4 space-y-4" novalidate>
+          <div><label class="label" for="pt">Título do trabalho</label><input class="input" id="pt" maxlength="140" required></div>
+          <div><label class="label" for="pd">Descrição e resultados</label><textarea class="input" id="pd" rows="3" maxlength="5000"></textarea></div>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div><label class="label" for="pl">Link <span class="font-normal text-tinta-500">(opcional)</span></label><input class="input" id="pl" type="url" placeholder="https://"></div>
+            <div><label class="label" for="pv">Visibilidade</label><select class="input" id="pv"><option value="public">Público</option><option value="private">Só eu</option></select></div>
+          </div>
+          <button class="btn-ghost" type="submit">Adicionar ao portfólio</button>
+        </form>
+        <ul id="itens" class="mt-4 grid gap-3"></ul>
+      </div>
+    </section>
+  </main>
+  <footer id="site-footer" class="border-t border-tinta/10 bg-white"></footer>
+  <script src="/vendor/supabase.js" defer></script>
+  <script type="module" src="/js/perfil.js"></script>
+</body>
+</html>

@@ -148,3 +148,20 @@ export async function warnIfUnconfigured(target) {
   if (!sb && target) showNotice(target, 'warn', 'Ambiente ainda sem Supabase configurado: cadastro, login e listagens ficam indisponíveis.');
   return Boolean(sb);
 }
+
+export const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString('pt-BR') : '');
+export const fmtDateTime = (iso) => (iso ? new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '');
+export const brlExact = (cents) => (cents == null ? '' : (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
+
+/** Só seguimos para URLs http(s) devolvidas pelo nosso backend (nunca javascript:, data: etc.). */
+export function goToCheckout(url) {
+  let parsed;
+  try { parsed = new URL(url); } catch { throw new Error('Endereço de pagamento inválido.'); }
+  if (!['https:', 'http:'].includes(parsed.protocol)) throw new Error('Endereço de pagamento inválido.');
+  location.assign(parsed.href);
+}
+
+/** Mensagem segura para erros de RPC: usa o texto do banco só quando é um erro de regra de negócio. */
+export function rpcMessage(error, fallback = 'Não foi possível concluir. Tente novamente.') {
+  return ['P0001', 'P0002', '42501'].includes(error?.code) && error.message ? error.message : fallback;
+}

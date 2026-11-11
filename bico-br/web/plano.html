@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bico BR Pro — planos</title>
+  <meta name="description" content="Planos Bico BR Pro para profissionais.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0d7a4b">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/app.css">
+</head>
+<body class="flex min-h-screen flex-col">
+  <a href="#conteudo" class="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-white focus:px-3 focus:py-2">Pular para o conteúdo</a>
+  <header id="site-header" class="sticky top-0 z-40 border-b border-tinta/10 bg-areia/95 backdrop-blur">
+    <div class="wrap flex items-center justify-between py-3">
+      <a href="/" class="text-lg font-extrabold tracking-tight">Bico<span class="text-mata-600"> BR</span></a>
+      <a class="btn-primary" href="/cadastro">Criar conta</a>
+    </div>
+  </header>
+  <main id="conteudo" class="flex-1">
+    <section class="wrap max-w-4xl py-10">
+      <h1 class="text-2xl font-bold tracking-tight">Bico BR Pro</h1>
+      <p class="mt-2 max-w-2xl text-sm text-tinta-700">Cada plano vale por 30 dias e <strong>não renova sozinho</strong>: só há nova cobrança se você comprar de novo. Seus contratos em andamento nunca são afetados pelo fim do plano. O plano dá direito a enviar propostas; não garante contratação.</p>
+      <p id="aviso" class="mt-4" hidden></p>
+      <div id="estado" class="mt-6"></div>
+      <div id="planos" class="mt-6 grid gap-4 md:grid-cols-3"></div>
+      <form id="compra" class="card mt-6 space-y-4" hidden novalidate>
+        <h2 class="font-semibold">Confirmar compra</h2>
+        <p id="resumo" class="text-sm"></p>
+        <label class="flex items-start gap-3 text-sm">
+          <input class="mt-1 accent-mata-600" type="checkbox" id="aceite" required>
+          <span>Li o preço e as condições acima e <strong>autorizo esta cobrança única</strong>.</span>
+        </label>
+        <button class="btn-primary" type="submit">Ir para o pagamento</button>
+      </form>
+    </section>
+  </main>
+  <footer id="site-footer" class="border-t border-tinta/10 bg-white"></footer>
+  <script src="/vendor/supabase.js" defer></script>
+  <script type="module" src="/js/plano.js"></script>
+</body>
+</html>

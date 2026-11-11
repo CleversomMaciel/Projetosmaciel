@@ -16,6 +16,7 @@ export function loadConfig(env = process.env) {
     },
     cnpj: {
       providers: list(env.CNPJ_PROVIDERS, ['brasilapi']),
+      brasilApiBaseUrl: env.BRASILAPI_BASE_URL || 'https://brasilapi.com.br',
       timeoutMs: int(env.CNPJ_TIMEOUT_MS, 6000),
       cacheTtlSeconds: int(env.CNPJ_CACHE_TTL_SECONDS, 7 * 24 * 3600),
       serpro: {
@@ -27,6 +28,8 @@ export function loadConfig(env = process.env) {
     },
     cep: {
       providers: list(env.CEP_PROVIDERS, ['viacep', 'brasilapi']),
+      viaCepBaseUrl: env.VIACEP_BASE_URL || 'https://viacep.com.br',
+      brasilApiBaseUrl: env.BRASILAPI_BASE_URL || 'https://brasilapi.com.br',
       timeoutMs: int(env.CEP_TIMEOUT_MS, 4000),
       cacheTtlSeconds: int(env.CEP_CACHE_TTL_SECONDS, 30 * 24 * 3600),
     },
@@ -49,6 +52,8 @@ export function configProblems(config) {
   if (!config.supabase.anonKey) problems.push('SUPABASE_ANON_KEY ausente');
   if (!config.supabase.serviceRoleKey) problems.push('SUPABASE_SERVICE_ROLE_KEY ausente');
   if (!config.mercadoPago.webhookSecret) problems.push('MP_WEBHOOK_SECRET ausente (webhooks serão recusados)');
+  if (!config.mercadoPago.accessToken) problems.push('MP_ACCESS_TOKEN ausente (pagamentos online desligados)');
+  if (config.env === 'production' && !config.publicUrl.startsWith('https://')) problems.push('PUBLIC_URL precisa ser https em produção');
   if (config.cnpj.providers.includes('serpro') && !config.cnpj.serpro.consumerKey) {
     problems.push('CNPJ_PROVIDERS inclui serpro, mas SERPRO_CONSUMER_KEY/SECRET não foram definidos');
   }

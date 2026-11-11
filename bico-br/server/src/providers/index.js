@@ -8,12 +8,12 @@ import { createBrasilApiCepProvider } from './cep/brasilApi.js';
 /** Monta as cadeias de provedores a partir da configuração (ordem = prioridade). */
 export function buildRegistries({ config, logger, store = null, onCall, fetchImpl }) {
   const cnpjFactories = {
-    brasilapi: () => createBrasilApiCnpjProvider({ timeoutMs: config.cnpj.timeoutMs, fetchImpl }),
+    brasilapi: () => createBrasilApiCnpjProvider({ baseUrl: config.cnpj.brasilApiBaseUrl, timeoutMs: config.cnpj.timeoutMs, fetchImpl }),
     serpro: () => createSerproCnpjProvider({ ...config.cnpj.serpro, timeoutMs: config.cnpj.timeoutMs, fetchImpl }),
   };
   const cepFactories = {
-    viacep: () => createViaCepProvider({ timeoutMs: config.cep.timeoutMs, fetchImpl }),
-    brasilapi: () => createBrasilApiCepProvider({ timeoutMs: config.cep.timeoutMs, fetchImpl }),
+    viacep: () => createViaCepProvider({ baseUrl: config.cep.viaCepBaseUrl, timeoutMs: config.cep.timeoutMs, fetchImpl }),
+    brasilapi: () => createBrasilApiCepProvider({ baseUrl: config.cep.brasilApiBaseUrl, timeoutMs: config.cep.timeoutMs, fetchImpl }),
   };
   const pick = (names, factories, label) => names.map((n) => {
     if (!factories[n]) throw new Error(`Provedor de ${label} desconhecido: ${n}`);

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Publicar vaga remota — Bico BR</title>
+  <meta name="description" content="Publique uma vaga 100% remota.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0d7a4b">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/app.css">
+</head>
+<body class="flex min-h-screen flex-col">
+  <a href="#conteudo" class="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-white focus:px-3 focus:py-2">Pular para o conteúdo</a>
+  <header id="site-header" class="sticky top-0 z-40 border-b border-tinta/10 bg-areia/95 backdrop-blur">
+    <div class="wrap flex items-center justify-between py-3">
+      <a href="/" class="text-lg font-extrabold tracking-tight">Bico<span class="text-mata-600"> BR</span></a>
+      <a class="btn-primary" href="/cadastro">Criar conta</a>
+    </div>
+  </header>
+  <main id="conteudo" class="flex-1">
+    <section class="wrap max-w-3xl py-10">
+      <h1 class="text-2xl font-bold tracking-tight">Publicar vaga remota</h1>
+      <p class="mt-2 text-sm text-tinta-700">Somente vagas 100% remotas. Publicar vagas não gera comissão: o processo seletivo e a contratação são da sua empresa.</p>
+      <p id="aviso" class="mt-4" hidden></p>
+      <form id="form" class="mt-6 space-y-6" novalidate hidden>
+        <div class="card space-y-4">
+          <div><label class="label" for="title">Cargo</label><input class="input" id="title" minlength="5" maxlength="140" required></div>
+          <div class="grid gap-4 sm:grid-cols-3">
+            <div><label class="label" for="category">Área</label><select class="input" id="category" required><option value="">Selecione</option></select></div>
+            <div><label class="label" for="contract">Contrato</label><select class="input" id="contract" required><option value="clt">CLT</option><option value="pj">PJ</option><option value="estagio">Estágio</option><option value="temporario">Temporário</option><option value="freelancer">Freelancer</option><option value="projeto">Por projeto</option></select></div>
+            <div><label class="label" for="level">Nível</label><select class="input" id="level"><option value="">Indiferente</option><option value="estagio">Estágio</option><option value="junior">Júnior</option><option value="pleno">Pleno</option><option value="senior">Sênior</option><option value="especialista">Especialista</option></select></div>
+          </div>
+          <div><label class="label" for="description">Descrição</label><textarea class="input" id="description" rows="6" minlength="30" maxlength="15000" required></textarea></div>
+          <div><label class="label" for="requirements">Requisitos <span class="font-normal text-tinta-500">(opcional)</span></label><textarea class="input" id="requirements" rows="3" maxlength="8000"></textarea></div>
+          <div><label class="label" for="benefits">Benefícios <span class="font-normal text-tinta-500">(opcional)</span></label><textarea class="input" id="benefits" rows="2" maxlength="4000"></textarea></div>
+        </div>
+        <div class="card space-y-4">
+          <div class="grid gap-4 sm:grid-cols-3">
+            <div><label class="label" for="smin">Remuneração mínima (R$)</label><input class="input" id="smin" inputmode="decimal"></div>
+            <div><label class="label" for="smax">Remuneração máxima (R$)</label><input class="input" id="smax" inputmode="decimal"></div>
+            <div><label class="label" for="workload">Jornada</label><input class="input" id="workload" maxlength="120" placeholder="Ex.: 40h semanais"></div>
+          </div>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div><label class="label" for="deadline">Inscrições até</label><input class="input" id="deadline" type="date"></div>
+            <div><label class="label" for="applyurl">Link externo de candidatura <span class="font-normal text-tinta-500">(opcional, https)</span></label><input class="input" id="applyurl" type="url" placeholder="https://"><p class="hint">Em branco, as candidaturas chegam pelo Bico BR.</p></div>
+          </div>
+          <div><label class="label" for="process">Processo seletivo <span class="font-normal text-tinta-500">(opcional)</span></label><textarea class="input" id="process" rows="2" maxlength="4000"></textarea></div>
+        </div>
+        <button class="btn-primary" type="submit">Publicar vaga</button>
+      </form>
+    </section>
+  </main>
+  <footer id="site-footer" class="border-t border-tinta/10 bg-white"></footer>
+  <script src="/vendor/supabase.js" defer></script>
+  <script type="module" src="/js/publicar-vaga.js"></script>
+</body>
+</html>

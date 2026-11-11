@@ -1,63 +1,82 @@
-# 5. Pendências e decisões
+# 5. Decisões tomadas e pendências
 
-## Decisões que só a direção pode tomar
+## Decisões tomadas (com autonomia delegada pela direção)
 
-Estas travam a Fase 3. O código foi escrito para funcionar com qualquer resposta, mas nada de pagamento vai ao ar sem elas.
+Critério de desempate em todas: a opção mais segura e de menor risco regulatório. Todas são reversíveis.
 
-1. **O que são os 10%?** O sistema hoje calcula uma entrada de 10% do contrato (`platform_settings.deposit_rate`).
-   Falta decidir: essa entrada é a comissão da plataforma, ou é um adiantamento ao profissional com a comissão cobrada à parte?
-   E o saldo de 90%: passa pela plataforma ou é pago direto ao profissional? Isso define tarifa de pagamento,
-   tributação e risco regulatório (reter e repassar dinheiro de terceiros pode caracterizar arranjo de pagamento).
-2. **Modelo no Mercado Pago.** Para repassar valores a profissionais é preciso o modelo de marketplace/split,
-   em que cada profissional conecta a própria conta. Precisa ser confirmado com o Mercado Pago, incluindo regras de reembolso e disputa no split.
-   Não foi implementado checkout: fazê-lo antes dessa definição seria inventar a integração.
-3. **Preços dos planos.** Pro (10 propostas), Pro Plus (30) e Premium (60) estão cadastrados **sem preço e inativos**. Defina os preços no painel/banco para ativá-los.
-4. **Contratante pessoa física.** Desligado (`ALLOW_PF_CONTRACTORS=false`) até decisão comercial e jurídica.
-5. **Propostas durante o primeiro projeto.** Adotei: ilimitadas enquanto o primeiro projeto está em andamento; exigem Pro depois que ele é concluído e aprovado. Confirme.
-6. **Teto antiabuso de 50 propostas por dia.** Não é limite comercial; existe para proteger empresas de spam. Ajustável ou desligável em `platform_settings`.
+| # | Decisão | Por quê | Onde mudar |
+|---|---|---|---|
+| D1 | A entrada de 10% **é a taxa de serviço da plataforma**, paga pela empresa ao fechar o contrato | Receita simples de explicar e de tributar | `platform_settings.deposit_rate` |
+| D2 | O saldo (90%) é pago pela empresa **diretamente ao profissional**. A plataforma registra a declaração de pagamento e a confirmação de recebimento, mas não recebe, não guarda e não repassa esse dinheiro | Guardar e repassar dinheiro de terceiros pode enquadrar a empresa como arranjo de pagamento e exige split no Mercado Pago. Sem custódia não há esse risco | `platform_settings.payment_model` + nova migration |
+| D3 | Planos Pro são **pagamento único por 30 dias, sem renovação automática** | Elimina cobrança surpresa por construção: sem nova compra e novo aceite, não há cobrança | função `request_pro` |
+| D4 | Preços de lançamento: Pro R$ 29,90 (10 propostas), Pro Plus R$ 59,90 (30), Premium R$ 99,90 (60) | Ponto de partida; devem ser testados | tela de administração → Planos |
+| D5 | Propostas ilimitadas até a conclusão e aprovação do primeiro projeto; depois exigem plano | Modelo aprovado | função `submit_proposal` |
+| D6 | Teto antiabuso de 50 propostas por dia | Protege empresas de spam; não é limite comercial | `platform_settings.proposal_abuse_daily_limit` |
+| D7 | Contratante pessoa física desligado | Depende de política comercial e jurídica | `ALLOW_PF_CONTRACTORS` |
+| D8 | Área administrativa **só abre com verificação em duas etapas** | Senha de administrador vazada, sozinha, não dá acesso a dados financeiros nem a decisões | funções `private.is_admin` / `has_admin_role` |
+| D9 | Primeiro bico cancelado por decisão de disputa não consome o benefício do primeiro projeto gratuito | Justo com o profissional | função `resolve_dispute` |
 
-## Revisão jurídica obrigatória antes de produção
+**Consequência de D2 que precisa estar clara para a direção:** o profissional entrega antes de receber o saldo.
+A proteção é registro + disputa + reputação da empresa, não retenção de valores. É a troca feita para não operar custódia.
+Se no futuro a decisão for intermediar 100% do valor, isso exige o modelo de split do Mercado Pago, parecer jurídico e nova migration.
 
-- Termos de uso (empresa, freelancer, candidato a vaga), política de privacidade, termo da assinatura e modelo de contrato de prestação de serviços. Hoje o sistema registra o aceite de uma versão `rascunho-0` e a tela avisa que os documentos são preliminares.
-- Entrada de 10%, cancelamento e reembolso: aderência ao Código de Defesa do Consumidor e ao Marco Civil.
-- Risco de vínculo trabalhista: vagas CLT ficam em tabela e fluxo separados e não geram comissão. Em projetos recorrentes com um mesmo contratante, a plataforma deve alertar as partes — ainda não implementado.
-- LGPD: base legal de cada tratamento, prazo de retenção, encarregado (DPO) e canal do titular. O banco já tem registro de consentimentos e de solicitações de titulares; falta a tela e a política de retenção.
+## Segurança: o que foi feito
 
-## Não implementado nesta entrega
+- Nenhuma tabela acessível por padrão; 101 políticas RLS e privilégios por coluna.
+- Funções internas (assinatura, contrato, notificação) não são executáveis pelos papéis de API — testado.
+- Estado de assinatura, cota, contrato, pagamento e reputação só mudam por funções transacionais no banco.
+- Pagamento: valor lido do banco (nunca do navegador); só o pagador inicia; confirmação apenas por webhook com assinatura HMAC + consulta à API do Mercado Pago + conferência de valor e moeda; idempotente; sem regressão de estado.
+- Dados cadastrais da empresa vêm da consulta feita pelo servidor; o que o navegador envia nesses campos é descartado.
+- Administração exige segundo fator (aal2) no nível do banco, não só na tela.
+- Trilha de auditoria somente-inserção para contratos, pagamentos, reembolsos, disputas, planos, configurações e administradores.
+- Limites de tamanho em todo campo livre e limites de quantidade/diários por usuário (projetos, vagas, candidaturas, denúncias, portfólio).
+- Chat: só entre partes com vínculo real, bloqueio respeitado, 30 mensagens por minuto, remetente não falsificável.
+- Frontend: todo dado do banco é escapado antes de entrar no HTML; links de terceiros só `http(s)` e com `rel="noopener noreferrer nofollow"`; redirecionamento pós-login restrito a caminhos internos; CSP `'self'` sem scripts inline.
+- Backend: Helmet, limite de corpo de 100 kB, rate limit por IP e por usuário, logs com redação de segredos, erros internos sem detalhes para o cliente.
+- Segredos só em variáveis de ambiente; `/api/config` devolve apenas valores públicos — testado.
+
+## Segurança: o que ainda falta antes de abrir ao público
+
+1. **Teste de ponta a ponta e teste de invasão em homologação.** As regras do banco estão testadas (126 verificações); as telas com login ainda não rodaram contra um Supabase real.
+2. **CAPTCHA no cadastro e no login** (o Supabase Auth integra Turnstile/hCaptcha) e política de senha forte no painel do Supabase.
+3. **Rate limit compartilhado** (Redis) quando houver mais de uma instância do backend.
+4. **Verificação de arquivos enviados** (tipo real e antivírus) antes de habilitar upload de portfólio e anexos.
+5. **Monitoramento e alertas**: falhas de webhook, `amount_mismatch`, picos de 401/429.
+6. **Revisão jurídica** dos termos, da política de privacidade e do contrato.
+7. **Auditoria de segurança independente** antes de processar volume relevante. Nenhum sistema deve ser considerado seguro só porque quem o escreveu o testou.
+
+## Não implementado
 
 | Item | Situação |
 |---|---|
-| Checkout Mercado Pago (entrada e assinatura) | Depende das decisões 1 e 2. Webhook e confirmação já prontos |
-| E-mails transacionais (Brevo) | Não iniciado. Variável e integração a criar |
-| Painel administrativo | Banco e permissões por função prontos; sem telas |
-| Perfil público do profissional e da empresa | Banco pronto; sem telas |
-| Portfólio (upload, coleções) | Banco e buckets prontos; sem telas |
-| Publicação de vagas e página individual de vaga | Banco e listagem prontos; sem formulário |
-| Chat em tela | Banco, RLS e Realtime configurados; sem telas |
-| Telas de disputa, reembolso, avaliação e oferta do Pro | Funções no banco prontas e testadas; sem telas |
-| Renderização no servidor das páginas públicas | Hoje o conteúdo de projeto é montado no navegador; para SEO precisa vir pronto do servidor |
-| Páginas de destino por busca ("freelancer Power BI" etc.) | Não iniciado; exige conteúdo próprio por página |
-| Programa de indicação | Tabelas e regra de qualificação prontas; sem telas nem recompensa |
-| Cupons, campanhas, planos empresariais | Não iniciado |
-| Proteção contra bots no cadastro (CAPTCHA) | Não iniciado; o Supabase Auth oferece integração |
-| Inteligência competitiva (Workana, 99Freelas, Fiverr, GetNinjas, Reclame Aqui) | Não iniciada. Exige pesquisa com links e datas; não foi feita para não registrar afirmações sem evidência |
-| Agendador de expiração de assinaturas | Função `expire_subscriptions()` pronta; falta agendar (pg_cron) |
-| Limpeza do cache de CNPJ/CEP expirado | Falta agendar |
+| E-mails transacionais (Brevo) | Não iniciado; notificações existem só dentro da plataforma |
+| Upload de arquivos (avatar, portfólio, anexos do chat, evidências de disputa) | Buckets e políticas escritos, não validados; telas usam apenas texto e links |
+| Perfil público da empresa | Banco pronto; sem tela |
+| Página individual de vaga; gestão de candidaturas pela empresa | Listagem e candidatura prontas; falta a tela de gestão |
+| Reembolso: tela de solicitação e de decisão | Tabela, políticas e auditoria prontas |
+| Renderização no servidor das páginas públicas | Conteúdo de projeto e perfil é montado no navegador; para SEO pleno precisa vir pronto do servidor |
+| Páginas de destino por busca | Não iniciado |
+| Programa de indicação, cupons, campanhas, planos empresariais | Indicação tem tabelas e regra de qualificação; o resto não foi iniciado |
+| Gestão de usuários e de habilidades no painel administrativo | Painel cobre indicadores, planos, disputas, denúncias e categorias |
+| Tela de solicitações LGPD do titular | Tabela e políticas prontas |
+| Inteligência competitiva | Não iniciada |
+| Agendamentos (expirar planos, limpar cache) | Funções prontas; falta agendar com pg_cron |
 | Testes de carga | Roteiro pronto, não executado |
 
 ## Não verificado
 
-- Fluxos de tela com login, contra um Supabase real.
-- Respostas reais de BrasilAPI, ViaCEP, Mercado Pago e Serpro (hosts bloqueados no ambiente de desenvolvimento).
-- Migration de Storage (`20261111000900_storage.sql`).
-- Suporte da BrasilAPI ao CNPJ alfanumérico.
+- **Telas com login contra um Supabase real** — inclusive as escritas nesta etapa (contrato, plano, mensagens, perfil, publicar vaga, administração). Verificado apenas: todas carregam sem erro de script, redirecionam para o login quando não há sessão e não têm rolagem horizontal.
+- Fluxo de cadastro do segundo fator na tela de administração.
+- Tempo real do chat (há consulta periódica como rede de segurança).
+- Respostas reais de BrasilAPI, ViaCEP, Mercado Pago e Serpro.
+- Migration de Storage.
 
 ## Para colocar em homologação
 
 1. Criar o projeto Supabase e aplicar as migrations em ordem.
-2. Em Authentication: confirmar e-mail obrigatório, URL do site e redirecionamentos (`/onboarding`, `/entrar`).
+2. Em Authentication: confirmação de e-mail obrigatória, MFA (TOTP) habilitado, URL do site e redirecionamentos (`/onboarding`, `/entrar`), CAPTCHA.
 3. Preencher o `.env` conforme `.env.example`.
 4. `npm install && npm run build && npm start`.
-5. Criar o primeiro administrador por SQL (ver README).
+5. Criar o primeiro administrador por SQL (ver README) e cadastrar o segundo fator em `/admin`.
 6. No Mercado Pago (credenciais de teste): apontar o webhook para `https://<domínio>/api/webhooks/mercadopago` e copiar a assinatura secreta para `MP_WEBHOOK_SECRET`.
-7. Executar o roteiro manual: cadastro de empresa com CNPJ real → publicar projeto → cadastro de profissional → proposta → aceite → confirmação.
+7. Roteiro manual: cadastro de empresa → projeto → cadastro de profissional → proposta → conversa → aceite → confirmação → pagamento de teste → entrega → aprovação → saldo → avaliação → compra de plano.

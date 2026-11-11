@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mensagens — Bico BR</title>
+  <meta name="description" content="Suas conversas no Bico BR.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0d7a4b">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/app.css">
+</head>
+<body class="flex min-h-screen flex-col">
+  <a href="#conteudo" class="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-white focus:px-3 focus:py-2">Pular para o conteúdo</a>
+  <header id="site-header" class="sticky top-0 z-40 border-b border-tinta/10 bg-areia/95 backdrop-blur">
+    <div class="wrap flex items-center justify-between py-3">
+      <a href="/" class="text-lg font-extrabold tracking-tight">Bico<span class="text-mata-600"> BR</span></a>
+      <a class="btn-primary" href="/cadastro">Criar conta</a>
+    </div>
+  </header>
+  <main id="conteudo" class="flex-1">
+    <section class="wrap py-8">
+      <h1 class="sr-only">Mensagens</h1>
+      <p id="aviso" hidden></p>
+      <div class="grid gap-4 md:grid-cols-[18rem_1fr]">
+        <aside class="card p-0" aria-label="Conversas"><ul id="conversas" class="divide-y divide-tinta/10 text-sm"></ul></aside>
+        <div class="card flex min-h-[60vh] flex-col p-0">
+          <div id="topo" class="border-b border-tinta/10 px-5 py-3 text-sm font-semibold">Selecione uma conversa</div>
+          <div id="thread" class="flex-1 space-y-3 overflow-y-auto px-5 py-4" aria-live="polite"></div>
+          <form id="enviar" class="flex gap-2 border-t border-tinta/10 p-3" hidden novalidate>
+            <label class="sr-only" for="texto">Mensagem</label>
+            <textarea class="input flex-1" id="texto" rows="1" maxlength="4000" placeholder="Escreva sua mensagem" required></textarea>
+            <button class="btn-primary" type="submit">Enviar</button>
+          </form>
+        </div>
+      </div>
+      <p class="mt-3 text-xs text-tinta-500">Combine tudo por aqui: as conversas ficam registradas e são usadas na análise de disputas. Desconfie de pedidos de pagamento fora do combinado no contrato.</p>
+    </section>
+  </main>
+  <footer id="site-footer" class="border-t border-tinta/10 bg-white"></footer>
+  <script src="/vendor/supabase.js" defer></script>
+  <script type="module" src="/js/mensagens.js"></script>
+</body>
+</html>

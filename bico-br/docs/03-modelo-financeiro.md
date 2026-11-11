@@ -58,4 +58,4 @@ seguintes, com captação baseada em dados reais.
 
 - Tributos de 14,5% sobre a receita: estimativa. O regime tributário deve ser definido com contador.
 - Tarifa de 3,5% do meio de pagamento: estimativa; conferir a tabela vigente do Mercado Pago.
-- Preços do Pro (R$ 39) e do plano empresarial (R$ 299): valores ilustrativos, não definidos.
+- O modelo usa R$ 39 de receita média por assinante; os preços de lançamento definidos são R$ 29,90, R$ 59,90 e R$ 99,90. O plano empresarial (R$ 299) é ilustrativo.

@@ -6,9 +6,10 @@ Stack: Supabase (Auth, PostgreSQL, Storage, Realtime) · Node.js + Express · HT
 
 ## Estado atual
 
-Projeto iniciado do zero (não havia código anterior). Esta primeira entrega cobre a fundação:
-banco com RLS, regras de negócio no servidor, integrações de CNPJ/CEP, webhook de pagamento e o
-fluxo principal no frontend. O que falta está em [docs/05-pendencias-e-decisoes.md](docs/05-pendencias-e-decisoes.md).
+Projeto iniciado do zero (não havia código anterior). O fluxo principal está escrito de ponta a ponta:
+cadastro, projeto, proposta, conversa, contrato, pagamento da taxa de serviço, entrega, aprovação,
+saldo, avaliação, plano Pro e administração. As regras do banco e o backend têm testes automatizados;
+**as telas com login ainda não foram testadas contra um Supabase real.** O que falta está em [docs/05-pendencias-e-decisoes.md](docs/05-pendencias-e-decisoes.md).
 
 ## Rodando
 
@@ -32,11 +33,14 @@ Para criar o primeiro administrador (não existe caminho pelo aplicativo, de pro
 insert into public.admin_members (user_id, role) values ('<uuid do usuário>', 'super_admin');
 ```
 
+Funções: `super_admin`, `finance`, `support`, `moderation`, `content`. A área `/admin` exige verificação
+em duas etapas; o cadastro do segundo fator é feito no primeiro acesso.
+
 ### Testes
 
 ```bash
-npm test          # backend: validadores, provedores, API, webhook (30 testes, sem rede)
-npm run test:db   # sobe um Postgres descartável, aplica migrations, roda 97 verificações de RLS
+npm test          # backend: validadores, provedores, API, checkout, webhook (32 testes, sem rede)
+npm run test:db   # sobe um Postgres descartável, aplica migrations, roda 126 verificações de RLS
                   # e de fluxo, reverte tudo e reaplica (requer binários do PostgreSQL 15+)
 npm run model     # recalcula o modelo financeiro
 ```
@@ -62,4 +66,5 @@ loadtest              roteiro k6 (ainda não executado)
 - Pagamento só é considerado aprovado após webhook com assinatura válida **e** consulta do pagamento na API
   do Mercado Pago, com conferência de valor.
 - A service role key e os tokens de terceiros ficam apenas no servidor. `/api/config` devolve só valores públicos.
+- Administração exige segundo fator de autenticação, verificado no banco.
 - CSP restrita a `'self'` (sem scripts inline, sem CDN de terceiros).

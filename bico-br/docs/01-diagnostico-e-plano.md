@@ -23,8 +23,8 @@ fácil de escalar horizontalmente; e as regras de dinheiro ficam em um único lu
 
 | Área | Entregue | Como foi verificado |
 |---|---|---|
-| Banco | 10 migrations, 48 tabelas, 101 políticas RLS, reversão de cada migration | Aplicadas, revertidas e reaplicadas em Postgres 16 local |
-| RLS e privilégios | Políticas em todas as tabelas; grants por coluna | 97 verificações automatizadas (escalada de privilégio, isolamento entre usuários, anônimo) |
+| Banco | 12 migrations, 48 tabelas, 101 políticas RLS, reversão de cada migration | Aplicadas, revertidas e reaplicadas em Postgres 16 local |
+| RLS e privilégios | Políticas em todas as tabelas; grants por coluna | 126 verificações automatizadas (escalada de privilégio, isolamento entre usuários, anônimo) |
 | Primeiro Bico Gratuito / Pro | 7 estados, cota por ciclo, consentimento expresso com registro do preço exibido | Testado no banco de ponta a ponta |
 | Contrato | aceite → confirmação → entrada → execução → entrega → aprovação → avaliação; cancelamento; disputa com protocolo | Testado no banco |
 | Pagamento | Webhook com assinatura HMAC, idempotência, conferência de valor, sem regressão de estado | 5 testes de API + testes no banco |
@@ -36,7 +36,9 @@ fácil de escalar horizontalmente; e as regras de dinheiro ficam em um único lu
 | Portfólio | Selo "feito no Bico BR" só com contrato concluído do próprio profissional | Testado no banco |
 | Auditoria | Trilha somente-inserção para contratos, pagamentos, reembolsos, disputas, planos, admins | Testado no banco |
 | SEO | robots.txt, sitemap, canonical, Open Graph, JSON-LD, noindex nas áreas privadas | Testes de API + navegador |
-| Frontend | Início, cadastro, login, onboarding (CNPJ/CEP), projetos, projeto + proposta, publicar projeto, vagas, painel, Central de Confiança | Teste de fumaça em navegador (desktop e celular) |
+| Frontend | 18 páginas: início, cadastro, login, onboarding (CNPJ/CEP), projetos, proposta, publicar projeto e vaga, vagas, painel, contrato, plano Pro, mensagens, perfil e portfólio, perfil público, administração, Central de Confiança | Teste de fumaça em navegador (desktop e celular): carregam sem erro e protegem as áreas privadas. **Fluxos com login não testados** |
+| Checkout | Cobrança criada no banco; preferência do Mercado Pago criada pelo backend | Testes de API com Mercado Pago simulado |
+| Administração | Indicadores (GMV separado de receita), planos, disputas, denúncias, categorias; MFA obrigatório | Regras testadas no banco; tela não testada com login |
 
 **Limites da verificação** — leia antes de considerar qualquer item pronto para produção:
 

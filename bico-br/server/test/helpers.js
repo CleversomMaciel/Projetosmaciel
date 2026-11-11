@@ -24,7 +24,7 @@ export function fakeStore(overrides = {}) {
   const state = { companies: [], events: new Map(), paymentUpdates: [], onboarded: [] };
   return {
     state,
-    getUserFromToken: async (t) => ({ 'tok-company': { id: 'user-company' }, 'tok-freela': { id: 'user-freela' } }[t] ?? null),
+    getUserFromToken: async (t) => ({ 'tok-company': { id: 'user-company', email: 'c@t.dev' }, 'tok-freela': { id: 'user-freela', email: 'f@t.dev' } }[t] ?? null),
     getProfile: async (id) => ({ id, account_type: id === 'user-company' ? 'company' : 'freelancer' }),
     companyExistsByCnpj: async (cnpj) => state.companies.some((c) => c.privateData.cnpj === cnpj),
     countCompaniesByOwner: async (owner) => state.companies.filter((c) => c.company.owner_id === owner).length,
@@ -35,6 +35,9 @@ export function fakeStore(overrides = {}) {
       return state.events.get(dedupeKey);
     },
     finishWebhookEvent: async ({ dedupeKey, error }) => { if (!error) state.events.set(dedupeKey, 'done'); },
+    payments: new Map(),
+    getPaymentForCheckout: async function (id) { return this.payments.get(id) ?? null; },
+    saveCheckout: async function (id, c) { Object.assign(this.payments.get(id), { checkout_url: c.checkoutUrl, provider_preference_id: c.preferenceId }); },
     processPaymentUpdate: async (u) => { state.paymentUpdates.push(u); return 'approved'; },
     sitemapEntries: async () => ({ categories: [{ slug: 'design', updated_at: '2026-11-01T00:00:00Z' }], projects: [], jobs: [], freelancers: [{ slug: 'ana&bia', updated_at: null }] }),
     ...overrides,

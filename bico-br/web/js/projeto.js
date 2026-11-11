@@ -1,4 +1,4 @@
-import { $, brl, budgetLabel, esc, getClient, getProfile, mountChrome, parseBrlToCents, setBusy, showNotice, timeAgo, warnIfUnconfigured } from './core.js';
+import { $, brl, budgetLabel, esc, getClient, getProfile, mountChrome, parseBrlToCents, rpcMessage, setBusy, showNotice, timeAgo, warnIfUnconfigured } from './core.js';
 
 mountChrome();
 const id = new URLSearchParams(location.search).get('id') ?? '';
@@ -56,7 +56,7 @@ const PROPOSAL_ERRORS = {
   // ---------------------------------------------- dona do projeto: propostas recebidas
   if (c.owner_id === profile.id) {
     const { data: proposals } = await sb.from('proposals')
-      .select('id, amount_cents, deadline_days, cover_letter, status, created_at, freelancer_profiles(headline, profiles(display_name))')
+      .select('id, freelancer_id, amount_cents, deadline_days, cover_letter, status, created_at, freelancer_profiles(headline, slug, profiles(display_name))')
       .eq('project_id', p.id).order('created_at', { ascending: false }).limit(50);
     side.innerHTML = `<div class="card"><h2 class="font-semibold">Propostas recebidas</h2><p id="p-aviso" class="mt-3" hidden></p>
       <ul class="mt-3 space-y-4 text-sm">${(proposals ?? []).map((x) => `
@@ -65,15 +65,25 @@ const PROPOSAL_ERRORS = {
           <p class="text-xs text-tinta-500">${esc(x.freelancer_profiles?.headline)}</p>
           <p class="mt-1 font-medium">${brl(x.amount_cents)} · ${x.deadline_days} dias <span class="chip ml-1">${esc(x.status)}</span></p>
           <p class="mt-1 whitespace-pre-line text-tinta-700">${esc(x.cover_letter)}</p>
-          ${['sent', 'shortlisted'].includes(x.status) && p.status === 'open' ? `<button class="btn-primary mt-2" type="button" data-accept="${esc(x.id)}">Aceitar proposta</button>` : ''}
+          <div class="mt-2 flex flex-wrap gap-2">
+            ${['sent', 'shortlisted'].includes(x.status) && p.status === 'open' ? `<button class="btn-primary" type="button" data-accept="${esc(x.id)}">Aceitar proposta</button>` : ''}
+            <button class="btn-ghost" type="button" data-chat="${esc(x.freelancer_id)}">Conversar</button>
+          </div>
         </li>`).join('') || '<li class="text-tinta-500">Nenhuma proposta ainda.</li>'}</ul></div>`;
     side.addEventListener('click', async (ev) => {
+      const chat = ev.target.closest('[data-chat]');
+      if (chat) {
+        const { data, error } = await sb.rpc('start_project_conversation', { p_project_id: p.id, p_freelancer_id: chat.dataset.chat });
+        if (error) return showNotice($('#p-aviso'), 'error', 'Não foi possível abrir a conversa.');
+        location.href = `/mensagens?c=${data}`;
+        return;
+      }
       const btn = ev.target.closest('[data-accept]');
       if (!btn || !confirm('Aceitar esta proposta e gerar o contrato para confirmação do profissional?')) return;
       setBusy(btn, true);
-      const { error } = await sb.rpc('accept_proposal', { p_proposal_id: btn.dataset.accept });
-      if (error) { setBusy(btn, false); return showNotice($('#p-aviso'), 'error', error.message); }
-      location.href = '/painel';
+      const { data, error } = await sb.rpc('accept_proposal', { p_proposal_id: btn.dataset.accept });
+      if (error) { setBusy(btn, false); return showNotice($('#p-aviso'), 'error', rpcMessage(error)); }
+      location.href = `/contrato?id=${data.id}`;
     });
     return;
   }
@@ -83,7 +93,12 @@ const PROPOSAL_ERRORS = {
   // ---------------------------------------------- freelancer: enviar proposta
   const { data: mine } = await sb.from('proposals').select('amount_cents, deadline_days, status').eq('project_id', p.id).eq('freelancer_id', profile.id).maybeSingle();
   if (mine) {
-    side.innerHTML = `<div class="card text-sm"><h2 class="font-semibold">Sua proposta</h2><p class="mt-2">${brl(mine.amount_cents)} · ${mine.deadline_days} dias</p><p class="chip mt-2">${esc(mine.status)}</p></div>${companyCard}`;
+    side.innerHTML = `<div class="card text-sm"><h2 class="font-semibold">Sua proposta</h2><p class="mt-2">${brl(mine.amount_cents)} · ${mine.deadline_days} dias</p><p class="chip mt-2">${esc(mine.status)}</p>
+      <p class="mt-3"><button class="btn-ghost" type="button" id="falar">Conversar com a empresa</button></p></div>${companyCard}`;
+    $('#falar').addEventListener('click', async () => {
+      const { data, error } = await sb.rpc('start_project_conversation', { p_project_id: p.id, p_freelancer_id: profile.id });
+      if (!error) location.href = `/mensagens?c=${data}`;
+    });
     return;
   }
   if (p.status !== 'open') { side.innerHTML = `<div class="card text-sm">Este projeto não está mais recebendo propostas.</div>${companyCard}`; return; }

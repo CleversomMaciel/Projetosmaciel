@@ -8,14 +8,16 @@ create table t.ids (name text primary key, id uuid not null);
 grant select on t.ids to public;
 
 create function t.id(p text) returns uuid language sql stable as $$ select id from t.ids where name = p $$;
-create function t.login(p text) returns void language plpgsql as $$
+create function t.login(p text, p_aal text default 'aal1') returns void language plpgsql as $$
 begin
   perform set_config('request.jwt.claim.sub', t.id(p)::text, false);
+  perform set_config('request.jwt.claims', json_build_object('sub', t.id(p), 'aal', p_aal)::text, false);
   perform set_config('role', 'authenticated', false);
 end $$;
 create function t.anon() returns void language plpgsql as $$
 begin
   perform set_config('request.jwt.claim.sub', '', false);
+  perform set_config('request.jwt.claims', '', false);
   perform set_config('role', 'anon', false);
 end $$;
 create function t.ok(p_cond boolean, p_label text) returns void language plpgsql as $$
@@ -104,7 +106,7 @@ select t.fails($$select * from public.proposals$$, 'permission denied', 'anon: p
 select t.fails($$select * from public.messages$$, 'permission denied', 'anon: mensagens negadas');
 select t.ok((select count(*) from public.profiles) = 0, 'anon não lista perfis não públicos');
 select t.ok((select count(*) from public.categories) = 11, 'anon lê as 11 categorias iniciais');
-select t.ok((select count(*) from public.plans) = 0, 'planos sem preço não aparecem');
+select t.ok((select count(*) from public.plans) = 3, 'planos ativos com preço são públicos');
 reset role;
 
 -- ------------------------------------------------------------ projetos
@@ -231,10 +233,10 @@ select t.ok((select state from public.freelancer_billing where user_id = t.id('f
 select t.login('f');
 select t.fails($$select public.submit_proposal('00000000-0000-0000-0000-00000000aaa2', 15000, 2, 'Resolvo a fórmula ainda hoje.')$$,
                'PRO_REQUIRED', 'após o primeiro bico, nova proposta exige Pro');
-select t.fails($$select public.request_pro('pro', true)$$, 'Plano indisponível', 'plano sem preço não é vendido');
 reset role;
-update public.plans set price_cents = 2990, is_active = true where code = 'pro';
+update public.plans set is_active = false where code = 'premium';
 select t.login('f');
+select t.fails($$select public.request_pro('premium', true)$$, 'Plano indisponível', 'plano inativo não é vendido');
 select t.fails($$select public.request_pro('pro', false)$$, 'CONSENT_REQUIRED', 'sem consentimento expresso não há assinatura');
 select id as sub_payment_id from public.request_pro('pro', true) \gset
 select t.ok((select state from public.freelancer_billing) = 'PRO_PENDING_ACTIVATION', 'consentimento -> PRO_PENDING_ACTIVATION');
@@ -348,6 +350,75 @@ reset role;
 select t.login('g');
 select t.ok((select count(*) from public.disputes) = 0, 'terceiro não vê disputas');
 reset role;
+
+-- ------------------------------------------------------------ 0011/0012: endurecimento e modelo comercial
+select t.login('f');
+select t.fails($$select private.billing_transition(t.id('f'), 'PRO_ACTIVE', 'hack')$$, 'permission denied',
+               'função interna de assinatura não é executável por usuários');
+select t.fails($$select private.activate_contract(gen_random_uuid(), null)$$, 'permission denied',
+               'função interna de contrato não é executável por usuários');
+select t.fails($$select private.notify(t.id('c'), 'spam', '{}')$$, 'permission denied',
+               'usuário não fabrica notificações para terceiros');
+select t.fails($$select public.admin_metrics(30)$$, 'Acesso negado', 'indicadores negados a não administradores');
+select t.fails($$update public.freelancer_profiles set links = (select jsonb_agg(i) from generate_series(1, 50) i)$$,
+               'fp_links_size', 'limite de tamanho em campos JSON');
+select t.fails(format($$insert into public.messages (conversation_id, sender_id, body) values (%L, t.id('f'), repeat('x', 5000))$$, :'conv_id'),
+               'violates check', 'mensagem acima do limite é recusada');
+reset role;
+select t.login('g');
+select t.fails(format($$select public.declare_balance_paid(%L)$$, :'contract_id'), 'não encontrado', 'terceiro não declara saldo');
+reset role;
+select t.login('f');
+select t.fails(format($$select public.declare_balance_paid(%L)$$, :'contract_id'), 'não encontrado', 'profissional não declara pagamento no lugar da empresa');
+reset role;
+select t.login('c');
+select public.declare_balance_paid(:'contract_id');
+select t.fails(format($$select public.declare_balance_paid(%L)$$, :'contract_id'), 'uma vez', 'saldo é declarado uma única vez');
+select t.fails(format($$select public.confirm_balance_received(%L)$$, :'contract_id'), 'não encontrado', 'empresa não confirma recebimento pelo profissional');
+reset role;
+select t.login('f');
+select public.confirm_balance_received(:'contract_id');
+reset role;
+select t.ok((select balance_declared_paid_at is not null and balance_confirmed_at is not null from public.contracts where id = :'contract_id'),
+            'saldo declarado e confirmado ficam registrados');
+
+-- compra do Pro: sem cobrança em dobro e com desistência
+select t.login('f');
+select id as renew_1 from public.request_pro('pro', true) \gset
+select id as renew_2 from public.request_pro('pro', true) \gset
+select t.ok(:'renew_1' = :'renew_2', 'pedir o plano duas vezes devolve a mesma cobrança pendente');
+select t.ok((select consent_snapshot ->> 'auto_renew' from public.freelancer_billing) = 'false', 'consentimento registra que não há renovação automática');
+select public.abandon_pro_request();
+select t.ok((select state from public.freelancer_billing) = 'PRO_EXPIRED', 'desistência volta ao estado anterior');
+reset role;
+select t.ok((select status from public.payments where id = :'renew_1') = 'cancelled', 'cobrança abandonada é cancelada');
+
+-- administração exige MFA
+insert into public.admin_members (user_id, role) values (t.id('a'), 'support'), (t.id('d'), 'finance');
+select id as dispute_id from public.disputes limit 1 \gset
+select t.login('a', 'aal1');
+select t.ok((select count(*) from public.disputes) = 0, 'admin sem MFA não enxerga disputas');
+select t.fails(format($$select public.resolve_dispute(%L, 'Decisão tomada sem segundo fator de autenticação.', 'resume')$$, :'dispute_id'),
+               'Acesso negado', 'admin sem MFA não decide disputa');
+select t.ok((select count(*) from public.admin_members) = 1, 'admin sem MFA só vê o próprio vínculo');
+reset role;
+select t.login('a', 'aal2');
+select t.ok((select count(*) from public.disputes) = 1, 'admin de suporte com MFA enxerga disputas');
+select t.fails($$select public.admin_metrics(30)$$, 'Acesso negado', 'suporte não acessa indicadores financeiros');
+select t.ok(t.affected($$update public.plans set price_cents = 1 where code = 'pro'$$) = 0, 'suporte não altera preço de plano');
+select t.fails(format($$select public.resolve_dispute(%L, 'curta', 'resume')$$, :'dispute_id'), 'justificativa', 'decisão exige justificativa');
+select public.resolve_dispute(:'dispute_id', 'Comprovante de pagamento do saldo apresentado pela empresa.', 'resume');
+reset role;
+select t.ok((select status from public.disputes where id = :'dispute_id') = 'resolved', 'disputa resolvida');
+select t.ok((select count(*) from public.audit_logs where entity_type = 'disputes' and action = 'update') >= 1, 'decisão da disputa fica na auditoria');
+select t.login('d', 'aal2');
+select t.ok((public.admin_metrics(30) ->> 'contratos_concluidos')::int = 1, 'financeiro com MFA lê indicadores');
+select t.ok((public.admin_metrics(30) ->> 'receita_taxa_servico_centavos')::int = 15000, 'receita = taxa de serviço recebida, não o GMV');
+select t.ok((public.admin_metrics(30) ->> 'gmv_centavos')::int = 150000, 'GMV separado da receita');
+select t.ok(t.affected($$update public.plans set price_cents = 3490 where code = 'pro'$$) = 1, 'financeiro altera preço de plano');
+reset role;
+select t.ok((select count(*) from public.audit_logs where entity_type = 'plans' and actor_id = t.id('d')) = 1, 'alteração de preço é auditada com autor');
+
 
 -- ------------------------------------------------------------ vagas: somente remoto
 select t.fails($$insert into public.jobs (company_id, created_by, title, description, category_id, contract_type, work_mode)

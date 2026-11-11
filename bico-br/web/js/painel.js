@@ -14,7 +14,7 @@ const BILLING = {
   PRO_EXPIRED: ['Plano expirado', 'Seus contratos em andamento continuam normalmente. Para enviar novas propostas, renove o plano.'],
 };
 const CONTRACT = {
-  awaiting_freelancer: 'Aguardando confirmação do profissional', awaiting_deposit: 'Aguardando pagamento da entrada',
+  awaiting_freelancer: 'Aguardando confirmação do profissional', awaiting_deposit: 'Aguardando pagamento da taxa de serviço',
   active: 'Em execução', delivered: 'Entregue — aguardando aprovação', completed: 'Concluído', cancelled: 'Cancelado', disputed: 'Em análise na Central de Confiança',
 };
 const card = (title, body) => `<section class="card"><h2 class="font-semibold">${title}</h2><div class="mt-3 space-y-3 text-sm">${body}</div></section>`;
@@ -28,22 +28,18 @@ const empty = (t) => `<p class="text-tinta-500">${t}</p>`;
   if (!profile.onboarded_at) return location.replace('/onboarding');
   $('#saudacao').textContent = `Olá, ${profile.display_name || 'bem-vindo(a)'}`;
   const isCompany = profile.account_type === 'company';
-  $('#acoes').innerHTML = isCompany ? '<a class="btn-primary" href="/publicar-projeto">Publicar projeto</a>' : '<a class="btn-primary" href="/projetos">Buscar projetos</a>';
+  $('#acoes').innerHTML = (isCompany
+    ? '<a class="btn-primary" href="/publicar-projeto">Publicar projeto</a><a class="btn-ghost" href="/publicar-vaga">Publicar vaga</a>'
+    : '<a class="btn-primary" href="/projetos">Buscar projetos</a><a class="btn-ghost" href="/perfil">Meu perfil</a>')
+    + '<a class="btn-ghost" href="/mensagens">Mensagens</a>';
+  $('#acoes').className = 'flex flex-wrap gap-2';
 
   const { data: contracts } = await sb.from('contracts')
     .select('id, status, amount_cents, deposit_cents, due_at, projects(title)').order('created_at', { ascending: false }).limit(20);
-  const actions = (c) => {
-    if (!isCompany && c.status === 'awaiting_freelancer') return `<button class="btn-primary" data-rpc="confirm_contract" data-id="${c.id}">Confirmar contrato</button>`;
-    if (!isCompany && c.status === 'active') return `<button class="btn-primary" data-rpc="deliver_contract" data-id="${c.id}" data-note="Descreva a entrega (links, arquivos, observações):">Registrar entrega</button>`;
-    if (isCompany && c.status === 'delivered') return `<button class="btn-primary" data-rpc="approve_delivery" data-id="${c.id}">Aprovar entrega</button> <button class="btn-ghost" data-rpc="request_changes" data-id="${c.id}" data-note="O que precisa ser ajustado?">Pedir ajustes</button>`;
-    if (isCompany && c.status === 'awaiting_deposit') return `<p class="notice-warn">Entrada de ${brl(c.deposit_cents)}. O pagamento online ainda não está habilitado neste ambiente.</p>`;
-    return '';
-  };
   const contractsHtml = (contracts ?? []).map((c) => `
     <div class="border-t border-tinta/10 pt-3 first:border-0 first:pt-0">
-      <p class="font-medium">${esc(c.projects?.title)}</p>
+      <p><a class="linkish" href="/contrato?id=${c.id}">${esc(c.projects?.title)}</a></p>
       <p class="text-tinta-500">${brl(c.amount_cents)} · ${esc(CONTRACT[c.status] ?? c.status)}</p>
-      <div class="mt-2 flex flex-wrap gap-2">${actions(c)}</div>
     </div>`).join('') || empty('Nenhum contrato ainda.');
 
   if (isCompany) {
@@ -60,24 +56,12 @@ const empty = (t) => `<p class="text-tinta-500">${t}</p>`;
     const [title, text] = BILLING[billing?.state] ?? ['—', ''];
     const quota = billing?.state === 'PRO_ACTIVE' && billing.plans
       ? `${esc(billing.plans.name)}: ${billing.proposals_used} de ${billing.plans.proposals_per_cycle} propostas usadas · renova em ${new Date(billing.cycle_end).toLocaleDateString('pt-BR')}` : text;
-    blocos.innerHTML = card('Meu plano', `<p class="chip">${esc(title)}</p><p>${quota}</p>`)
+    const planCta = ['FIRST_PROJECT_COMPLETED', 'PRO_EXPIRED', 'PRO_PENDING_ACTIVATION', 'PRO_CANCELLED', 'PRO_ACTIVE'].includes(billing?.state)
+      ? '<p><a class="btn-ghost" href="/plano">Ver planos</a></p>' : '';
+    blocos.innerHTML = card('Meu plano', `<p class="chip">${esc(title)}</p><p>${quota}</p>${planCta}`)
       + card('Minhas propostas', (proposals ?? []).map((p) => `
         <p><a class="linkish" href="/projeto?id=${p.projects?.id}">${esc(p.projects?.title)}</a><span class="ml-2 text-tinta-500">${brl(p.amount_cents)} · ${esc(p.status)}</span></p>`).join('') || empty('Você ainda não enviou propostas.'))
       + card('Contratos', contractsHtml);
   }
 
-  blocos.addEventListener('click', async (ev) => {
-    const btn = ev.target.closest('[data-rpc]');
-    if (!btn) return;
-    const args = { p_contract_id: btn.dataset.id };
-    if (btn.dataset.note) {
-      const note = prompt(btn.dataset.note);
-      if (!note) return;
-      args.p_note = note;
-    }
-    btn.disabled = true;
-    const { error } = await sb.rpc(btn.dataset.rpc, args);
-    if (error) { btn.disabled = false; return showNotice(aviso, 'error', error.message); }
-    location.reload();
-  });
 })();

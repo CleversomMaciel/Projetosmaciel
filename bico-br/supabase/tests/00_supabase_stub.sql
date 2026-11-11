@@ -10,11 +10,15 @@ create table auth.users (
   email text unique,
   raw_user_meta_data jsonb not null default '{}'
 );
+create function auth.jwt() returns jsonb language sql stable as $$
+  select coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb
+$$;
 create function auth.uid() returns uuid language sql stable as $$
-  select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid
+  select nullif(coalesce(nullif(current_setting('request.jwt.claim.sub', true), ''),
+                         auth.jwt() ->> 'sub'), '')::uuid
 $$;
 grant usage on schema auth to anon, authenticated, service_role;
-grant execute on function auth.uid() to public;
+grant execute on function auth.uid(), auth.jwt() to public;
 -- Supabase concede tudo por padrão aos papéis de API; reproduzimos para provar
 -- que a migration de privilégios realmente fecha o acesso.
 alter default privileges in schema public grant all on tables to anon, authenticated, service_role;

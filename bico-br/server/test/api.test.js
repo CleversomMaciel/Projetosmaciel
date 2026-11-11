@@ -174,6 +174,40 @@ test('webhook: pagamento sem referência nossa ou em outra moeda não altera nad
   }
 });
 
+test('checkout: valor vem do banco, só o pagador inicia, preferência é reaproveitada', async (t) => {
+  const created = [];
+  const mp = { configured: true, getPayment: async () => null, createPreference: async (p) => { created.push(p); return { preferenceId: 'pref-1', checkoutUrl: 'https://mp.example/checkout/pref-1' }; } };
+  const app = await startApp({ mp });
+  t.after(app.close);
+  app.store.payments.set(PAYMENT_UUID, { id: PAYMENT_UUID, kind: 'deposit', status: 'pending', amount_cents: 15000, payer_id: 'user-company', contract_id: 'c-1', checkout_url: null, contracts: { projects: { title: 'Dashboard' } } });
+  const url = `/api/payments/${PAYMENT_UUID}/checkout`;
+
+  assert.equal((await app.post(url, {})).status, 401);
+  assert.equal((await app.post(url, {}, auth('tok-freela'))).status, 404, 'cobrança de outro usuário parece inexistente');
+  assert.equal((await app.post('/api/payments/nao-e-uuid/checkout', {}, auth('tok-company'))).status, 400);
+
+  // o navegador tenta impor outro valor: é ignorado
+  const res = await app.post(url, { amount_cents: 1, amountCents: 1 }, auth('tok-company'));
+  assert.equal(res.status, 200);
+  assert.equal((await res.json()).checkoutUrl, 'https://mp.example/checkout/pref-1');
+  assert.equal(created[0].amountCents, 15000);
+  assert.equal(created[0].paymentId, PAYMENT_UUID);
+  assert.equal(created[0].notificationUrl, 'https://bicobr.example/api/webhooks/mercadopago');
+
+  await app.post(url, {}, auth('tok-company'));
+  assert.equal(created.length, 1, 'segunda chamada reaproveita o checkout');
+
+  app.store.payments.get(PAYMENT_UUID).status = 'approved';
+  assert.equal((await app.post(url, {}, auth('tok-company'))).status, 409);
+});
+
+test('checkout: sem credenciais do Mercado Pago responde 503, sem inventar pagamento', async (t) => {
+  const app = await startApp({ mp: { configured: false } });
+  t.after(app.close);
+  app.store.payments.set(PAYMENT_UUID, { id: PAYMENT_UUID, kind: 'subscription', status: 'pending', amount_cents: 2990, payer_id: 'user-freela', plans: { name: 'Bico BR Pro' } });
+  assert.equal((await app.post(`/api/payments/${PAYMENT_UUID}/checkout`, {}, auth('tok-freela'))).status, 503);
+});
+
 // ---------------------------------------------------------------- transversais
 test('/api/config expõe só valores públicos; cabeçalhos de segurança presentes', async (t) => {
   const app = await startApp({ env: { MP_ACCESS_TOKEN: 'TOKEN-SECRETO-MP', SERPRO_CONSUMER_SECRET: 'SEGREDO-SERPRO' } });

@@ -19,6 +19,9 @@ export function seoRoutes({ store, config, logger }) {
       'Disallow: /entrar',
       'Disallow: /cadastro',
       'Disallow: /onboarding',
+      'Disallow: /plano',
+      'Disallow: /perfil',
+      'Disallow: /contrato',
       '',
       `Sitemap: ${config.publicUrl}/sitemap.xml`,
       '',
@@ -36,8 +39,8 @@ export function seoRoutes({ store, config, logger }) {
           const e = await store.sitemapEntries();
           for (const c of e.categories) urls.push({ loc: `${base}/projetos?categoria=${encodeURIComponent(c.slug)}`, lastmod: c.updated_at });
           for (const p of e.projects) urls.push({ loc: `${base}/projeto?id=${p.id}`, lastmod: p.updated_at });
-          // Páginas individuais de vaga e de profissional entram aqui quando existirem
-          // (profissionais: somente quem autorizou exposição pública — is_public).
+          // somente profissionais que autorizaram exposição pública (is_public)
+          for (const f of e.freelancers) urls.push({ loc: `${base}/profissional?u=${encodeURIComponent(f.slug)}`, lastmod: f.updated_at });
         }
         const body = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${
           urls.slice(0, 50000).map((u) => `  <url><loc>${xml(u.loc)}</loc>${u.lastmod ? `<lastmod>${xml(String(u.lastmod).slice(0, 10))}</lastmod>` : ''}</url>`).join('\n')

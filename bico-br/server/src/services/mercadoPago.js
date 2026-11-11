@@ -37,6 +37,30 @@ export function verifyWebhookSignature({ signatureHeader, requestId, dataId, sec
 export function createMercadoPagoClient({ accessToken, apiBase, fetchImpl, timeoutMs = 8000 }) {
   return {
     configured: Boolean(accessToken),
+    /**
+     * Cria uma preferência do Checkout Pro. O comprador paga na página do Mercado Pago;
+     * nenhum dado de cartão passa pelo Bico BR. external_reference liga o pagamento ao nosso registro.
+     * https://www.mercadopago.com.br/developers/pt/reference/preferences/_checkout_preferences/post
+     */
+    async createPreference({ paymentId, title, amountCents, payerEmail, notificationUrl, backUrl }) {
+      const body = {
+        items: [{ id: paymentId, title: String(title).slice(0, 250), quantity: 1, currency_id: 'BRL', unit_price: amountCents / 100 }],
+        external_reference: paymentId,
+        notification_url: notificationUrl,
+        back_urls: { success: backUrl, pending: backUrl, failure: backUrl },
+        ...(backUrl.startsWith('https://') ? { auto_return: 'approved' } : {}),
+        ...(payerEmail ? { payer: { email: payerEmail } } : {}),
+        metadata: { bico_payment_id: paymentId },
+      };
+      const { status, json } = await requestJson(`${apiBase}/checkout/preferences`, {
+        method: 'POST', body: JSON.stringify(body), timeoutMs, fetchImpl, retries: 0,
+        headers: { authorization: `Bearer ${accessToken}`, 'content-type': 'application/json', 'x-idempotency-key': paymentId },
+      });
+      if (status !== 201 && status !== 200) throw new Error(`Mercado Pago respondeu HTTP ${status} ao criar a preferência`);
+      const url = json?.init_point;
+      if (!json?.id || typeof url !== 'string' || !/^https?:\/\//.test(url)) throw new Error('Resposta inesperada do Mercado Pago');
+      return { preferenceId: String(json.id), checkoutUrl: url };
+    },
     async getPayment(id) {
       const { status, json } = await requestJson(`${apiBase}/v1/payments/${encodeURIComponent(id)}`, {
         headers: { authorization: `Bearer ${accessToken}` }, timeoutMs, fetchImpl,
