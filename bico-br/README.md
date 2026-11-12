@@ -10,7 +10,7 @@ Projeto iniciado do zero (não havia código anterior). O fluxo principal está 
 cadastro, projeto, proposta, conversa, contrato, pagamento da taxa de serviço, entrega, aprovação,
 saldo, avaliação, plano Pro e administração. As regras do banco e o backend têm testes automatizados;
 e o fluxo completo roda pelo navegador em um ambiente local simulado (`npm run test:e2e`).
-**Ainda não rodou contra um projeto Supabase real** — esse é o próximo passo (homologação). O que falta está em [docs/05-pendencias-e-decisoes.md](docs/05-pendencias-e-decisoes.md).
+**Ainda não rodou contra um projeto Supabase real nem contra o Mercado Pago real** — esse é o próximo passo (homologação), passo a passo em [docs/08-guia-de-conexao.md](docs/08-guia-de-conexao.md). Pendências e decisões em [docs/05-pendencias-e-decisoes.md](docs/05-pendencias-e-decisoes.md).
 
 ## Rodando
 
