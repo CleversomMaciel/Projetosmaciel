@@ -17,6 +17,8 @@ const CONTRACT = {
   awaiting_freelancer: 'Aguardando confirmação do profissional', awaiting_deposit: 'Aguardando pagamento da taxa de serviço',
   active: 'Em execução', delivered: 'Entregue — aguardando aprovação', completed: 'Concluído', cancelled: 'Cancelado', disputed: 'Em análise na Central de Confiança',
 };
+const PROJECT = { draft: 'Rascunho', open: 'Aberto', in_progress: 'Em andamento', completed: 'Concluído', closed: 'Fechado', cancelled: 'Cancelado' };
+const PROPOSAL = { sent: 'Enviada', shortlisted: 'Pré-selecionada', accepted: 'Aceita', rejected: 'Recusada', withdrawn: 'Retirada' };
 const card = (title, body) => `<section class="card"><h2 class="font-semibold">${title}</h2><div class="mt-3 space-y-3 text-sm">${body}</div></section>`;
 const empty = (t) => `<p class="text-tinta-500">${t}</p>`;
 
@@ -46,7 +48,7 @@ const empty = (t) => `<p class="text-tinta-500">${t}</p>`;
     const { data: company } = await sb.from('companies').select('id').eq('owner_id', profile.id).maybeSingle();
     const { data: projects } = company ? await sb.from('projects').select('id, title, status, proposals_count').eq('company_id', company.id).order('created_at', { ascending: false }).limit(20) : { data: [] };
     blocos.innerHTML = card('Meus projetos', (projects ?? []).map((p) => `
-      <p><a class="linkish" href="/projeto?id=${p.id}">${esc(p.title)}</a><span class="ml-2 text-tinta-500">${esc(p.status)} · ${p.proposals_count} proposta(s)</span></p>`).join('') || empty('Você ainda não publicou projetos.'))
+      <p><a class="linkish" href="/projeto?id=${p.id}">${esc(p.title)}</a><span class="ml-2 text-tinta-500">${esc(PROJECT[p.status] ?? p.status)} · ${p.proposals_count} proposta(s)</span></p>`).join('') || empty('Você ainda não publicou projetos.'))
       + card('Contratos', contractsHtml);
   } else {
     const [{ data: billing }, { data: proposals }] = await Promise.all([
@@ -60,7 +62,7 @@ const empty = (t) => `<p class="text-tinta-500">${t}</p>`;
       ? '<p><a class="btn-ghost" href="/plano">Ver planos</a></p>' : '';
     blocos.innerHTML = card('Meu plano', `<p class="chip">${esc(title)}</p><p>${quota}</p>${planCta}`)
       + card('Minhas propostas', (proposals ?? []).map((p) => `
-        <p><a class="linkish" href="/projeto?id=${p.projects?.id}">${esc(p.projects?.title)}</a><span class="ml-2 text-tinta-500">${brl(p.amount_cents)} · ${esc(p.status)}</span></p>`).join('') || empty('Você ainda não enviou propostas.'))
+        <p><a class="linkish" href="/projeto?id=${p.projects?.id}">${esc(p.projects?.title)}</a><span class="ml-2 text-tinta-500">${brl(p.amount_cents)} · ${esc(PROPOSAL[p.status] ?? p.status)}</span></p>`).join('') || empty('Você ainda não enviou propostas.'))
       + card('Contratos', contractsHtml);
   }
 

@@ -12,7 +12,7 @@ const safeLink = (url) => (/^https?:\/\//i.test(url ?? '') ? `<a class="linkish 
   if (!(await warnIfUnconfigured(root))) return;
   const { sb } = await getClient();
   const { data: f } = await sb.from('freelancer_profiles')
-    .select('user_id, slug, headline, bio, availability, tools, completed_projects, rating_avg, rating_count, profiles(display_name, city, uf)')
+    .select('user_id, slug, headline, bio, availability, tools, completed_projects, rating_avg, rating_count, profiles!freelancer_profiles_user_id_fkey(display_name, city, uf)')
     .eq('slug', slug).maybeSingle();
   if (!f) { root.innerHTML = '<p>Perfil não encontrado ou não público.</p>'; return; }
   const [{ data: items }, { data: reviews }] = await Promise.all([

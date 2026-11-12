@@ -9,7 +9,8 @@ Stack: Supabase (Auth, PostgreSQL, Storage, Realtime) · Node.js + Express · HT
 Projeto iniciado do zero (não havia código anterior). O fluxo principal está escrito de ponta a ponta:
 cadastro, projeto, proposta, conversa, contrato, pagamento da taxa de serviço, entrega, aprovação,
 saldo, avaliação, plano Pro e administração. As regras do banco e o backend têm testes automatizados;
-**as telas com login ainda não foram testadas contra um Supabase real.** O que falta está em [docs/05-pendencias-e-decisoes.md](docs/05-pendencias-e-decisoes.md).
+e o fluxo completo roda pelo navegador em um ambiente local simulado (`npm run test:e2e`).
+**Ainda não rodou contra um projeto Supabase real** — esse é o próximo passo (homologação). O que falta está em [docs/05-pendencias-e-decisoes.md](docs/05-pendencias-e-decisoes.md).
 
 ## Rodando
 
@@ -42,6 +43,8 @@ em duas etapas; o cadastro do segundo fator é feito no primeiro acesso.
 npm test          # backend: validadores, provedores, API, checkout, webhook (37 testes, sem rede)
 npm run test:db   # sobe um Postgres descartável, aplica migrations, roda 141 verificações de RLS
                   # e de fluxo, reverte tudo e reaplica (requer binários do PostgreSQL 15+)
+npm run test:e2e  # fluxo completo pelo navegador (18 passos) em ambiente local simulado:
+                  # Postgres + PostgREST + Auth/ViaCEP/BrasilAPI/Mercado Pago de teste
 npm run model     # recalcula o modelo financeiro
 ```
 
@@ -55,6 +58,7 @@ server/src            Express: provedores CNPJ/CEP, empresas, webhook Mercado Pa
 server/test           testes do backend
 web                   páginas e scripts do frontend
 docs                  diagnóstico, plano, provedores, modelo financeiro, escala, pendências
+tests/e2e             ambiente local simulado + roteiro de navegador de ponta a ponta
 loadtest              roteiro k6 (ainda não executado)
 ```
 

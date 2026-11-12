@@ -4,6 +4,7 @@ mountChrome();
 const id = new URLSearchParams(location.search).get('id') ?? '';
 const detail = $('#detalhe');
 const side = $('#lateral');
+const PROPOSAL = { sent: 'Enviada', shortlisted: 'Pré-selecionada', accepted: 'Aceita', rejected: 'Recusada', withdrawn: 'Retirada' };
 const PROPOSAL_ERRORS = {
   PRO_REQUIRED: 'Você já concluiu seu primeiro bico. Para enviar novas propostas é preciso ativar um plano Bico BR Pro no painel.',
   QUOTA_EXCEEDED: 'Você usou todas as propostas do ciclo atual do seu plano.',
@@ -56,14 +57,14 @@ const PROPOSAL_ERRORS = {
   // ---------------------------------------------- dona do projeto: propostas recebidas
   if (c.owner_id === profile.id) {
     const { data: proposals } = await sb.from('proposals')
-      .select('id, freelancer_id, amount_cents, deadline_days, cover_letter, status, created_at, freelancer_profiles(headline, slug, profiles(display_name))')
+      .select('id, freelancer_id, amount_cents, deadline_days, cover_letter, status, created_at, freelancer_profiles(headline, slug, profiles!freelancer_profiles_user_id_fkey(display_name))')
       .eq('project_id', p.id).order('created_at', { ascending: false }).limit(50);
     side.innerHTML = `<div class="card"><h2 class="font-semibold">Propostas recebidas</h2><p id="p-aviso" class="mt-3" hidden></p>
       <ul class="mt-3 space-y-4 text-sm">${(proposals ?? []).map((x) => `
         <li class="border-t border-tinta/10 pt-3">
           <p class="font-medium">${esc(x.freelancer_profiles?.profiles?.display_name || 'Profissional')}</p>
           <p class="text-xs text-tinta-500">${esc(x.freelancer_profiles?.headline)}</p>
-          <p class="mt-1 font-medium">${brl(x.amount_cents)} · ${x.deadline_days} dias <span class="chip ml-1">${esc(x.status)}</span></p>
+          <p class="mt-1 font-medium">${brl(x.amount_cents)} · ${x.deadline_days} dias <span class="chip ml-1">${esc(PROPOSAL[x.status] ?? x.status)}</span></p>
           <p class="mt-1 whitespace-pre-line text-tinta-700">${esc(x.cover_letter)}</p>
           <div class="mt-2 flex flex-wrap gap-2">
             ${['sent', 'shortlisted'].includes(x.status) && p.status === 'open' ? `<button class="btn-primary" type="button" data-accept="${esc(x.id)}">Aceitar proposta</button>` : ''}
@@ -93,7 +94,7 @@ const PROPOSAL_ERRORS = {
   // ---------------------------------------------- freelancer: enviar proposta
   const { data: mine } = await sb.from('proposals').select('amount_cents, deadline_days, status').eq('project_id', p.id).eq('freelancer_id', profile.id).maybeSingle();
   if (mine) {
-    side.innerHTML = `<div class="card text-sm"><h2 class="font-semibold">Sua proposta</h2><p class="mt-2">${brl(mine.amount_cents)} · ${mine.deadline_days} dias</p><p class="chip mt-2">${esc(mine.status)}</p>
+    side.innerHTML = `<div class="card text-sm"><h2 class="font-semibold">Sua proposta</h2><p class="mt-2">${brl(mine.amount_cents)} · ${mine.deadline_days} dias</p><p class="chip mt-2">${esc(PROPOSAL[mine.status] ?? mine.status)}</p>
       <p class="mt-3"><button class="btn-ghost" type="button" id="falar">Conversar com a empresa</button></p></div>${companyCard}`;
     $('#falar').addEventListener('click', async () => {
       const { data, error } = await sb.rpc('start_project_conversation', { p_project_id: p.id, p_freelancer_id: profile.id });

@@ -39,7 +39,7 @@ Se no futuro a decisão for intermediar 100% do valor, isso exige o modelo de sp
 
 ## Segurança: o que ainda falta antes de abrir ao público
 
-1. **Teste de ponta a ponta e teste de invasão em homologação.** As regras do banco estão testadas (141 verificações); as telas com login ainda não rodaram contra um Supabase real.
+1. **Homologação em Supabase real e teste de invasão independente.** Regras do banco (141 verificações) e fluxo de telas (18 passos, com tentativas de invasão) passam na simulação local; falta repetir no Supabase real.
 2. **CAPTCHA no cadastro e no login** (o Supabase Auth integra Turnstile/hCaptcha) e política de senha forte no painel do Supabase.
 3. **Rate limit compartilhado** (Redis) quando houver mais de uma instância do backend.
 4. **Verificação de arquivos enviados** (tipo real e antivírus) antes de habilitar upload de portfólio e anexos.
@@ -64,13 +64,22 @@ Se no futuro a decisão for intermediar 100% do valor, isso exige o modelo de sp
 | Tela de solicitações LGPD do titular | Tabela e políticas prontas |
 | Testes de carga | Roteiro pronto, não executado |
 
+## Verificado em simulação local (`npm run test:e2e`)
+
+Postgres real + PostgREST (o mesmo motor de API de dados do Supabase) + servidor real + navegador. O login,
+o ViaCEP, a BrasilAPI e o Mercado Pago são simulados por um gateway de teste; o webhook é assinado de verdade.
+18 passos: cadastro de empresa com CNPJ/CEP → projeto → cadastro de profissional → busca → proposta → chat →
+aceite → confirmação → pagamento da taxa → entrega → aprovação → saldo → avaliação → compra do Pro →
+perfil público → vaga e candidatura → 15 tentativas de invasão pela API → administração → celular.
+Os textos carregam uma carga de ataque (XSS) e o teste confirma que ela nunca executa.
+
 ## Não verificado
 
-- **Telas com login contra um Supabase real** — inclusive as escritas nesta etapa (contrato, plano, mensagens, perfil, publicar vaga, administração). Verificado apenas: todas carregam sem erro de script, redirecionam para o login quando não há sessão e não têm rolagem horizontal.
-- Fluxo de cadastro do segundo fator na tela de administração.
-- Tempo real do chat (há consulta periódica como rede de segurança).
+- **Supabase real**: Auth (confirmação de e-mail, redefinição de senha, cadastro do segundo fator), Storage e tempo real do chat. Na simulação o chat funciona pela consulta periódica.
 - Respostas reais de BrasilAPI, ViaCEP, Mercado Pago e Serpro.
-- Migration de Storage.
+- Telas de disputa e de decisão administrativa de disputa/denúncia (regras testadas no banco; telas não exercitadas no roteiro).
+- Migration de Storage e agendamentos com pg_cron.
+- Carga.
 
 ## Para colocar em homologação
 

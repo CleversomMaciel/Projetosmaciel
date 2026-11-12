@@ -12,6 +12,7 @@
     "build": "npm run build:css",
     "test": "node --test --test-reporter=spec \"server/test/*.test.js\"",
     "test:db": "bash supabase/tests/run.sh",
+    "test:e2e": "bash tests/e2e/run.sh",
     "model": "node docs/modelo-financeiro/modelo.mjs"
   },
   "dependencies": {

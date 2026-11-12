@@ -104,7 +104,7 @@ export function createSupabaseStore({ url, serviceRoleKey, anonKey }) {
       },
       async freelancer(slug) {
         return must(await pub.from('freelancer_profiles')
-          .select('slug, headline, bio, tools, completed_projects, rating_avg, rating_count, updated_at, profiles(display_name, city, uf)')
+          .select('slug, headline, bio, tools, completed_projects, rating_avg, rating_count, updated_at, profiles!freelancer_profiles_user_id_fkey(display_name, city, uf)')
           .eq('slug', slug).maybeSingle());
       },
       async category(slug) {

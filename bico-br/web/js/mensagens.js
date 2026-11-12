@@ -67,7 +67,7 @@ const thread = $('#thread');
     const conv = convs.find((m) => m.conversation_id === convId);
     $('#topo').textContent = conv?.conversations.projects?.title ?? 'Conversa';
     $('#enviar').hidden = false;
-    const { data: parts } = await sb.from('conversation_participants').select('user_id, profiles(display_name)').eq('conversation_id', convId);
+    const { data: parts } = await sb.from('conversation_participants').select('user_id, profiles!conversation_participants_user_id_fkey(display_name)').eq('conversation_id', convId);
     for (const p of parts ?? []) names.set(p.user_id, p.profiles?.display_name);
     await loadOlder();
     markRead();
