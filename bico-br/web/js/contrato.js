@@ -11,9 +11,9 @@ const STATUS = {
 };
 const EVENT = {
   proposal_accepted: 'Proposta aceita pela empresa', freelancer_confirmed: 'Contrato confirmado pelo profissional',
-  contract_started: 'Pagamento confirmado — execução iniciada, crédito do profissional retido', delivered: 'Entrega registrada na plataforma',
-  changes_requested: 'Ajustes solicitados', approved: 'Entrega validada — crédito liberado ao profissional',
-  auto_approved: 'Entrega validada automaticamente (prazo de análise esgotado) — crédito liberado',
+  contract_started: 'Pagamento confirmado pelo Mercado Pago — execução iniciada', delivered: 'Entrega registrada na plataforma',
+  changes_requested: 'Ajustes solicitados', approved: 'Entrega validada pela empresa — projeto concluído',
+  auto_approved: 'Entrega validada automaticamente (prazo de análise esgotado) — projeto concluído',
   completed_by_dispute: 'Contrato concluído por decisão da Central de Confiança', cancelled: 'Contrato cancelado',
   dispute_opened: 'Reclamação aberta na Central de Confiança', dispute_resolved: 'Reclamação encerrada',
   payment_refunded: 'Pagamento estornado', payment_charged_back: 'Pagamento contestado', payment_in_mediation: 'Pagamento em mediação',
@@ -23,7 +23,7 @@ const PAYOUT = {
   held: ['Crédito retido', 'O valor do profissional já foi pago pela empresa e fica retido até a entrega ser validada.'],
   blocked: ['Crédito em análise', 'Há uma reclamação aberta. O valor fica congelado até a decisão da Central de Confiança.'],
   released: ['Crédito liberado', 'A entrega foi validada. O repasse ao profissional está em andamento.'],
-  paid: ['Crédito repassado', 'O valor foi transferido ao profissional.'],
+  paid: ['Pagamento ao profissional', 'O Mercado Pago destinou este valor à conta Mercado Pago do profissional. A tarifa do Mercado Pago é descontada por ele. O Bico BR não guarda valores.'],
   refunded: ['Valor devolvido', 'O valor foi destinado à devolução para a empresa.'],
 };
 const ITEM = { pending: 'A entregar', delivered: 'Entregue', accepted: 'Validado', changes: 'Ajuste pedido' };
@@ -37,7 +37,7 @@ const safeLink = (url) => (/^https:\/\//i.test(url ?? '') ? `<a class="linkish b
   const uid = session.user.id;
 
   const [{ data: c }, { data: events }, { data: payments }, { data: reviews }, { data: disputes }, { data: items }, { data: payout }] = await Promise.all([
-    sb.from('contracts').select('*, projects(id, title)').eq('id', id).maybeSingle(),
+    sb.from('contracts').select('id, status, project_id, freelancer_id, company_user_id, scope, amount_cents, deposit_cents, deadline_days, due_at, is_first_bico, terms_version, projects(id, title)').eq('id', id).maybeSingle(),
     sb.from('contract_events').select('event, note, created_at').eq('contract_id', id).order('created_at'),
     sb.from('payments').select('id, kind, status, amount_cents').eq('contract_id', id),
     sb.from('reviews').select('reviewer_id, rating, comment').eq('contract_id', id),
@@ -78,28 +78,28 @@ const safeLink = (url) => (/^https:\/\//i.test(url ?? '') ? `<a class="linkish b
   let actions = '';
   if (c.status === 'awaiting_freelancer') {
     actions = isFreela
-      ? `<p class="text-sm">Confira escopo, valor, prazo e os itens a entregar. Ao confirmar, a empresa é avisada para pagar e o trabalho começa quando o pagamento for confirmado.</p><div class="flex flex-wrap gap-2">${btn('Confirmar contrato', 'confirm_contract')}${btn('Recusar', 'cancel_contract', 'btn-ghost')}</div>`
+      ? `<p class="text-sm">Confira escopo, valor, prazo e os itens a entregar. Para receber, sua conta do Mercado Pago precisa estar conectada em <a class="linkish" href="/perfil">Meu perfil</a>. Ao confirmar, a empresa é avisada para pagar e o trabalho começa quando o pagamento for confirmado.</p><div class="flex flex-wrap gap-2">${btn('Confirmar contrato', 'confirm_contract')}${btn('Recusar', 'cancel_contract', 'btn-ghost')}</div>`
       : `<p class="text-sm text-tinta-500">Aguardando o profissional confirmar o contrato.</p>${btn('Cancelar contrato', 'cancel_contract', 'btn-ghost')}`;
   } else if (c.status === 'awaiting_deposit') {
     actions = isCompany
-      ? `<p class="text-sm">Pague <strong>${brlExact(total)}</strong> para iniciar: ${brlExact(c.amount_cents)} do profissional + ${brlExact(c.deposit_cents)} de taxa de serviço. O valor do profissional fica retido e só é liberado quando você validar a entrega.</p><div class="flex flex-wrap gap-2">${charge?.status === 'pending' ? btn('Pagar e iniciar o projeto', 'pay') : '<span class="chip">Pagamento em processamento</span>'}${btn('Cancelar contrato', 'cancel_contract', 'btn-ghost')}</div>`
-      : '<p class="text-sm text-tinta-500">Aguardando o pagamento da empresa. Não comece o trabalho antes da confirmação: é ela que garante o seu crédito.</p>';
+      ? `<p class="text-sm">Pague <strong>${brlExact(total)}</strong> para iniciar, com cartão ou Pix, na página do Mercado Pago: ${brlExact(c.amount_cents)} vão direto para a conta do profissional e ${brlExact(c.deposit_cents)} são a taxa de serviço do Bico BR.</p><div class="flex flex-wrap gap-2">${charge?.status === 'pending' ? btn('Pagar e iniciar o projeto', 'pay') : '<span class="chip">Pagamento em processamento</span>'}${btn('Cancelar contrato', 'cancel_contract', 'btn-ghost')}</div>`
+      : '<p class="text-sm text-tinta-500">Aguardando o pagamento da empresa. Não comece o trabalho antes da confirmação.</p>';
   } else if (c.status === 'active') {
     actions = isFreela
-      ? `<p class="text-sm">Registre a entrega de <strong>todos os itens</strong> aqui na plataforma. É este registro que valida o trabalho e libera o seu crédito.</p>
+      ? `<p class="text-sm">Registre a entrega de <strong>todos os itens</strong> aqui na plataforma. É este registro que comprova o trabalho e vale em caso de reclamação.</p>
          <form class="space-y-3" data-form="deliver_contract" novalidate>
            <div><label class="label" for="n-deliver_contract">Resumo da entrega</label><textarea class="input" id="n-deliver_contract" rows="3" minlength="10" maxlength="3000" placeholder="Explique o que foi entregue e como a empresa confere." required></textarea></div>
            <button class="btn-primary" type="submit">Enviar entrega para validação</button></form>`
-      : `<p class="text-sm text-tinta-500">Em execução. Prazo combinado: ${fmtDate(c.due_at)}. O valor do profissional está retido com segurança.</p>`;
+      : `<p class="text-sm text-tinta-500">Em execução. Prazo combinado: ${fmtDate(c.due_at)}.</p>`;
   } else if (c.status === 'delivered') {
     actions = isCompany
-      ? `<p class="text-sm">Confira cada item acima. Ao validar, o crédito de ${brlExact(c.amount_cents)} é liberado ao profissional. Sem resposta em 7 dias, a entrega é validada automaticamente.</p>
-         <div class="flex flex-wrap gap-2">${btn('Validar entrega e liberar o crédito', 'approve_delivery')}</div>
+      ? `<p class="text-sm">Confira cada item acima. Validar conclui o projeto. Sem resposta em 7 dias, a entrega é validada automaticamente.</p>
+         <div class="flex flex-wrap gap-2">${btn('Validar entrega e concluir', 'approve_delivery')}</div>
          <form class="space-y-2" data-form="request_changes" novalidate>
            <label class="label" for="n-request_changes">Pedir ajustes <span class="font-normal text-tinta-500">(marque acima os itens que precisam de ajuste)</span></label>
            <textarea class="input" id="n-request_changes" rows="3" minlength="10" maxlength="2000" placeholder="O que precisa ser ajustado?" required></textarea>
            <button class="btn-ghost" type="submit">Pedir ajustes</button></form>`
-      : '<p class="text-sm text-tinta-500">Entrega enviada. A empresa tem 7 dias para validar; depois disso a validação é automática e o seu crédito é liberado.</p>';
+      : '<p class="text-sm text-tinta-500">Entrega enviada. A empresa tem 7 dias para validar; depois disso a validação é automática.</p>';
   } else if (c.status === 'completed') {
     actions = myReview ? `<p class="text-sm text-tinta-500">Você avaliou com nota ${myReview.rating}.</p>` : `
       <form class="space-y-2" data-form="review" novalidate>
@@ -113,7 +113,7 @@ const safeLink = (url) => (/^https:\/\//i.test(url ?? '') ? `<a class="linkish b
 
   const [poTitle, poText] = PAYOUT[payout?.status] ?? [];
   const payoutBox = payout ? `<div class="${payout.status === 'blocked' ? 'notice-warn' : 'notice-info'} flex items-start gap-3">${icon(payout.status === 'paid' || payout.status === 'released' ? 'check' : 'shield')}
-      <p><strong>${poTitle}: ${brlExact(payout.amount_cents)}</strong><br>${poText}${isFreela && payout.status === 'released' ? ' Confira a sua chave Pix em <a class="linkish" href="/perfil">Meu perfil</a>.' : ''}</p></div>` : '';
+      <p><strong>${poTitle}: ${brlExact(payout.amount_cents)}</strong><br>${poText}</p></div>` : '';
 
   const disputeBlock = openDispute ? `
     <section class="card space-y-3"><h2 class="font-semibold">Reclamação ${esc(openDispute.protocol)}</h2>
@@ -127,7 +127,7 @@ const safeLink = (url) => (/^https:\/\//i.test(url ?? '') ? `<a class="linkish b
     : ['active', 'delivered', 'completed'].includes(c.status) ? `
     <details class="card" id="reclamar"><summary class="cursor-pointer font-semibold">Algo saiu do combinado? Abrir reclamação</summary>
       <form class="mt-4 space-y-3" data-form="open_dispute" novalidate>
-        <p class="text-sm text-tinta-700">A equipe analisa o caso com base no contrato, nos itens entregues, nas mensagens e nas evidências das duas partes. Enquanto a análise durar, o crédito ainda não repassado fica congelado. Você pode reclamar até 30 dias depois da conclusão.</p>
+        <p class="text-sm text-tinta-700">A equipe analisa o caso com base no contrato, nos itens entregues, nas mensagens e nas evidências das duas partes. Se a decisão for pela devolução, ela é feita pelo Mercado Pago. Você pode reclamar até 30 dias depois da conclusão.</p>
         <div><label class="label" for="motivo">Motivo</label><select class="input" id="motivo">${Object.entries(REASONS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select></div>
         <div><label class="label" for="n-open_dispute">Descreva o que aconteceu</label><textarea class="input" id="n-open_dispute" rows="3" minlength="20" maxlength="5000" required></textarea></div>
         <button class="btn-ghost" type="submit">Abrir reclamação</button>
@@ -146,12 +146,12 @@ const safeLink = (url) => (/^https:\/\//i.test(url ?? '') ? `<a class="linkish b
         <div><dt class="text-xs text-tinta-500">Total pago pela empresa</dt><dd class="font-semibold">${brlExact(total)}</dd></div>
         <div><dt class="text-xs text-tinta-500">Prazo</dt><dd class="font-semibold">${c.deadline_days} dias</dd></div>
       </dl>
-      <p class="mt-4 text-xs text-tinta-500">O profissional recebe 100% do valor proposto. A taxa de serviço é paga pela empresa. Termos: versão ${esc(c.terms_version)}.</p>
+      <p class="mt-4 text-xs text-tinta-500">A taxa de serviço é paga pela empresa. O valor do profissional vai direto para a conta Mercado Pago dele; o Bico BR não desconta comissão. Termos: versão ${esc(c.terms_version)}.</p>
       <h2 class="mt-5 font-semibold">Escopo</h2><p class="mt-1 whitespace-pre-line text-sm text-tinta-700">${esc(c.scope)}</p>
     </section>
     ${payoutBox}
     <section class="card"><h2 class="font-semibold">Itens da entrega</h2>
-      <p class="mt-1 text-xs text-tinta-500">A entrega acontece aqui dentro: cada item é entregue pelo profissional e conferido pela empresa. É esse registro que libera o crédito e que vale em caso de reclamação.</p>
+      <p class="mt-1 text-xs text-tinta-500">A entrega acontece aqui dentro: cada item é entregue pelo profissional e conferido pela empresa. É esse registro que conclui o projeto e que vale em caso de reclamação.</p>
       <ul class="mt-4 space-y-3" id="itens">${itemsHtml}</ul></section>
     ${actions ? `<section class="card space-y-4" id="acoes"><h2 class="font-semibold">Próximo passo</h2>${actions}</section>` : ''}
     <section class="card"><div class="flex items-center justify-between"><h2 class="font-semibold">Histórico</h2><button class="linkish text-sm" type="button" data-action="chat">Abrir conversa</button></div>
@@ -183,7 +183,7 @@ const safeLink = (url) => (/^https:\/\//i.test(url ?? '') ? `<a class="linkish b
       if (!confirm('Cancelar este contrato?')) return;
       return run(el, () => sb.rpc('cancel_contract', { p_contract_id: id, p_reason: isFreela ? 'Recusado pelo profissional' : 'Cancelado pela empresa' }));
     }
-    if (a === 'approve_delivery' && !confirm('Validar a entrega e liberar o crédito ao profissional? Esta ação conclui o contrato.')) return;
+    if (a === 'approve_delivery' && !confirm('Validar a entrega? Esta ação conclui o contrato.')) return;
     run(el, () => sb.rpc(a, { p_contract_id: id }));
   });
 

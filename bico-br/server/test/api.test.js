@@ -4,6 +4,7 @@ import crypto from 'node:crypto';
 import { startApp, fakeFetch, fakeStore, jsonResponse } from './helpers.js';
 import { verifyWebhookSignature, buildManifest } from '../src/services/mercadoPago.js';
 import { createLogger } from '../src/lib/logger.js';
+import { decrypt, encrypt, loadKey, signState, verifyState } from '../src/lib/crypto.js';
 
 const viaCepOk = () => jsonResponse(200, { cep: '01001-000', logradouro: 'Praça da Sé', bairro: 'Sé', localidade: 'São Paulo', uf: 'SP', ibge: '3550308' });
 const cnpjOk = () => jsonResponse(200, { razao_social: 'EMPRESA REAL LTDA', nome_fantasia: 'Empresa Real', descricao_situacao_cadastral: 'ATIVA', data_inicio_atividade: '2020-01-15', cnae_fiscal: 6201501, cnae_fiscal_descricao: 'Desenvolvimento de software', qsa: [{ nome_socio: 'SOCIO X' }] });
@@ -174,38 +175,113 @@ test('webhook: pagamento sem referência nossa ou em outra moeda não altera nad
   }
 });
 
-test('checkout: valor vem do banco, só o pagador inicia, preferência é reaproveitada', async (t) => {
+test('checkout de projeto: pagamento dividido com a conta do profissional; valor e taxa vêm do banco', async (t) => {
   const created = [];
-  const mp = { configured: true, getPayment: async () => null, createPreference: async (p) => { created.push(p); return { preferenceId: 'pref-1', checkoutUrl: 'https://mp.example/checkout/pref-1' }; } };
+  const mp = { configured: true, marketplaceConfigured: true, getPayment: async () => null, createPreference: async (p) => { created.push(p); return { preferenceId: 'pref-1', checkoutUrl: 'https://mp.example/checkout/pref-1' }; } };
   const app = await startApp({ mp });
   t.after(app.close);
-  app.store.payments.set(PAYMENT_UUID, { id: PAYMENT_UUID, kind: 'deposit', status: 'pending', amount_cents: 15000, payer_id: 'user-company', contract_id: 'c-1', checkout_url: null, contracts: { projects: { title: 'Dashboard' } } });
+  const key = loadKey('ab'.repeat(32));
+  app.store.payments.set(PAYMENT_UUID, { id: PAYMENT_UUID, kind: 'deposit', status: 'pending', amount_cents: 165000, payer_id: 'user-company', contract_id: 'c-1', checkout_url: null, contracts: { freelancer_id: 'user-freela', deposit_cents: 15000, projects: { title: 'Dashboard' } } });
   const url = `/api/payments/${PAYMENT_UUID}/checkout`;
 
   assert.equal((await app.post(url, {})).status, 401);
   assert.equal((await app.post(url, {}, auth('tok-freela'))).status, 404, 'cobrança de outro usuário parece inexistente');
   assert.equal((await app.post('/api/payments/nao-e-uuid/checkout', {}, auth('tok-company'))).status, 400);
+  assert.equal((await app.post(url, {}, auth('tok-company'))).status, 409, 'sem conta do profissional conectada não há cobrança');
 
-  // o navegador tenta impor outro valor: é ignorado
-  const res = await app.post(url, { amount_cents: 1, amountCents: 1 }, auth('tok-company'));
+  app.store.mpAccounts.set('user-freela', { user_id: 'user-freela', mp_user_id: '777', access_token_enc: encrypt('TOKEN-DO-PROFISSIONAL', key), refresh_token_enc: null, expires_at: new Date(Date.now() + 90 * 86400000).toISOString() });
+  // o navegador tenta impor outro valor e outra taxa: é ignorado
+  const res = await app.post(url, { amount_cents: 1, marketplace_fee: 0 }, auth('tok-company'));
   assert.equal(res.status, 200);
   assert.equal((await res.json()).checkoutUrl, 'https://mp.example/checkout/pref-1');
-  assert.equal(created[0].amountCents, 15000);
-  assert.equal(created[0].paymentId, PAYMENT_UUID);
-  assert.equal(created[0].notificationUrl, 'https://bicobr.example/api/webhooks/mercadopago');
+  assert.equal(created[0].amountCents, 165000);
+  assert.equal(created[0].marketplaceFeeCents, 15000, 'taxa do Bico BR separada pelo Mercado Pago');
+  assert.equal(created[0].sellerAccessToken, 'TOKEN-DO-PROFISSIONAL', 'cobrança criada na conta do profissional: a plataforma não recebe a parte dele');
+  assert.equal(created[0].notificationUrl, `https://bicobr.example/api/webhooks/mercadopago?ref=${PAYMENT_UUID}`);
 
   await app.post(url, {}, auth('tok-company'));
   assert.equal(created.length, 1, 'segunda chamada reaproveita o checkout');
-
   app.store.payments.get(PAYMENT_UUID).status = 'approved';
   assert.equal((await app.post(url, {}, auth('tok-company'))).status, 409);
 });
 
+test('conexão Mercado Pago: state assinado, tokens cifrados no armazenamento', async (t) => {
+  const mp = { configured: true, marketplaceConfigured: true, exchangeCode: async (code, redirect) => ({ accessToken: `ACCESS-${code}`, refreshToken: 'REFRESH-1', mpUserId: '555', expiresAt: '2027-01-01T00:00:00.000Z', redirect }) };
+  const app = await startApp({ mp });
+  t.after(app.close);
+  assert.equal((await app.get('/api/mp/connect')).status, 401);
+  assert.equal((await app.get('/api/mp/connect', auth('tok-company'))).status, 403, 'empresa não conecta conta para receber');
+  const { url } = await (await app.get('/api/mp/connect', auth('tok-freela'))).json();
+  const u = new URL(url);
+  assert.equal(u.origin + u.pathname, 'https://auth.mercadopago.com.br/authorization');
+  assert.equal(u.searchParams.get('client_id'), 'app-123');
+  assert.equal(u.searchParams.get('redirect_uri'), 'https://bicobr.example/api/mp/callback');
+  assert.equal(url.includes('segredo-do-app'), false, 'o segredo do aplicativo nunca vai para o navegador');
+  const state = u.searchParams.get('state');
+
+  const noFollow = (p) => fetch(app.base + p, { redirect: 'manual' });
+  const forged = await noFollow(`/api/mp/callback?code=abc&state=${state.replace('user-freela', 'user-company')}`);
+  assert.equal(forged.headers.get('location'), '/perfil?mp=erro', 'state adulterado é recusado');
+  assert.equal(app.store.mpAccounts.size, 0);
+  const ok = await noFollow(`/api/mp/callback?code=abc&state=${state}`);
+  assert.equal(ok.headers.get('location'), '/perfil?mp=ok');
+  const saved = app.store.mpAccounts.get('user-freela');
+  assert.equal(JSON.stringify(saved).includes('ACCESS-abc'), false, 'token não é guardado em texto puro');
+  assert.equal(decrypt(saved.access_token_enc, loadKey('ab'.repeat(32))), 'ACCESS-abc');
+  assert.equal(verifyState(signState('u1', loadKey('ab'.repeat(32)), 900, Date.now() - 3600_000), loadKey('ab'.repeat(32))), null, 'state vencido é recusado');
+  assert.throws(() => decrypt(saved.access_token_enc.slice(0, -4) + 'AAAA', loadKey('ab'.repeat(32))), 'cifra adulterada é detectada');
+});
+
+test('webhook de projeto consulta o pagamento com a conta do profissional e confere a referência', async (t) => {
+  const used = [];
+  const mp = { configured: true, getPayment: async (id, token) => { used.push(token); return { id, status: 'approved', statusDetail: 'accredited', amountCents: 165000, currency: 'BRL', externalReference: PAYMENT_UUID }; } };
+  const app = await startApp({ mp });
+  t.after(app.close);
+  const key = loadKey('ab'.repeat(32));
+  app.store.payments.set(PAYMENT_UUID, { id: PAYMENT_UUID, kind: 'deposit', status: 'pending', amount_cents: 165000, payer_id: 'user-company', contracts: { freelancer_id: 'user-freela', deposit_cents: 15000 } });
+  app.store.mpAccounts.set('user-freela', { access_token_enc: encrypt('TOKEN-DO-PROFISSIONAL', key), expires_at: new Date(Date.now() + 90 * 86400000).toISOString() });
+  const headers = { 'x-request-id': 'r1', 'x-signature': sign({ dataId: '900', requestId: 'r1' }) };
+  const res = await app.post(`/api/webhooks/mercadopago?data.id=900&type=payment&ref=${PAYMENT_UUID}`, { type: 'payment', action: 'payment.created', data: { id: '900' } }, headers);
+  assert.equal((await res.json()).outcome, 'approved');
+  assert.deepEqual(used, ['TOKEN-DO-PROFISSIONAL']);
+  // referência trocada na URL não redireciona o pagamento para outro registro
+  const other = '11111111-2222-4333-8444-555555555555';
+  app.store.payments.set(other, { id: other, kind: 'subscription', status: 'pending', amount_cents: 2500, payer_id: 'user-freela' });
+  const h2 = { 'x-request-id': 'r2', 'x-signature': sign({ dataId: '901', requestId: 'r2' }) };
+  const res2 = await app.post(`/api/webhooks/mercadopago?data.id=901&type=payment&ref=${other}`, { type: 'payment', action: 'payment.created', data: { id: '901' } }, h2);
+  assert.equal((await res2.json()).outcome, 'reference_mismatch');
+  assert.equal(app.store.state.paymentUpdates.length, 1);
+});
+
 test('checkout: sem credenciais do Mercado Pago responde 503, sem inventar pagamento', async (t) => {
-  const app = await startApp({ mp: { configured: false } });
+  const app = await startApp({ mp: { configured: false, marketplaceConfigured: false } });
   t.after(app.close);
   app.store.payments.set(PAYMENT_UUID, { id: PAYMENT_UUID, kind: 'subscription', status: 'pending', amount_cents: 2990, payer_id: 'user-freela', plans: { name: 'Bico BR Pro' } });
   assert.equal((await app.post(`/api/payments/${PAYMENT_UUID}/checkout`, {}, auth('tok-freela'))).status, 503);
+});
+
+test('segurança: HTTPS forçado, cabeçalhos, CAPTCHA opcional e id de webhook estrito', async (t) => {
+  const prod = await startApp({ env: { FORCE_HTTPS: 'true', TRUST_PROXY: '1', TURNSTILE_SITE_KEY: '0x4AAAA-chave-publica' } });
+  t.after(prod.close);
+  const plain = await fetch(`${prod.base}/projetos?x=1`, { redirect: 'manual' });
+  assert.deepEqual([plain.status, plain.headers.get('location')], [308, 'https://bicobr.example/projetos?x=1']);
+  const viaProxy = await fetch(`${prod.base}/api/config`, { headers: { 'x-forwarded-proto': 'https' } });
+  assert.equal(viaProxy.status, 200);
+  assert.match(viaProxy.headers.get('strict-transport-security'), /max-age=63072000; includeSubDomains; preload/);
+  assert.match(viaProxy.headers.get('permissions-policy'), /camera=\(\)/);
+  assert.equal(viaProxy.headers.get('x-content-type-options'), 'nosniff');
+  const csp = viaProxy.headers.get('content-security-policy');
+  assert.match(csp, /script-src 'self' https:\/\/challenges\.cloudflare\.com/);
+  assert.match(csp, /frame-ancestors 'none'/);
+  assert.equal((await viaProxy.json()).turnstileSiteKey, '0x4AAAA-chave-publica');
+
+  const dev = await startApp();
+  t.after(dev.close);
+  const devCsp = (await dev.get('/api/config')).headers.get('content-security-policy');
+  assert.equal(/cloudflare/.test(devCsp), false, 'sem CAPTCHA configurado, nenhum domínio externo é liberado');
+  assert.match(devCsp, /frame-src 'none'/);
+  const bad = await dev.post("/api/webhooks/mercadopago?data.id=../../oauth/token&type=payment", {}, { 'x-request-id': 'r', 'x-signature': sign({ dataId: '../../oauth/token', requestId: 'r' }) });
+  assert.equal(bad.status, 400, 'id de pagamento fora do formato é recusado mesmo com assinatura válida');
 });
 
 // ---------------------------------------------------------------- transversais
@@ -214,7 +290,7 @@ test('/api/config expõe só valores públicos; cabeçalhos de segurança presen
   t.after(app.close);
   const res = await app.get('/api/config');
   const raw = await res.text();
-  assert.deepEqual(Object.keys(JSON.parse(raw)).sort(), ['allowPfContractors', 'supabaseAnonKey', 'supabaseUrl']);
+  assert.deepEqual(Object.keys(JSON.parse(raw)).sort(), ['allowPfContractors', 'supabaseAnonKey', 'supabaseUrl', 'turnstileSiteKey']);
   for (const secret of ['srv', 'TOKEN-SECRETO-MP', 'SEGREDO-SERPRO', 'segredo-de-teste']) assert.equal(raw.includes(secret), false);
   assert.match(res.headers.get('content-security-policy'), /script-src 'self'/);
   assert.equal(res.headers.get('x-powered-by'), null);
@@ -229,7 +305,9 @@ test('robots.txt bloqueia áreas privadas e sitemap escapa XML', async (t) => {
   assert.match(robots, /Sitemap: https:\/\/bicobr\.example\/sitemap\.xml/);
   const sitemap = await (await app.get('/sitemap.xml')).text();
   assert.match(sitemap, /projetos\?categoria=design<\/loc><lastmod>2026-11-01/);
-  assert.match(sitemap, /<loc>https:\/\/bicobr\.example\/vagas<\/loc>/);
+  assert.equal(sitemap.includes('/vagas'), false, 'vagas de emprego saíram do site');
+  const moved = await fetch(`${app.base}/vagas`, { redirect: 'manual' });
+  assert.deepEqual([moved.status, moved.headers.get('location')], [301, '/projetos']);
   assert.equal(sitemap.includes('/painel'), false);
 });
 

@@ -46,7 +46,8 @@ ANON="$(node -e "console.log(JSON.parse(process.argv[1]).anon)" "$TOKENS")"; SER
 NODE_ENV=test PORT=$APP_PORT PUBLIC_URL="http://127.0.0.1:$APP_PORT" SUPABASE_URL="http://127.0.0.1:$GW_PORT" \
   SUPABASE_ANON_KEY="$ANON" SUPABASE_SERVICE_ROLE_KEY="$SERVICE" \
   VIACEP_BASE_URL="http://127.0.0.1:$GW_PORT/fake/viacep" BRASILAPI_BASE_URL="http://127.0.0.1:$GW_PORT/fake/brasilapi" CEP_PROVIDERS=viacep \
-  MP_ACCESS_TOKEN="TEST-TOKEN" MP_API_BASE="http://127.0.0.1:$GW_PORT/fake/mp" \
+  MP_ACCESS_TOKEN="TEST-TOKEN" MP_API_BASE="http://127.0.0.1:$GW_PORT/fake/mp" MP_CLIENT_ID="app-e2e" MP_CLIENT_SECRET="segredo-app-e2e" \
+  MP_AUTH_URL="http://127.0.0.1:$GW_PORT/fake/mp/authorize" MP_TOKEN_ENCRYPTION_KEY="0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" \
   node "$APP/server/src/index.js" > "$OUT/app.log" 2>&1 & PIDS+=($!)
 for i in $(seq 1 60); do curl -fs "http://127.0.0.1:$APP_PORT/api/health" >/dev/null 2>&1 && break; sleep 0.25; done
 

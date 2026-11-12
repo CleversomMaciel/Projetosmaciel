@@ -34,13 +34,13 @@
       <div class="mt-8 grid gap-6 lg:grid-cols-2">
         <section class="card lg:col-span-2" aria-labelledby="t-recl">
           <h2 id="t-recl" class="text-xl font-extrabold">Reclamar de um projeto contratado</h2>
-          <p class="mt-1 text-sm text-tinta-700">O projeto não foi entregue, veio diferente do combinado ou houve problema com o pagamento? Abra a reclamação pelo contrato, até 30 dias depois da conclusão. O crédito ainda não repassado fica congelado até a decisão.</p>
+          <p class="mt-1 text-sm text-tinta-700">O projeto não foi entregue, veio diferente do combinado ou houve problema com o pagamento? Abra a reclamação pelo contrato, até 30 dias depois da conclusão. A equipe analisa o que foi entregue dentro da plataforma e decide com justificativa.</p>
           <ul id="contratos" class="mt-4 space-y-2 text-sm"><li class="text-tinta-500">Entre na sua conta para ver seus contratos.</li></ul>
         </section>
         <form id="form-denuncia" class="card space-y-4" novalidate aria-labelledby="t-den">
           <h2 id="t-den" class="text-xl font-extrabold">Denunciar</h2>
           <p class="text-sm text-tinta-700">Perfil falso, golpe, pedido de pagamento por fora, conteúdo impróprio. A denúncia é sigilosa.</p>
-          <div><label class="label" for="alvo-tipo">O que você quer denunciar</label><select class="input" id="alvo-tipo"><option value="project">Um projeto</option><option value="job">Uma vaga</option><option value="user">Uma pessoa ou empresa</option><option value="message">Uma mensagem</option><option value="review">Uma avaliação</option></select></div>
+          <div><label class="label" for="alvo-tipo">O que você quer denunciar</label><select class="input" id="alvo-tipo"><option value="project">Um projeto</option><option value="user">Uma pessoa ou empresa</option><option value="message">Uma mensagem</option><option value="review">Uma avaliação</option></select></div>
           <div><label class="label" for="alvo-id">Link ou identificação</label><input class="input" id="alvo-id" maxlength="80" required placeholder="Cole o link da página"></div>
           <div><label class="label" for="motivo">Motivo</label><select class="input" id="motivo"><option value="fraude">Fraude ou golpe</option><option value="pagamento_por_fora">Pedido de pagamento por fora</option><option value="dados_falsos">Dados falsos</option><option value="spam">Spam</option><option value="assedio">Assédio</option><option value="conteudo_improprio">Conteúdo impróprio</option><option value="outro">Outro</option></select></div>
           <div><label class="label" for="detalhes">O que aconteceu</label><textarea class="input" id="detalhes" rows="3" maxlength="3000" required></textarea></div>

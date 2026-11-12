@@ -11,6 +11,8 @@ import { lookupRoutes } from './routes/lookup.js';
 import { companyRoutes } from './routes/companies.js';
 import { webhookRoutes } from './routes/webhooks.js';
 import { paymentRoutes } from './routes/payments.js';
+import { mpRoutes } from './routes/mp.js';
+import { loadKey } from './lib/crypto.js';
 import { seoRoutes } from './routes/seo.js';
 import { publicPageRoutes } from './routes/publicPages.js';
 
@@ -19,20 +21,26 @@ const webDir = path.resolve(here, '../../web');
 const require = createRequire(import.meta.url);
 
 // páginas privadas: servidas normalmente, mas marcadas para não indexar
-const PRIVATE_PAGES = new Set(['entrar', 'cadastro', 'onboarding', 'painel', 'publicar-projeto', 'publicar-vaga', 'contrato', 'plano', 'mensagens', 'admin', 'perfil']);
-const PUBLIC_PAGES = new Set(['index', 'projetos', 'projeto', 'vagas', 'confianca', 'profissional', 'anuncie', 'termos', 'privacidade', 'suporte', 'profissionais', 'vitrine']);
+const PRIVATE_PAGES = new Set(['entrar', 'cadastro', 'onboarding', 'painel', 'publicar-projeto', 'contrato', 'plano', 'mensagens', 'admin', 'perfil']);
+const PUBLIC_PAGES = new Set(['index', 'projetos', 'projeto', 'confianca', 'profissional', 'anuncie', 'termos', 'privacidade', 'suporte', 'profissionais', 'vitrine']);
 
 export function createApp({ config, store, registries, mp, logger }) {
   const app = express();
   app.disable('x-powered-by');
   app.set('trust proxy', config.trustProxy);
 
+  // regra 19: HTTP -> HTTPS em produção (atrás de proxy, que informa o protocolo original)
+  if (config.forceHttps) {
+    app.use((req, res, next) => (req.secure ? next() : res.redirect(308, `${config.publicUrl}${req.originalUrl}`)));
+  }
   const supabaseOrigin = config.supabase.url ? new URL(config.supabase.url).origin : null;
+  const turnstile = config.turnstileSiteKey ? ['https://challenges.cloudflare.com'] : [];
   app.use(helmet({
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'"],
+        scriptSrc: ["'self'", ...turnstile],
+        frameSrc: turnstile.length ? turnstile : ["'none'"],
         styleSrc: ["'self'"],
         imgSrc: ["'self'", 'data:', 'blob:', ...(supabaseOrigin ? [supabaseOrigin] : [])],
         connectSrc: ["'self'", ...(supabaseOrigin ? [supabaseOrigin, supabaseOrigin.replace(/^http/, 'ws')] : [])],
@@ -43,7 +51,10 @@ export function createApp({ config, store, registries, mp, logger }) {
       },
     },
     referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    strictTransportSecurity: { maxAge: 63072000, includeSubDomains: true, preload: true },
   }));
+  // recursos do navegador que o site não usa ficam desligados
+  app.use((_req, res, next) => { res.set('permissions-policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()'); next(); });
   app.use(express.json({ limit: '100kb' }));
 
   const auth = requireAuth(store);
@@ -54,12 +65,14 @@ export function createApp({ config, store, registries, mp, logger }) {
   // Somente valores públicos. A service role key e segredos de terceiros nunca saem do servidor.
   api.get('/config', (_req, res) => res.json({
     supabaseUrl: config.supabase.url || null, supabaseAnonKey: config.supabase.anonKey || null,
-    allowPfContractors: config.features.allowPfContractors,
+    allowPfContractors: config.features.allowPfContractors, turnstileSiteKey: config.turnstileSiteKey || null,
   }));
   api.use(lookupRoutes({ registries, auth }));
   api.use(companyRoutes({ store, registries, auth, config }));
-  api.use(paymentRoutes({ store, mp, auth, config }));
-  api.use(webhookRoutes({ store, mp, config, logger }));
+  const key = loadKey(config.mercadoPago.tokenEncryptionKey);
+  api.use(mpRoutes({ store, mp, auth, config, key, logger }));
+  api.use(paymentRoutes({ store, mp, auth, config, key }));
+  api.use(webhookRoutes({ store, mp, config, logger, key }));
   api.use((_req, res) => res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Rota não encontrada' } }));
   app.use('/api', api);
 
@@ -84,6 +97,7 @@ export function createApp({ config, store, registries, mp, logger }) {
     } catch (err) { next(err.code === 'ENOENT' ? undefined : err); }
   };
   app.use(publicPageRoutes({ store, config, logger, renderPage }));
+  app.get(['/vagas', '/vaga', '/publicar-vaga'], (_req, res) => res.redirect(301, '/projetos'));
   app.get(['/', '/index.html'], sendPage('index'));
   app.get('/:page', (req, res, next) => {
     const page = req.params.page.replace(/\.html$/, '');

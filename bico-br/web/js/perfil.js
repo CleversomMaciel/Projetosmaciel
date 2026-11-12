@@ -1,4 +1,4 @@
-import { $, esc, getClient, imageKind, mountChrome, requireSession, rpcMessage, setBusy, showNotice } from './core.js';
+import { $, api, esc, getClient, imageKind, mountChrome, requireSession, rpcMessage, setBusy, showNotice } from './core.js';
 import { POST_SELECT, renderPost } from './publicacoes.js';
 import { mountSkillPicker, saveSkills } from './habilidades.js';
 
@@ -9,17 +9,29 @@ const aviso = $('#aviso');
   const session = await requireSession();
   const uid = session.user.id;
   const { sb } = await getClient();
-  const { data: fp } = await sb.from('freelancer_profiles').select('slug, headline, bio, availability, tools, is_public').eq('user_id', uid).maybeSingle();
+  const { data: fp } = await sb.from('freelancer_profiles').select('slug, headline, bio, availability, tools, is_public, mp_connected').eq('user_id', uid).maybeSingle();
   if (!fp) return showNotice(aviso, 'warn', 'O perfil profissional é para contas de profissional.');
   $('#form').hidden = false; $('#portfolio').hidden = false;
   $('#headline').value = fp.headline ?? ''; $('#bio').value = fp.bio ?? ''; $('#availability').value = fp.availability ?? '';
   $('#tools').value = (fp.tools ?? []).join(', '); $('#slug').value = fp.slug; $('#publico').checked = fp.is_public;
   $('#ver').href = `/profissional?u=${encodeURIComponent(fp.slug)}`;
-  const [{ data: mySkills }, { data: priv }] = await Promise.all([
-    sb.from('freelancer_skills').select('skill_id').eq('user_id', uid),
-    sb.from('profile_private').select('pix_key').eq('user_id', uid).maybeSingle(),
-  ]);
-  $('#pix').value = priv?.pix_key ?? '';
+  const { data: mySkills } = await sb.from('freelancer_skills').select('skill_id').eq('user_id', uid);
+  // conta Mercado Pago: é por ela que o profissional recebe
+  const mpResult = new URLSearchParams(location.search).get('mp');
+  if (mpResult === 'ok') showNotice(aviso, 'info', 'Conta do Mercado Pago conectada. Você já pode confirmar contratos e receber.');
+  if (mpResult === 'erro') showNotice(aviso, 'error', 'Não foi possível conectar a conta do Mercado Pago. Tente de novo.');
+  $('#mp-estado').innerHTML = fp.mp_connected
+    ? '<span class="chip">Conta do Mercado Pago conectada</span> <button class="linkish ml-2 text-xs" type="button" id="mp-conectar">Trocar de conta</button>'
+    : '<button class="btn-primary" type="button" id="mp-conectar">Conectar conta do Mercado Pago</button>';
+  $('#mp-conectar').addEventListener('click', async (ev) => {
+    ev.target.disabled = true;
+    try {
+      const { url } = await api('/mp/connect');
+      const target = new URL(url);
+      if (!['https:', 'http:'].includes(target.protocol)) throw new Error('Endereço inválido.');
+      location.assign(target.href);
+    } catch (err) { ev.target.disabled = false; showNotice(aviso, 'error', err.message); }
+  });
   const picker = await mountSkillPicker($('#habilidades'), { max: 30, selected: (mySkills ?? []).map((r) => r.skill_id) });
 
   $('#form').addEventListener('submit', async (ev) => {
@@ -32,13 +44,9 @@ const aviso = $('#aviso');
       headline: $('#headline').value.trim() || null, bio: $('#bio').value.trim() || null,
       availability: $('#availability').value || null, tools, slug, is_public: $('#publico').checked,
     }).eq('user_id', uid);
-    const pix = $('#pix').value.trim();
     if (!error) {
-      try {
-        await saveSkills('freelancer_skills', 'user_id', uid, picker.get());
-        const r = await sb.from('profile_private').update({ pix_key: pix || null }).eq('user_id', uid);
-        if (r.error) throw r.error;
-      } catch { setBusy(ev.submitter, false); return showNotice(aviso, 'error', 'Perfil salvo, mas não foi possível gravar habilidades ou a chave Pix. Confira os campos.'); }
+      try { await saveSkills('freelancer_skills', 'user_id', uid, picker.get()); }
+      catch { setBusy(ev.submitter, false); return showNotice(aviso, 'error', 'Perfil salvo, mas não foi possível gravar as habilidades.'); }
     }
     setBusy(ev.submitter, false);
     if (error) return showNotice(aviso, 'error', error.code === '23505' ? 'Este endereço de perfil já está em uso.' : rpcMessage(error, 'Não foi possível salvar o perfil.'));

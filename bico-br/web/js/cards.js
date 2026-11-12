@@ -1,11 +1,9 @@
-// Cards expansíveis de projetos e vagas. Tudo é resolvido dentro do card:
-// ler os detalhes, enviar proposta, candidatar-se e abrir a conversa.
-import { $, brl, budgetLabel, esc, getClient, getProfile, icon, parseBrlToCents, rpcMessage, setBusy, showNotice, timeAgo } from './core.js';
+// Cards expansíveis de projetos. Tudo é resolvido dentro do card:
+// ler os detalhes, enviar proposta e abrir a conversa.
+import { $, brl, budgetLabel, esc, getClient, getProfile, icon, parseBrlToCents, setBusy, showNotice, timeAgo } from './core.js';
 
-const CONTRACT = { clt: 'CLT', pj: 'PJ', estagio: 'Estágio', temporario: 'Temporário', freelancer: 'Freelancer', projeto: 'Por projeto' };
 const LEVEL = { estagio: 'Estágio', junior: 'Júnior', pleno: 'Pleno', senior: 'Sênior', especialista: 'Especialista' };
 const PROPOSAL = { sent: 'Enviada', shortlisted: 'Pré-selecionada', accepted: 'Aceita', rejected: 'Recusada', withdrawn: 'Retirada' };
-const APPLICATION = { submitted: 'Enviada', in_review: 'Em análise', interview: 'Entrevista', rejected: 'Não selecionada', hired: 'Contratada', withdrawn: 'Retirada' };
 const PROPOSAL_ERRORS = {
   PRO_REQUIRED: 'Você já concluiu seu primeiro bico. Para enviar novas propostas, ative um plano em Meu painel → Ver planos.',
   QUOTA_EXCEEDED: 'Você usou todas as propostas do ciclo atual do seu plano.',
@@ -17,11 +15,8 @@ const avatar = (name) => {
   const tone = TONES[[...n].reduce((a, c) => a + c.charCodeAt(0), 0) % TONES.length];
   return `<span class="avatar ${tone}" aria-hidden="true">${esc(n.charAt(0).toUpperCase())}</span>`;
 };
-const salary = (j) => (j.salary_min_cents || j.salary_max_cents
-  ? [j.salary_min_cents, j.salary_max_cents].filter(Boolean).map(brl).join(' – ') : 'A combinar');
 
 export const PROJECT_SELECT = 'id, kind, status, title, description, deliverables, budget_type, budget_min_cents, budget_max_cents, deadline_days, experience_level, professionals_wanted, published_at, proposals_count, category_id, categories(name, slug), project_skills(skill_id, skills(name)), companies(display_name, city, uf, rating_avg, rating_count, cnpj_masked, registry_status, owner_id)';
-export const JOB_SELECT = 'id, title, description, requirements, benefits, workload, contract_type, experience_level, salary_min_cents, salary_max_cents, application_deadline, selection_process, apply_mode, apply_url, published_at, category_id, categories(name), companies(display_name, city, uf, owner_id)';
 
 /** Quem está vendo: perfil + o que já enviou para os itens exibidos. */
 export async function getViewer() {
@@ -40,10 +35,6 @@ export async function loadViewerState(viewer, kind, ids) {
   if (kind === 'project' && viewer.profile.account_type === 'freelancer') {
     const { data } = await sb.from('proposals').select('project_id, amount_cents, deadline_days, status').eq('freelancer_id', viewer.profile.id).in('project_id', ids);
     for (const p of data ?? []) viewer.proposals.set(p.project_id, p);
-  }
-  if (kind === 'job') {
-    const { data } = await sb.from('job_applications').select('job_id, status').eq('candidate_id', viewer.profile.id).in('job_id', ids);
-    for (const a of data ?? []) viewer.applications.set(a.job_id, a);
   }
 }
 
@@ -114,60 +105,6 @@ export function renderProject(p, viewer) {
         <a class="hover:text-tinta" href="/suporte?denunciar=project:${esc(p.id)}">Denunciar</a>
       </p>
       <div class="rounded-2xl bg-white p-4 ring-1 ring-tinta/[.06] sm:p-5" data-action-zone>${projectAction(p, viewer)}</div>
-    </div></div></div>
-  </li>`;
-}
-
-function jobAction(j, viewer) {
-  if (j.apply_mode === 'external') {
-    return `<a class="btn-primary" href="${esc(j.apply_url)}" target="_blank" rel="noopener noreferrer nofollow">${icon('external')} Candidatar-se no site da empresa</a>`;
-  }
-  const me = viewer.profile;
-  if (!me) return `<div class="flex flex-wrap gap-2">${loginCta('Entrar para me candidatar')}</div>`;
-  if (j.companies?.owner_id === me.id) return '<p class="text-sm text-tinta-500">Esta vaga é da sua empresa.</p>';
-  const mine = viewer.applications.get(j.id);
-  if (mine) return `<span class="chip">${icon('check', 'icon h-4 w-4')} Candidatura ${esc((APPLICATION[mine.status] ?? mine.status).toLowerCase())}</span>`;
-  return `<form class="space-y-3" data-apply="${esc(j.id)}" novalidate>
-      <p class="text-sm font-bold">Candidatar-se pelo Bico BR</p>
-      <p data-notice hidden></p>
-      <div><label class="label" for="a-${esc(j.id)}">Mensagem para a empresa <span class="font-normal text-tinta-500">(opcional)</span></label>
-        <textarea class="input" id="a-${esc(j.id)}" name="carta" rows="3" maxlength="5000" placeholder="Por que você combina com esta vaga?"></textarea></div>
-      <button class="btn-primary" type="submit">Enviar candidatura</button>
-    </form>`;
-}
-
-export function renderJob(j, viewer) {
-  const c = j.companies ?? {};
-  const place = [c.city, c.uf].filter(Boolean).join(' · ');
-  const block = (title, text) => (text ? `<div><h3 class="text-sm font-bold">${title}</h3><p class="mt-1.5 whitespace-pre-line text-sm leading-relaxed text-tinta-700">${esc(text)}</p></div>` : '');
-  return `<li class="xcard" data-card="${esc(j.id)}" data-kind="job">
-    <button class="xcard-head" type="button" aria-expanded="false" aria-controls="x-${esc(j.id)}">
-      ${avatar(c.display_name)}
-      <span class="min-w-0 flex-1">
-        <span class="flex flex-wrap items-center gap-1.5">
-          <span class="chip-sol">${esc(CONTRACT[j.contract_type])}</span><span class="chip">100% remoto</span>
-          <span class="chip-neutral">${esc(j.categories?.name)}</span>
-          ${j.experience_level ? `<span class="chip-neutral">${esc(LEVEL[j.experience_level])}</span>` : ''}
-        </span>
-        <span class="mt-2 block text-lg font-bold leading-snug">${esc(j.title)}</span>
-        <span class="mt-1 block text-sm text-tinta-500">${esc(c.display_name)}${place ? ` · ${esc(place)}` : ''} · ${esc(timeAgo(j.published_at))}</span>
-        <span class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm">
-          <span class="inline-flex items-center gap-1.5 font-extrabold text-mata-700">${icon('wallet', 'icon h-4 w-4')} ${esc(salary(j))}</span>
-          ${j.workload ? `<span class="inline-flex items-center gap-1.5 text-tinta-700">${icon('clock', 'icon h-4 w-4')} ${esc(j.workload)}</span>` : ''}
-        </span>
-      </span>
-      <span class="xcard-chevron">${icon('chevron')}</span>
-    </button>
-    <div class="xcard-panel" id="x-${esc(j.id)}" inert><div><div class="xcard-body space-y-5">
-      ${block('Sobre a vaga', j.description)}${block('Requisitos', j.requirements)}${block('Benefícios', j.benefits)}${block('Processo seletivo', j.selection_process)}
-      <dl class="meta-grid">
-        <div><dt>Contrato</dt><dd>${esc(CONTRACT[j.contract_type])}</dd></div>
-        <div><dt>Remuneração</dt><dd>${esc(salary(j))}</dd></div>
-        <div><dt>Jornada</dt><dd>${esc(j.workload || 'A combinar')}</dd></div>
-        <div><dt>Inscrições até</dt><dd>${j.application_deadline ? new Date(`${j.application_deadline}T12:00:00`).toLocaleDateString('pt-BR') : 'Em aberto'}</dd></div>
-      </dl>
-      <p class="text-xs text-tinta-500">Vaga de emprego: o processo seletivo e a contratação são da própria empresa e não passam pelo fluxo de proposta e pagamento dos projetos. <a class="hover:text-tinta underline" href="/suporte?denunciar=job:${esc(j.id)}">Denunciar</a></p>
-      <div class="rounded-2xl bg-white p-4 ring-1 ring-tinta/[.06] sm:p-5" data-action-zone>${jobAction(j, viewer)}</div>
     </div></div></div>
   </li>`;
 }
@@ -245,14 +182,14 @@ export function bindCards(list, viewer) {
   });
 
   list.addEventListener('submit', async (ev) => {
-    const form = ev.target.closest('[data-proposal], [data-apply]');
+    const form = ev.target.closest('[data-proposal]');
     if (!form) return;
     ev.preventDefault();
     const notice = $('[data-notice]', form);
     const zone = form.closest('[data-action-zone]');
     const { sb } = await getClient();
 
-    if (form.dataset.proposal) {
+    {
       const amount = parseBrlToCents(form.elements.valor.value);
       const days = Number.parseInt(form.elements.prazo.value, 10);
       const letter = form.elements.carta.value.trim();
@@ -271,11 +208,6 @@ export function bindCards(list, viewer) {
       return;
     }
 
-    setBusy(ev.submitter, true, 'Enviando…');
-    const { error } = await sb.from('job_applications').insert({ job_id: form.dataset.apply, candidate_id: viewer.profile.id, cover_letter: form.elements.carta.value.trim() || null });
-    if (error && error.code !== '23505') { setBusy(ev.submitter, false); return showNotice(notice, 'error', rpcMessage(error, 'Não foi possível registrar a candidatura.')); }
-    viewer.applications.set(form.dataset.apply, { status: 'submitted' });
-    zone.innerHTML = `<span class="chip">${icon('check', 'icon h-4 w-4')} Candidatura enviada</span>`;
   });
 }
 

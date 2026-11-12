@@ -5,3 +5,13 @@ node_modules/
 web/assets/app.css
 *.log
 web/assets/fonts/
+# segredos e dumps: nunca versionar (regra 2)
+*.pem
+*.key
+*.p12
+*.pfx
+*.sql.gz
+*.dump
+dump*.sql
+credentials*.json
+service-account*.json

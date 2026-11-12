@@ -17,12 +17,12 @@ async function imageKind(file) {
 const section = (id, title, body) => `<section class="card" id="${id}"><h2 class="font-semibold">${title}</h2><div class="mt-3 space-y-3 text-sm">${body}</div></section>`;
 const METRIC_LABELS = {
   cadastros_empresas: 'Cadastros de empresas', cadastros_freelancers: 'Cadastros de profissionais', empresas_ativas: 'Empresas ativas',
-  projetos_publicados: 'Projetos publicados', vagas_publicadas: 'Vagas publicadas', propostas_enviadas: 'Propostas enviadas',
+  projetos_publicados: 'Projetos publicados', propostas_enviadas: 'Propostas enviadas',
   contratos_iniciados: 'Contratos iniciados', contratos_concluidos: 'Contratos concluídos', assinantes_ativos: 'Assinantes Pro ativos',
   disputas_abertas: 'Disputas abertas', disputas_no_periodo: 'Disputas no período', reembolsos_pendentes: 'Reembolsos pendentes',
   denuncias_abertas: 'Denúncias abertas',
 };
-const MONEY = { gmv_centavos: 'GMV (valor contratado — não é receita)', ticket_medio_centavos: 'Ticket médio', receita_taxa_servico_centavos: 'Receita: taxa de serviço', receita_assinaturas_centavos: 'Receita: assinaturas', receita_anuncios_centavos: 'Receita: anúncios', estornos_centavos: 'Estornos e contestações', creditos_retidos_centavos: 'Créditos retidos (de terceiros — não é receita)', repasses_pendentes_centavos: 'Repasses a fazer aos profissionais' };
+const MONEY = { gmv_centavos: 'GMV (valor contratado — não é receita)', ticket_medio_centavos: 'Ticket médio', receita_taxa_servico_centavos: 'Receita: taxa de serviço', receita_assinaturas_centavos: 'Receita: assinaturas', receita_anuncios_centavos: 'Receita: anúncios', estornos_centavos: 'Estornos e contestações' };
 
 /** Administração só abre com segundo fator verificado (aal2). */
 async function ensureMfa(sb) {
@@ -77,19 +77,25 @@ async function ensureMfa(sb) {
         ${Object.entries(MONEY).map(([k, l]) => tile(l, brlExact(m[k]))).join('')}
         ${tile('Conversão projeto → contrato', m.taxa_conversao_projeto_contrato == null ? '—' : `${(m.taxa_conversao_projeto_contrato * 100).toFixed(1)}%`)}
         ${Object.entries(METRIC_LABELS).map(([k, l]) => tile(l, m[k])).join('')}</dl>
-        <p class="text-xs text-tinta-500">Receita é só a taxa de serviço de projetos pagos, as assinaturas e os anúncios. O valor dos profissionais que passa pela plataforma não é receita. CAC, LTV e margem dependem de dados de marketing e custos que ainda não são registrados aqui.</p>`);
+        <p class="text-xs text-tinta-500">Receita é só a taxa de serviço de projetos pagos, as assinaturas e os anúncios. A parte dos profissionais vai direto para a conta Mercado Pago deles e nunca passa pelo Bico BR. CAC, LTV e margem dependem de dados de marketing e custos que ainda não são registrados aqui.</p>`);
     }
-    const { data: payouts } = await sb.from('payouts').select('id, amount_cents, released_at, freelancer_id, contract_id').eq('status', 'released').order('released_at').limit(50);
-    const pix = new Map();
-    if ((payouts ?? []).length) {
-      const { data: keys } = await sb.from('profile_private').select('user_id, full_name, pix_key').in('user_id', payouts.map((x) => x.freelancer_id));
-      for (const k of keys ?? []) pix.set(k.user_id, k);
-    }
-    html += section('repasses', 'Repasses aos profissionais', (payouts ?? []).map((x) => `<form class="flex flex-wrap items-end gap-3 border-t border-tinta/10 pt-3" data-payout="${esc(x.id)}" novalidate>
-      <span class="min-w-0 flex-1"><strong>${brlExact(x.amount_cents)}</strong> · liberado em ${fmtDateTime(x.released_at)}
-        <span class="block text-xs text-tinta-500">Chave Pix: ${pix.get(x.freelancer_id)?.pix_key ? `<code>${esc(pix.get(x.freelancer_id).pix_key)}</code>` : '<strong class="text-red-700">não cadastrada — peça ao profissional</strong>'}</span></span>
-      <span><label class="sr-only" for="ref-${esc(x.id)}">Comprovante</label><input class="input w-56" id="ref-${esc(x.id)}" maxlength="200" placeholder="ID/comprovante da transferência" required></span>
-      <button class="btn-ghost" type="submit">Registrar repasse</button></form>`).join('') || '<p class="text-tinta-500">Nenhum repasse pendente.</p>');
+    const soon = new Date(Date.now() + 7 * 86400000).toISOString(); const recent = new Date(Date.now() - 7 * 86400000).toISOString();
+    const [{ data: expiring }, { data: coupons }] = await Promise.all([
+      sb.from('freelancer_billing').select('user_id, state, cycle_end').in('state', ['PRO_ACTIVE', 'PRO_EXPIRED']).gte('cycle_end', recent).lte('cycle_end', soon).order('cycle_end').limit(100),
+      sb.from('coupons').select('id, code, trial_days, redeemed_count, max_redemptions, expires_at, is_active').order('created_at', { ascending: false }).limit(50),
+    ]);
+    const who = new Map();
+    if ((expiring ?? []).length) for (const u of (await sb.from('profiles').select('id, display_name').in('id', expiring.map((e) => e.user_id))).data ?? []) who.set(u.id, u.display_name);
+    html += section('assinaturas', 'Assinaturas a vencer e vencidas (7 dias)', (expiring ?? []).map((e) => `<p class="flex flex-wrap justify-between gap-2 border-t border-tinta/10 pt-2"><span><strong>${esc(who.get(e.user_id) || 'Profissional')}</strong></span>
+      <span class="${e.state === 'PRO_EXPIRED' ? 'chip-sol' : 'chip-neutral'}">${e.state === 'PRO_EXPIRED' ? 'Venceu em' : 'Vence em'} ${fmtDateTime(e.cycle_end)}</span></p>`).join('') || '<p class="text-tinta-500">Nenhuma assinatura vencendo ou vencida nos últimos 7 dias.</p>');
+    html += section('cupons', 'Cupons', `<ul class="space-y-2">${(coupons ?? []).map((c) => `<li class="flex flex-wrap items-center justify-between gap-2 border-t border-tinta/10 pt-2"><span><strong>${esc(c.code)}</strong> · ${c.trial_days} dias grátis<span class="block text-xs text-tinta-500">${c.redeemed_count}${c.max_redemptions ? ` de ${c.max_redemptions}` : ''} usos${c.expires_at ? ` · válido até ${fmtDateTime(c.expires_at)}` : ''}</span></span>
+        <button class="linkish text-xs" type="button" data-coupon="${esc(c.id)}" data-active="${c.is_active ? '0' : '1'}">${c.is_active ? 'Desativar' : 'Reativar'}</button></li>`).join('')}</ul>
+      <form id="novo-cupom" class="flex flex-wrap items-end gap-2 border-t border-tinta/10 pt-3" novalidate>
+        <div><label class="label" for="cp-code">Código</label><input class="input uppercase" id="cp-code" maxlength="24" required></div>
+        <div><label class="label" for="cp-days">Dias grátis</label><input class="input w-28" id="cp-days" type="number" min="1" max="90" value="15"></div>
+        <div><label class="label" for="cp-max">Limite de usos</label><input class="input w-32" id="cp-max" type="number" min="1" value="1000"></div>
+        <div><label class="label" for="cp-valid">Validade (dias)</label><input class="input w-28" id="cp-valid" type="number" min="1" max="365" value="60"></div>
+        <button class="btn-ghost" type="submit">Criar cupom</button></form>`);
     const { data: plans } = await sb.from('plans').select('id, code, name, price_cents, proposals_per_cycle, is_active').order('sort_order');
     html += section('planos', 'Planos', (plans ?? []).map((p) => `<form class="flex flex-wrap items-end gap-2" data-plan="${esc(p.id)}" novalidate>
       <span class="w-40 font-medium">${esc(p.name)}<span class="block text-xs font-normal text-tinta-500">${p.proposals_per_cycle} propostas</span></span>
@@ -103,7 +109,7 @@ async function ensureMfa(sb) {
     html += section('disputas', 'Disputas em aberto', (disputes ?? []).map((d) => `<form class="space-y-2 border-t border-tinta/10 pt-3" data-dispute="${esc(d.id)}" novalidate>
       <p><strong>${esc(d.protocol)}</strong> · ${esc(d.reason)} · ${fmtDateTime(d.created_at)}</p><p class="text-tinta-700">${esc(d.description)}</p>
       <label class="sr-only" for="res-${esc(d.id)}">Justificativa</label><textarea class="input" id="res-${esc(d.id)}" rows="2" minlength="20" maxlength="3000" placeholder="Justificativa da decisão (as partes verão este texto)" required></textarea>
-      <div class="flex flex-wrap gap-2"><label class="sr-only" for="out-${esc(d.id)}">Desfecho</label><select class="input w-auto" id="out-${esc(d.id)}"><option value="complete">Dar razão ao profissional: concluir e liberar o crédito</option><option value="cancel">Dar razão à empresa: cancelar e devolver o valor</option><option value="resume">Retomar o contrato de onde parou</option></select>
+      <div class="flex flex-wrap gap-2"><label class="sr-only" for="out-${esc(d.id)}">Desfecho</label><select class="input w-auto" id="out-${esc(d.id)}"><option value="complete">Dar razão ao profissional: manter o projeto concluído</option><option value="cancel">Dar razão à empresa: cancelar e abrir devolução no Mercado Pago</option><option value="resume">Retomar o contrato de onde parou</option></select>
       <button class="btn-ghost" type="submit">Registrar decisão</button></div></form>`).join('') || '<p class="text-tinta-500">Nenhuma disputa em aberto.</p>');
   }
 
@@ -195,11 +201,13 @@ async function ensureMfa(sb) {
       if (reason.length < 10) return showNotice(aviso, 'error', 'Escreva a justificativa da decisão (mínimo de 10 caracteres).');
       return done((await sb.rpc('set_user_suspension', { p_user: f.dataset.conduct, p_days: Number(ev.submitter.dataset.days), p_reason: reason })).error);
     }
-    if (f.dataset.payout) {
-      const ref = $('input', f).value.trim();
-      if (ref.length < 4) return showNotice(aviso, 'error', 'Informe o identificador ou comprovante da transferência.');
-      if (!confirm('Confirmar que a transferência ao profissional foi feita? O registro é definitivo e auditado.')) return;
-      return done((await sb.rpc('mark_payout_paid', { p_payout_id: f.dataset.payout, p_reference: ref })).error);
+    if (f.id === 'novo-cupom') {
+      const code = $('#cp-code').value.trim().toUpperCase();
+      if (!/^[A-Z0-9]{4,24}$/.test(code)) return showNotice(aviso, 'error', 'O código usa só letras e números, de 4 a 24 caracteres.');
+      return done((await sb.from('coupons').insert({
+        code, trial_days: Number($('#cp-days').value) || 15, max_redemptions: Number($('#cp-max').value) || null,
+        expires_at: new Date(Date.now() + (Number($('#cp-valid').value) || 60) * 86400000).toISOString(),
+      })).error);
     }
     if (f.dataset.dispute) {
       const text = $('textarea', f).value.trim();
@@ -245,6 +253,8 @@ async function ensureMfa(sb) {
   paineis.addEventListener('click', async (ev) => {
     const cat = ev.target.closest('[data-cat]');
     if (cat) return done((await sb.from('categories').update({ is_active: cat.dataset.active === '1' }).eq('id', cat.dataset.cat)).error);
+    const cp = ev.target.closest('[data-coupon]');
+    if (cp) return done((await sb.from('coupons').update({ is_active: cp.dataset.active === '1' }).eq('id', cp.dataset.coupon)).error);
     const ad = ev.target.closest('[data-ad-id]');
     if (ad) return done((await sb.from('ad_campaigns').update({ status: ad.dataset.adStatus }).eq('id', ad.dataset.adId)).error);
     const req = ev.target.closest('[data-adreq]');

@@ -42,7 +42,7 @@ function sessionFor(u) {
   return { access_token, token_type: 'bearer', expires_in: 3600, expires_at: now + 3600, refresh_token: `r.${u.id}`, user };
 }
 
-const mp = { prefs: new Map(), payments: new Map(), seq: 9000 };
+const mp = { prefs: new Map(), payments: new Map(), sellers: new Set(), last: null, seq: 9000 };
 const files = new Map(); // armazenamento de teste (bucket ads)
 
 http.createServer(async (req, res) => {
@@ -153,11 +153,27 @@ http.createServer(async (req, res) => {
       });
     }
 
+    // autorização da conta do profissional (OAuth): devolve um código e, depois, os tokens
+    if (path === '/fake/mp/authorize') {
+      const back = new URL(url.searchParams.get('redirect_uri'));
+      back.searchParams.set('code', `CODE-${crypto.randomUUID()}`); back.searchParams.set('state', url.searchParams.get('state'));
+      res.writeHead(302, { location: back.toString() }); return res.end();
+    }
+    if (path === '/fake/mp/oauth/token' && req.method === 'POST') {
+      const b = JSON.parse((await readBody(req)).toString());
+      if (b.client_id !== 'app-e2e' || b.client_secret !== 'segredo-app-e2e') return send(res, 401, { message: 'invalid client' });
+      const n = (mp.seq += 1);
+      mp.sellers.add(`SELLER-${n}`);
+      return send(res, 200, { access_token: `SELLER-${n}`, refresh_token: `REFRESH-${n}`, user_id: n, expires_in: 15552000 });
+    }
+    if (path === '/fake/mp/last-preference') return send(res, 200, mp.last ?? {});
     if (path === '/fake/mp/checkout/preferences' && req.method === 'POST') {
-      if (req.headers.authorization !== 'Bearer TEST-TOKEN') return send(res, 401, { message: 'unauthorized' });
+      const token = (req.headers.authorization || '').replace(/^Bearer /, '');
+      if (token !== 'TEST-TOKEN' && !mp.sellers.has(token)) return send(res, 401, { message: 'unauthorized' });
       const b = JSON.parse((await readBody(req)).toString());
       const id = `pref-${crypto.randomUUID()}`;
       mp.prefs.set(id, b);
+      mp.last = { token: token === 'TEST-TOKEN' ? 'plataforma' : 'profissional', marketplace_fee: b.marketplace_fee ?? null, unit_price: b.items[0].unit_price };
       return send(res, 201, { id, init_point: `http://127.0.0.1:${PORT}/fake/mp/pay?pref=${id}` });
     }
     if (path === '/fake/mp/pay') {
@@ -168,7 +184,8 @@ http.createServer(async (req, res) => {
       mp.payments.set(id, { id: Number(id), status: 'approved', status_detail: 'accredited', transaction_amount: pref.items[0].unit_price, currency_id: 'BRL', external_reference: pref.external_reference });
       const ts = String(Date.now()); const requestId = crypto.randomUUID();
       const v1 = crypto.createHmac('sha256', MP_WEBHOOK_SECRET).update(`id:${id};request-id:${requestId};ts:${ts};`).digest('hex');
-      const hook = await fetch(`${APP_URL}/api/webhooks/mercadopago?data.id=${id}&type=payment`, {
+      const hookUrl = new URL(pref.notification_url); hookUrl.searchParams.set('data.id', id); hookUrl.searchParams.set('type', 'payment');
+      const hook = await fetch(`${APP_URL}${hookUrl.pathname}${hookUrl.search}`, {
         method: 'POST', headers: { 'content-type': 'application/json', 'x-request-id': requestId, 'x-signature': `ts=${ts},v1=${v1}` },
         body: JSON.stringify({ type: 'payment', action: 'payment.created', data: { id } }),
       });

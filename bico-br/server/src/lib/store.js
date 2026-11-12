@@ -63,6 +63,15 @@ export function createSupabaseStore({ url, serviceRoleKey, anonKey }) {
       must(await db.from('profiles').update({ onboarded_at: new Date().toISOString(), city, uf }).eq('id', userId));
     },
 
+    // ---- conta Mercado Pago do profissional (tokens sempre cifrados)
+    async getMpAccount(userId) {
+      return must(await db.from('mp_accounts').select('user_id, mp_user_id, access_token_enc, refresh_token_enc, expires_at').eq('user_id', userId).maybeSingle());
+    },
+    async saveMpAccount(userId, { mpUserId, accessTokenEnc, refreshTokenEnc, expiresAt }) {
+      must(await db.from('mp_accounts').upsert({ user_id: userId, mp_user_id: mpUserId, access_token_enc: accessTokenEnc, refresh_token_enc: refreshTokenEnc, expires_at: expiresAt }));
+      must(await db.from('freelancer_profiles').update({ mp_connected: true }).eq('user_id', userId));
+    },
+
     // ---- webhooks / pagamentos
     /** @returns {'new'|'pending'|'done'} */
     async registerWebhookEvent({ provider, dedupeKey, eventType, action, resourceId, payload }) {
@@ -81,7 +90,7 @@ export function createSupabaseStore({ url, serviceRoleKey, anonKey }) {
     },
     async getPaymentForCheckout(paymentId) {
       return must(await db.from('payments')
-        .select('id, kind, status, amount_cents, payer_id, contract_id, checkout_url, plans(name), contracts(projects(title))')
+        .select('id, kind, status, amount_cents, payer_id, contract_id, checkout_url, plans(name), contracts(freelancer_id, deposit_cents, projects(title))')
         .eq('id', paymentId).maybeSingle());
     },
     async saveCheckout(paymentId, { preferenceId, checkoutUrl }) {

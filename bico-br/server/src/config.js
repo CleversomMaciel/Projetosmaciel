@@ -37,10 +37,19 @@ export function loadConfig(env = process.env) {
       accessToken: env.MP_ACCESS_TOKEN || '',
       webhookSecret: env.MP_WEBHOOK_SECRET || '',
       apiBase: env.MP_API_BASE || 'https://api.mercadopago.com',
+      // marketplace (split): aplicação do Mercado Pago que os profissionais autorizam
+      clientId: env.MP_CLIENT_ID || '',
+      clientSecret: env.MP_CLIENT_SECRET || '',
+      authUrl: env.MP_AUTH_URL || 'https://auth.mercadopago.com.br/authorization',
+      tokenEncryptionKey: env.MP_TOKEN_ENCRYPTION_KEY || '',
     },
     features: {
       allowPfContractors: bool(env.ALLOW_PF_CONTRACTORS, false),
     },
+    // CAPTCHA no cadastro/login. A chave do site é pública; a chave secreta fica SÓ no painel do
+    // Supabase (Authentication > Bot and Abuse Protection), que valida o token no servidor.
+    turnstileSiteKey: env.TURNSTILE_SITE_KEY || '',
+    forceHttps: bool(env.FORCE_HTTPS, (env.NODE_ENV || 'development') === 'production'),
   };
   return config;
 }
@@ -53,6 +62,10 @@ export function configProblems(config) {
   if (!config.supabase.serviceRoleKey) problems.push('SUPABASE_SERVICE_ROLE_KEY ausente');
   if (!config.mercadoPago.webhookSecret) problems.push('MP_WEBHOOK_SECRET ausente (webhooks serão recusados)');
   if (!config.mercadoPago.accessToken) problems.push('MP_ACCESS_TOKEN ausente (pagamentos online desligados)');
+  if (!config.mercadoPago.clientId || !config.mercadoPago.clientSecret) problems.push('MP_CLIENT_ID/MP_CLIENT_SECRET ausentes (profissionais não conseguem conectar a conta Mercado Pago)');
+  if (!/^[0-9a-f]{64}$/i.test(config.mercadoPago.tokenEncryptionKey)) problems.push('MP_TOKEN_ENCRYPTION_KEY ausente ou inválida (64 caracteres hexadecimais)');
+  if (config.env === 'production' && !config.turnstileSiteKey) problems.push('TURNSTILE_SITE_KEY ausente (cadastro e login sem proteção contra robôs)');
+  if (config.env === 'production' && config.trustProxy < 1) problems.push('TRUST_PROXY=0 em produção: limites por IP e redirecionamento HTTPS dependem do proxy confiável');
   if (config.env === 'production' && !config.publicUrl.startsWith('https://')) problems.push('PUBLIC_URL precisa ser https em produção');
   if (config.cnpj.providers.includes('serpro') && !config.cnpj.serpro.consumerKey) {
     problems.push('CNPJ_PROVIDERS inclui serpro, mas SERPRO_CONSUMER_KEY/SECRET não foram definidos');

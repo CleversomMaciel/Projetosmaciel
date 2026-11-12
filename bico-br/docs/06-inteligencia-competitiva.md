@@ -34,7 +34,7 @@
 
 | Dor observada (hipótese) | Resposta do Bico BR | Situação |
 |---|---|---|
-| Dinheiro do profissional retido sem prazo nem explicação (conta banida, ciclo de saque) | O crédito fica retido só até a entrega ser validada; se a empresa não responde em 7 dias, a validação é automática. Todo bloqueio tem protocolo e justificativa | Implementado (D2, D12). Repasse ainda manual |
+| Dinheiro do profissional retido pela plataforma (conta banida, ciclo de saque) | O Bico BR não guarda o dinheiro: o Mercado Pago paga o profissional direto na conta dele | Implementado (D2) |
 | Comissão de 15–20% descontada do profissional | O profissional recebe 100% do que propôs; a taxa de 10% é paga por quem contrata | Implementado (D1) |
 | Planos com cota de conexões/propostas | Um plano só, R$ 25, propostas e projetos ilimitados | Implementado (D4) |
 | Difícil achar trabalho compatível | Habilidades cadastradas no perfil; projetos que combinam vêm marcados e há filtro “só o que combina comigo”; empresas buscam profissionais por habilidade e convidam | Implementado |
@@ -48,9 +48,7 @@
 
 ## Riscos do nosso próprio modelo
 
-Ao reter o valor do profissional, o Bico BR passa a ter o mesmo ponto sensível dos concorrentes: dinheiro de terceiros sob sua guarda.
-O que nos diferencia precisa ser cumprido à risca — prazo curto e automático de liberação, justificativa escrita em toda decisão e repasse rápido.
-Um repasse que atrase vira exatamente a reclamação que hoje aparece contra os outros.
+Como o dinheiro vai direto ao profissional, a proteção da empresa depende da reclamação e da devolução pelo Mercado Pago, que pode esbarrar em falta de saldo na conta do profissional. A reputação (avaliações, projetos concluídos, tempo de resposta) e a entrega registrada item a item são o que equilibra esse risco.
 
 ## Próximos passos da pesquisa
 

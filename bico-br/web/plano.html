@@ -21,9 +21,13 @@
   <main id="conteudo" class="flex-1">
     <section class="wrap max-w-4xl py-10">
       <h1 class="text-2xl font-bold tracking-tight">Bico BR Pro</h1>
-      <p class="mt-2 max-w-2xl text-sm text-tinta-700">Seu primeiro projeto é gratuito. Depois, a assinatura vale por 30 dias, com propostas e projetos ilimitados, e <strong>não renova sozinha</strong>: só há nova cobrança se você comprar de novo. Seus contratos em andamento nunca são afetados pelo fim do plano. O plano dá direito a enviar propostas; não garante contratação.</p>
+      <p class="mt-2 max-w-2xl text-sm text-tinta-700">Seu primeiro projeto é gratuito. Depois, a assinatura vale por 30 dias, com propostas e projetos ilimitados, paga com cartão ou Pix pelo Mercado Pago. Ela <strong>não renova sozinha</strong>: avisamos antes de vencer e só há nova cobrança se você renovar. Seus contratos em andamento nunca são afetados pelo fim do plano. O plano dá direito a enviar propostas; não garante contratação.</p>
       <p id="aviso" class="mt-4" hidden></p>
       <div id="estado" class="mt-6"></div>
+      <form id="cupom" class="card mt-6 flex flex-wrap items-end gap-3" novalidate hidden>
+        <span class="min-w-0 flex-1"><label class="label" for="codigo">Tem um cupom?</label><input class="input uppercase" id="codigo" maxlength="24" autocomplete="off" placeholder="Ex.: LANCAMENTO15"></span>
+        <button class="btn-ghost" type="submit">Aplicar cupom</button>
+      </form>
       <div id="planos" class="mt-6 grid max-w-md gap-4"></div>
       <form id="compra" class="card mt-6 space-y-4" hidden novalidate>
         <h2 class="font-semibold">Confirmar compra</h2>

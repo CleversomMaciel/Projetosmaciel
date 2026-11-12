@@ -133,7 +133,12 @@ async function recordConsents(sb, userId, docTypes, version) {
       await saveSkills('freelancer_skills', 'user_id', uid, picker.get());
       const { error } = await sb.from('profiles').update({ onboarded_at: new Date().toISOString() }).eq('id', uid);
       if (error) throw new Error('Não foi possível concluir o cadastro.');
-      location.replace('/painel');
+      // cupom informado no cadastro: tenta aplicar; se for inválido, o cadastro segue e o painel avisa
+      let coupon = null;
+      try { coupon = sessionStorage.getItem('bico-cupom'); sessionStorage.removeItem('bico-cupom'); } catch { /* sem armazenamento */ }
+      let query = '';
+      if (coupon) { const r = await sb.rpc('redeem_coupon', { p_code: coupon }); query = r.error ? '?cupom=invalido' : `?cupom=${r.data.days}`; }
+      location.replace(`/painel${query}`);
     } catch (err) {
       setBusy(btn, false);
       showNotice(aviso, 'error', err.message);

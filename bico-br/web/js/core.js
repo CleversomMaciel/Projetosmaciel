@@ -145,11 +145,11 @@ export async function mountChrome() {
     footer.innerHTML = `
       <div class="wrap grid gap-10 py-14 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div><p class="text-lg font-extrabold tracking-tightest text-white">Bico<span class="text-mata-400"> BR</span></p>
-          <p class="mt-3 max-w-xs text-sm">Seu próximo bico começa aqui. Trabalho remoto para empresas e profissionais de todo o Brasil.</p></div>
+          <p class="mt-3 max-w-xs text-sm">Seu próximo bico começa aqui. Projetos remotos de tecnologia para quem contrata e para quem desenvolve, em todo o Brasil.</p></div>
         <nav aria-label="Para profissionais" class="text-sm"><p class="font-bold text-white">Profissionais</p>
-          <ul class="mt-3 space-y-2"><li><a class="hover:text-white" href="/projetos">Projetos freelance</a></li><li><a class="hover:text-white" href="/projetos?tipo=quick">Bico Rápido</a></li><li><a class="hover:text-white" href="/vagas">Vagas remotas</a></li><li><a class="hover:text-white" href="/vitrine">Vitrine de trabalhos</a></li></ul></nav>
+          <ul class="mt-3 space-y-2"><li><a class="hover:text-white" href="/projetos">Bicos de tecnologia</a></li><li><a class="hover:text-white" href="/projetos?tipo=quick">Bico Rápido</a></li><li><a class="hover:text-white" href="/vitrine">Vitrine de trabalhos</a></li></ul></nav>
         <nav aria-label="Para empresas" class="text-sm"><p class="font-bold text-white">Empresas</p>
-          <ul class="mt-3 space-y-2"><li><a class="hover:text-white" href="/publicar-projeto">Publicar projeto</a></li><li><a class="hover:text-white" href="/publicar-vaga">Publicar vaga</a></li><li><a class="hover:text-white" href="/profissionais">Buscar profissionais</a></li><li><a class="hover:text-white" href="/anuncie">Anuncie no Bico BR</a></li></ul></nav>
+          <ul class="mt-3 space-y-2"><li><a class="hover:text-white" href="/publicar-projeto">Publicar projeto</a></li><li><a class="hover:text-white" href="/profissionais">Buscar profissionais</a></li><li><a class="hover:text-white" href="/anuncie">Anuncie no Bico BR</a></li></ul></nav>
         <nav aria-label="Institucional" class="text-sm"><p class="font-bold text-white">Bico BR</p>
           <ul class="mt-3 space-y-2"><li><a class="hover:text-white" href="/confianca">Central de Confiança</a></li><li><a class="hover:text-white" href="/suporte">Ajuda e reclamações</a></li><li><a class="hover:text-white" href="/termos">Termos de Uso</a></li><li><a class="hover:text-white" href="/privacidade">Privacidade</a></li></ul></nav>
       </div>
@@ -164,7 +164,6 @@ export async function mountChrome() {
       <nav class="hidden items-center gap-1 md:flex" aria-label="Principal">
         <a class="nav-link" href="/projetos"${current('/projetos', false)}>Projetos</a>
         <a class="nav-link" href="/projetos?tipo=quick"${current('/projetos', true)}>Bico Rápido</a>
-        <a class="nav-link" href="/vagas"${current('/vagas')}>Vagas remotas</a>
         <a class="nav-link" href="/profissionais"${current('/profissionais')}>Profissionais</a>
         <a class="nav-link" href="/vitrine"${current('/vitrine')}>Vitrine</a>
       </nav>
@@ -178,7 +177,7 @@ export async function mountChrome() {
   if (!$('#tabbar')) {
     const tab = (href, name, label, cur) => `<a href="${href}"${cur}>${icon(name, 'icon h-[22px] w-[22px]')}<span>${label}</span></a>`;
     document.body.insertAdjacentHTML('beforeend', `<nav id="tabbar" class="tabbar" aria-label="Navegação do aplicativo">
-      ${tab('/', 'home', 'Início', current('/'))}${tab('/projetos', 'layers', 'Projetos', current('/projetos'))}${tab('/vagas', 'briefcase', 'Vagas', current('/vagas'))}
+      ${tab('/', 'home', 'Início', current('/'))}${tab('/projetos', 'layers', 'Projetos', current('/projetos'))}${tab('/vitrine', 'star', 'Vitrine', current('/vitrine'))}
       ${session ? tab('/mensagens', 'chat', 'Conversas', current('/mensagens')) + tab('/painel', 'user', 'Painel', current('/painel'))
     : tab('/entrar', 'user', 'Entrar', current('/entrar')) + tab('/cadastro', 'bolt', 'Criar conta', current('/cadastro'))}</nav>`);
     document.body.classList.add('has-tabbar');
@@ -236,3 +235,24 @@ export async function imageKind(file) {
 /** Aviso amigável antes de enviar: o servidor é quem decide, isto só poupa uma tentativa. */
 const CONTACT_HINT = /(whats|zap\b|wpp|telegram|insta\b|instagram|facebook|discord|@[a-z0-9_.]{3,}|\b\d[\d ().-]{8,}\d\b|[\w.+-]+@[\w-]+\.[a-z]{2,})/i;
 export const looksLikeContact = (text) => CONTACT_HINT.test(String(text ?? ''));
+
+/**
+ * CAPTCHA (Cloudflare Turnstile) quando configurado. O token vai para o Supabase Auth, que o valida
+ * no servidor com a chave secreta. Sem configuração, devolve null e o formulário segue normalmente.
+ */
+export async function mountCaptcha(container) {
+  const { cfg } = await getClient();
+  if (!cfg.turnstileSiteKey || !container) return null;
+  await new Promise((resolve, reject) => {
+    if (window.turnstile) return resolve();
+    const s = document.createElement('script');
+    s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+    s.async = true; s.onload = resolve; s.onerror = reject;
+    document.head.append(s);
+  });
+  let token = null;
+  const id = window.turnstile.render(container, { sitekey: cfg.turnstileSiteKey, language: 'pt-br', callback: (t) => { token = t; }, 'expired-callback': () => { token = null; } });
+  return { token: () => token, reset: () => { token = null; window.turnstile.reset(id); } };
+}
+/** Campo-isca invisível: pessoas não preenchem; robôs simples preenchem. */
+export const honeypotFilled = (form) => Boolean(form.querySelector('[name="website_url"]')?.value);

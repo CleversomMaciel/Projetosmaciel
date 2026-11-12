@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Bico BR — Projetos freelance e vagas remotas em todo o Brasil</title>
-  <meta name="description" content="Encontre freelancers, publique projetos e descubra vagas 100% remotas. Seu próximo bico começa aqui.">
+  <title>Bico BR — Bicos remotos de tecnologia em todo o Brasil</title>
+  <meta name="description" content="Bicos remotos de tecnologia: publique projetos e encontre desenvolvedores. Seu próximo bico começa aqui.">
   <link rel="canonical" href="{{PUBLIC_URL}}/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Bico BR">
   <meta property="og:locale" content="pt_BR">
-  <meta property="og:title" content="Bico BR — Projetos freelance e vagas remotas em todo o Brasil">
-  <meta property="og:description" content="Encontre freelancers, publique projetos e descubra vagas 100% remotas. Seu próximo bico começa aqui.">
+  <meta property="og:title" content="Bico BR — Bicos remotos de tecnologia em todo o Brasil">
+  <meta property="og:description" content="Bicos remotos de tecnologia: publique projetos e encontre desenvolvedores. Seu próximo bico começa aqui.">
   <meta property="og:url" content="{{PUBLIC_URL}}/">
   <meta name="twitter:card" content="summary">
   <meta name="theme-color" content="#0d7a4b">
@@ -18,7 +18,7 @@
   <link rel="stylesheet" href="/assets/app.css">
   <script type="application/ld+json">
   {"@context":"https://schema.org","@type":"WebSite","name":"Bico BR","url":"{{PUBLIC_URL}}/","inLanguage":"pt-BR",
-   "description":"Marketplace brasileiro de trabalho remoto: projetos freelance, serviços rápidos e vagas remotas.",
+   "description":"Marketplace brasileiro de bicos remotos de tecnologia.",
    "potentialAction":{"@type":"SearchAction","target":"{{PUBLIC_URL}}/projetos?q={search_term_string}","query-input":"required name=search_term_string"}}
   </script>
 </head>
@@ -36,27 +36,27 @@
         <div>
           <p class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[.14em] text-sol-300 backdrop-blur">100% remoto · todo o Brasil</p>
           <h1 class="mt-5 text-[2.6rem] font-extrabold leading-[1.02] tracking-tightest sm:text-6xl">Seu próximo bico <span class="bg-gradient-to-r from-mata-300 to-sol-300 bg-clip-text text-transparent">começa aqui.</span></h1>
-          <p class="mt-5 max-w-xl text-lg leading-relaxed text-white/75">Projetos freelance, serviços rápidos e vagas remotas em um só lugar. Proposta, conversa, contrato e avaliação acontecem dentro do Bico BR.</p>
+          <p class="mt-5 max-w-xl text-lg leading-relaxed text-white/75">Bicos remotos de tecnologia: sites, sistemas, apps, automações, dados e integrações. Proposta, conversa, arquivos, entrega e pagamento acontecem dentro do Bico BR.</p>
           <form action="/projetos" method="get" class="searchbar mt-8 max-w-xl" role="search">
             <label class="sr-only" for="busca">O que você procura?</label>
-            <input id="busca" name="q" placeholder="Ex.: dashboard em Power BI, edição de vídeo…" autocomplete="off">
+            <input id="busca" name="q" placeholder="Ex.: API em Node, app Flutter, dashboard em Power BI…" autocomplete="off">
             <button class="btn-primary" type="submit">Buscar</button>
           </form>
           <div class="mt-6 flex flex-wrap gap-3">
-            <a class="btn-sol" href="/cadastro?tipo=company">Quero contratar</a>
-            <a class="btn-glass" href="/cadastro?tipo=freelancer">Quero trabalhar</a>
+            <a class="btn-sol" href="/cadastro?tipo=company">Preciso de um dev</a>
+            <a class="btn-glass" href="/cadastro?tipo=freelancer">Sou dev e quero bicos</a>
           </div>
         </div>
         <ul class="grid gap-4">
           <li><a href="/projetos" class="flex items-start gap-4 rounded-3xl border border-white/10 bg-white/[.07] p-5 backdrop-blur transition hover:bg-white/[.12]">
             <span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-mata-400/20 text-mata-300"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></svg></span>
-            <span><strong class="block text-base">Projetos freelance</strong><span class="text-sm text-white/70">Escopo, prazo e orçamento definidos. Envie sua proposta sem sair do card.</span></span></a></li>
+            <span><strong class="block text-base">Projetos de tecnologia</strong><span class="text-sm text-white/70">Escopo, prazo e orçamento definidos. Envie sua proposta sem sair do card.</span></span></a></li>
           <li class="lg:translate-x-6"><a href="/projetos?tipo=quick" class="flex items-start gap-4 rounded-3xl border border-white/10 bg-white/[.07] p-5 backdrop-blur transition hover:bg-white/[.12]">
             <span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-sol-400/20 text-sol-300"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3 5 13.5h6L10 21l8-10.5h-6L13 3Z"/></svg></span>
-            <span><strong class="block text-base">Bico Rápido</strong><span class="text-sm text-white/70">Serviços pequenos com preço fechado e entrega em poucos dias.</span></span></a></li>
-          <li><a href="/vagas" class="flex items-start gap-4 rounded-3xl border border-white/10 bg-white/[.07] p-5 backdrop-blur transition hover:bg-white/[.12]">
-            <span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/15 text-white"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7.5" width="18" height="12" rx="2.5"/><path d="M9 7.5V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1.5M3 13h18"/></svg></span>
-            <span><strong class="block text-base">Vagas remotas</strong><span class="text-sm text-white/70">CLT, PJ, estágio e temporário — só oportunidades 100% remotas.</span></span></a></li>
+            <span><strong class="block text-base">Bico Rápido</strong><span class="text-sm text-white/70">Correções, ajustes e tarefas pequenas com preço fechado e entrega em poucos dias.</span></span></a></li>
+          <li><a href="/profissionais" class="flex items-start gap-4 rounded-3xl border border-white/10 bg-white/[.07] p-5 backdrop-blur transition hover:bg-white/[.12]">
+            <span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/15 text-white"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></span>
+            <span><strong class="block text-base">Devs por habilidade</strong><span class="text-sm text-white/70">Busque por React, Python, Flutter, SQL… veja a vitrine e convide para o seu projeto.</span></span></a></li>
         </ul>
       </div>
     </section>
@@ -65,7 +65,7 @@
 
     <section class="wrap pt-16" aria-labelledby="t-categorias">
       <div class="flex items-end justify-between gap-4">
-        <div><p class="kicker">Áreas de atuação</p><h2 id="t-categorias" class="mt-1 text-3xl font-extrabold">Trabalho remoto em qualquer área</h2></div>
+        <div><p class="kicker">Especialidades</p><h2 id="t-categorias" class="mt-1 text-3xl font-extrabold">Tecnologia de ponta a ponta</h2></div>
         <a class="linkish hidden text-sm sm:inline" href="/projetos">Ver todos os projetos</a>
       </div>
       <p id="aviso" hidden></p>
@@ -76,12 +76,8 @@
 
     <section class="wrap pt-16" aria-labelledby="t-recentes">
       <p class="kicker">Acabou de chegar</p><h2 id="t-recentes" class="mt-1 text-3xl font-extrabold">Oportunidades recentes</h2>
-      <div class="mt-8 grid gap-8 lg:grid-cols-2">
-        <div><div class="flex items-center justify-between"><h3 class="text-lg font-bold">Projetos e Bico Rápido</h3><a class="linkish text-sm" href="/projetos">Ver todos</a></div>
-          <ul id="home-projetos" class="mt-4 grid gap-4"><li class="skeleton h-36"></li><li class="skeleton h-36"></li></ul></div>
-        <div><div class="flex items-center justify-between"><h3 class="text-lg font-bold">Vagas remotas</h3><a class="linkish text-sm" href="/vagas">Ver todas</a></div>
-          <ul id="home-vagas" class="mt-4 grid gap-4"><li class="skeleton h-36"></li><li class="skeleton h-36"></li></ul></div>
-      </div>
+      <div class="mt-2 flex items-center justify-between"><p class="text-sm text-tinta-500">Projetos e Bico Rápido abertos agora.</p><a class="linkish text-sm" href="/projetos">Ver todos</a></div>
+      <ul id="home-projetos" class="mt-4 grid gap-4 lg:grid-cols-2"><li class="skeleton h-36"></li><li class="skeleton h-36"></li></ul>
     </section>
 
     <section class="wrap pt-16" aria-labelledby="t-como">
@@ -91,9 +87,9 @@
           <span class="chip-sol">Para quem contrata</span>
           <ol class="mt-5 space-y-4 text-sm text-tinta-700">
             <li class="flex gap-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-tinta text-xs font-bold text-white">1</span><span>Cadastre a empresa — o CNPJ preenche os dados automaticamente.</span></li>
-            <li class="flex gap-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-tinta text-xs font-bold text-white">2</span><span>Publique quantos projetos e vagas quiser, de graça: diga o que precisa, quanto pode pagar e o prazo.</span></li>
+            <li class="flex gap-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-tinta text-xs font-bold text-white">2</span><span>Publique quantos projetos quiser, de graça: diga o que precisa, quanto pode pagar e o prazo.</span></li>
             <li class="flex gap-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-tinta text-xs font-bold text-white">3</span><span>Receba propostas ou busque profissionais pela habilidade e converse na hora.</span></li>
-            <li class="flex gap-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-tinta text-xs font-bold text-white">4</span><span>Pague só ao fechar (valor + 10%). O dinheiro fica retido até você validar a entrega.</span></li>
+            <li class="flex gap-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-tinta text-xs font-bold text-white">4</span><span>Pague só ao fechar (valor + 10%), com cartão ou Pix pelo Mercado Pago. A entrega é feita e conferida dentro do app.</span></li>
           </ol>
         </div>
         <div class="card">
@@ -101,8 +97,8 @@
           <ol class="mt-5 space-y-4 text-sm text-tinta-700">
             <li class="flex gap-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-mata-600 text-xs font-bold text-white">1</span><span>Entre de graça e monte seu perfil e portfólio.</span></li>
             <li class="flex gap-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-mata-600 text-xs font-bold text-white">2</span><span>Cadastre suas habilidades e veja primeiro os projetos que combinam com você.</span></li>
-            <li class="flex gap-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-mata-600 text-xs font-bold text-white">3</span><span>Primeiro projeto grátis. Depois, R$ 25 por mês com projetos ilimitados — e você recebe 100% do valor combinado.</span></li>
-            <li class="flex gap-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-mata-600 text-xs font-bold text-white">4</span><span>Entregue dentro do app: quando a empresa valida, seu crédito é liberado.</span></li>
+            <li class="flex gap-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-mata-600 text-xs font-bold text-white">3</span><span>Primeiro projeto grátis. Depois, R$ 25 por mês com projetos ilimitados e sem comissão do Bico BR sobre o que você recebe.</span></li>
+            <li class="flex gap-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-mata-600 text-xs font-bold text-white">4</span><span>Conecte sua conta do Mercado Pago e receba direto nela quando o cliente paga. Entregue tudo dentro do app.</span></li>
           </ol>
         </div>
       </div>

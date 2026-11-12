@@ -36,6 +36,9 @@ export function fakeStore(overrides = {}) {
     },
     finishWebhookEvent: async ({ dedupeKey, error }) => { if (!error) state.events.set(dedupeKey, 'done'); },
     payments: new Map(),
+    mpAccounts: new Map(),
+    getMpAccount: async function (id) { return this.mpAccounts.get(id) ?? null; },
+    saveMpAccount: async function (id, a) { this.mpAccounts.set(id, { user_id: id, mp_user_id: a.mpUserId, access_token_enc: a.accessTokenEnc, refresh_token_enc: a.refreshTokenEnc, expires_at: a.expiresAt }); },
     getPaymentForCheckout: async function (id) { return this.payments.get(id) ?? null; },
     saveCheckout: async function (id, c) { Object.assign(this.payments.get(id), { checkout_url: c.checkoutUrl, provider_preference_id: c.preferenceId }); },
     processPaymentUpdate: async (u) => { state.paymentUpdates.push(u); return 'approved'; },
@@ -48,7 +51,8 @@ export function fakeStore(overrides = {}) {
 export async function startApp({ env = {}, fetchImpl, store = fakeStore(), mp } = {}) {
   const config = loadConfig({
     SUPABASE_URL: 'https://exemplo.supabase.co', SUPABASE_ANON_KEY: 'anon-publica', SUPABASE_SERVICE_ROLE_KEY: 'srv',
-    MP_WEBHOOK_SECRET: 'segredo-de-teste', PUBLIC_URL: 'https://bicobr.example', ...env,
+    MP_WEBHOOK_SECRET: 'segredo-de-teste', PUBLIC_URL: 'https://bicobr.example', MP_CLIENT_ID: 'app-123', MP_CLIENT_SECRET: 'segredo-do-app',
+    MP_TOKEN_ENCRYPTION_KEY: 'ab'.repeat(32), ...env,
   });
   const logger = createLogger({ silent: true });
   const registries = buildRegistries({ config, logger, fetchImpl });

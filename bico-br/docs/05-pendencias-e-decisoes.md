@@ -7,7 +7,7 @@ Critério de desempate em todas: a opção mais segura e de menor risco regulat�
 | # | Decisão | Por quê | Onde mudar |
 |---|---|---|---|
 | D1 | Taxa de serviço de **10% cobrada de quem contrata, por cima** do valor do profissional. O profissional recebe 100% do que propôs. A taxa só é receita em projeto concluído | Definido pela direção. Cobrar assinatura e ainda descontar comissão do profissional é a principal queixa contra concorrentes | `platform_settings.deposit_rate` |
-| D2 | **A empresa paga o total no início; o valor do profissional fica retido e é liberado quando a entrega é validada dentro da plataforma.** O repasse é feito pelo financeiro via Pix e registrado com comprovante | Definido pela direção: protege o profissional do calote. **Exige parecer jurídico e o split do Mercado Pago antes de operar com dinheiro real** (ver abaixo) | migration 0016 |
+| D2 | **O Bico BR não guarda dinheiro.** A empresa paga pelo Mercado Pago (cartão, Pix); o Mercado Pago divide o pagamento: a parte do profissional vai direto para a conta Mercado Pago dele e a taxa de 10% vai para o Bico BR. O profissional conecta a conta por autorização (OAuth) e o token fica cifrado | Definido pela direção. Elimina o risco regulatório de custódia. Consequência: a proteção do profissional contra calote é o pagamento antecipado; a da empresa é a reclamação com devolução pelo Mercado Pago | migration 0019, `server/src/routes/mp.js` |
 | D3 | Assinatura do profissional é **pagamento único por 30 dias, sem renovação automática** | Elimina cobrança surpresa por construção | função `request_pro` |
 | D4 | **Plano único: R$ 25,00 por 30 dias, com propostas e projetos ilimitados.** Primeiro projeto continua gratuito | Definido pela direção. Manter o primeiro bico grátis é o que traz profissionais antes de a plataforma ter volume | tela de administração → Planos |
 | D11 | Quem solicita serviço publica projetos e vagas **sem limite e sem custo** (há só um teto antiabuso de 30 por dia) | Definido pela direção: demanda é o que atrai profissionais | gatilho `projects_cap` |
@@ -16,6 +16,9 @@ Critério de desempate em todas: a opção mais segura e de menor risco regulat�
 | D15 | **Arquivos do projeto circulam pelo chat** (imagens, PDF, planilhas, documentos, até 20 MB), guardados em área privada e baixados por link temporário só por quem participa da conversa | Definido pela direção | bucket `chat-attachments` |
 | D16 | **Cadastro do profissional só com e-mail, nome, título e habilidades.** Endereço e CPF não são pedidos. Chave Pix é opcional e só para receber. Empresa informa CNPJ (dado de negócio) | Definido pela direção: menos dado sensível, menos risco | tela de cadastro |
 | D17 | Perfil estilo rede profissional: publicações com imagem, curtidas, avaliações, **tempo de resposta medido no chat**, e botão “Solicitar serviço” que convida para um projeto e abre a conversa | Definido pela direção | páginas `/vitrine` e `/profissional` |
+| D18 | **Sem vagas de emprego (CLT, estágio etc.). Só bicos remotos de tecnologia.** Páginas de vagas removidas e endereços antigos redirecionados; o banco recusa novas vagas | Definido pela direção | migration 0019 |
+| D19 | **Cupom de lançamento `LANCAMENTO15`: 15 dias de assinatura grátis**, um por profissional, até 5.000 usos, válido por 120 dias. Os dias começam a contar quando a assinatura passaria a ser cobrada (fim do primeiro projeto), para não serem desperdiçados no período que já é gratuito | Definido pela direção; a contagem a partir do fim do primeiro projeto é escolha minha | tela de administração → Cupons |
+| D20 | **Controle de vencimento:** aviso 3 dias antes; renovação aberta nos últimos 7 dias, somando os 30 dias novos ao fim do período atual; sem renovação automática | Pedido da direção ("assinaturas a vencer") sem abrir mão de D3 | tela de administração → Assinaturas a vencer |
 | D13 | Reclamação pelo contrato até 30 dias após a conclusão; congela o crédito ainda não repassado; decisão com justificativa escrita libera ao profissional ou devolve à empresa | Canal de reclamação pedido pela direção | função `open_dispute` / `resolve_dispute` |
 | D5 | Propostas ilimitadas até a conclusão e aprovação do primeiro projeto; depois exigem plano | Modelo aprovado | função `submit_proposal` |
 | D6 | Teto antiabuso de 50 propostas por dia | Protege empresas de spam; não é limite comercial | `platform_settings.proposal_abuse_daily_limit` |
@@ -24,11 +27,11 @@ Critério de desempate em todas: a opção mais segura e de menor risco regulat�
 | D10 | Anúncios: a empresa procura o Bico BR, contrata o espaço e envia a **imagem** (banner). Um administrador sobe a arte, define link e período e coloca no ar. Espaços próprios (início, feed, lateral), preço fixo por período, sempre com o selo “Patrocinado”; sem rede de anúncios de terceiros; nunca em contrato, chat ou pagamento. Só PNG, JPG e WebP até 2 MB (SVG recusado), com o tipo real do arquivo conferido | Receita extra sem abrir a página a scripts de terceiros. Exibições e cliques são informativos, porque contadores públicos podem ser inflados | tela de administração → Anúncios de empresas |
 | D9 | Primeiro bico cancelado por decisão de disputa não consome o benefício do primeiro projeto gratuito | Justo com o profissional | função `resolve_dispute` |
 
-**Riscos de D2 que precisam ser resolvidos antes de dinheiro real:**
+**Pontos de atenção de D2:**
 
-1. **Regulatório.** Receber dinheiro de uma parte, guardar e repassar a outra é atividade de instituição de pagamento. O caminho usual é o split do Mercado Pago, em que quem guarda o valor é o Mercado Pago (instituição autorizada) e a plataforma só comanda a liberação. Hoje o sistema registra o crédito e o financeiro repassa por Pix — serve para homologação, não para produção. **Parecer jurídico obrigatório.**
-2. **Tarifa de pagamento.** Com 110% do valor passando pela plataforma, uma tarifa de 3,5% consome cerca de 38% da taxa de serviço. Priorizar Pix (tarifa bem menor) no checkout muda a conta. Ver `03-modelo-financeiro.md`.
-3. **Operação.** Repasse manual não escala e depende de o profissional ter chave Pix cadastrada. A tela de repasses avisa quando falta.
+1. **Taxa e reconhecimento de receita.** O Mercado Pago separa a taxa no momento do pagamento. O Bico BR só a conta como receita quando a entrega é validada; antes disso ela aparece como "taxa a reconhecer", porque volta em caso de cancelamento.
+2. **Devolução.** Se uma reclamação terminar em devolução, ela é feita pelo Mercado Pago sobre o pagamento original e depende do saldo da conta do profissional (limitação documentada do modelo 1:1). Hoje o sistema abre o pedido de devolução para o financeiro; a chamada automática à API de reembolso ainda não foi feita.
+3. **Validação real.** A divisão do pagamento foi testada contra um Mercado Pago simulado, escrito a partir da documentação. Antes de dinheiro real: conta de vendedor com identificação completa, aplicação de marketplace aprovada e um pagamento de teste nas credenciais de teste do Mercado Pago.
 
 ## Segurança: o que foi feito
 
@@ -49,7 +52,7 @@ Critério de desempate em todas: a opção mais segura e de menor risco regulat�
 
 ## Segurança: o que ainda falta antes de abrir ao público
 
-1. **Homologação em Supabase real e teste de invasão independente.** Regras do banco (234 verificações) e fluxo de telas (24 passos, com tentativas de invasão) passam na simulação local; falta repetir no Supabase real.
+1. **Homologação em Supabase real e teste de invasão independente.** Regras do banco (256 verificações) e fluxo de telas (23 passos, com tentativas de invasão) passam na simulação local; falta repetir no Supabase real.
 2. **CAPTCHA no cadastro e no login** (o Supabase Auth integra Turnstile/hCaptcha) e política de senha forte no painel do Supabase.
 3. **Rate limit compartilhado** (Redis) quando houver mais de uma instância do backend.
 4. **Verificação de arquivos enviados** (tipo real e antivírus) antes de habilitar upload de portfólio e anexos.
@@ -64,7 +67,7 @@ Critério de desempate em todas: a opção mais segura e de menor risco regulat�
 | Antivírus nos arquivos do chat | Não há. Os tipos são restritos e o conteúdo é conferido, mas um PDF ou planilha pode carregar código malicioso. Avaliar verificação antes de abrir ao público |
 | Comentários nas publicações | Não feito de propósito nesta etapa: é mais uma superfície de moderação. Há curtidas e “Solicitar serviço” |
 | Links profissionais no perfil | Desativados: conflitam com a proibição de divulgar redes sociais |
-| Split do Mercado Pago e repasse automático | Não iniciado; depende de parecer jurídico e de conta de marketplace |
+| Devolução automática pela API do Mercado Pago | O pedido de devolução é aberto para o financeiro, que executa no painel do Mercado Pago |
 | Aviso ao profissional quando surge projeto com as habilidades dele | Não iniciado; hoje ele vê o selo “combina com você” e o filtro |
 | E-mails transacionais (Brevo) | Não iniciado; notificações existem só dentro da plataforma |
 | Upload de arquivos (avatar, portfólio, anexos do chat, evidências de disputa) | Buckets e políticas escritos, não validados; telas usam apenas texto e links |
@@ -84,7 +87,7 @@ Critério de desempate em todas: a opção mais segura e de menor risco regulat�
 
 Postgres real + PostgREST (o mesmo motor de API de dados do Supabase) + servidor real + navegador. O login,
 o ViaCEP, a BrasilAPI e o Mercado Pago são simulados por um gateway de teste; o webhook é assinado de verdade.
-24 passos: cadastro de empresa com CNPJ/CEP → projeto → cadastro de profissional → busca → proposta → chat →
+23 passos: cadastro de empresa com CNPJ/CEP → projeto → cadastro de profissional → busca → proposta → chat →
 aceite → confirmação → pagamento da taxa → entrega → aprovação → saldo → avaliação → compra do Pro →
 perfil público → vaga e candidatura → 15 tentativas de invasão pela API → administração → celular.
 Os textos carregam uma carga de ataque (XSS) e o teste confirma que ela nunca executa.

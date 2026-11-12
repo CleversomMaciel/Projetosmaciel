@@ -113,7 +113,7 @@ select t.fails($$select * from public.company_private$$, 'permission denied', 'a
 select t.fails($$select * from public.proposals$$, 'permission denied', 'anon: propostas negadas');
 select t.fails($$select * from public.messages$$, 'permission denied', 'anon: mensagens negadas');
 select t.ok((select count(*) from public.profiles) = 0, 'anon não lista perfis não públicos');
-select t.ok((select count(*) from public.categories) = 11, 'anon lê as 11 categorias iniciais');
+select t.ok((select count(*) from public.categories) = 2, 'anon lê só as categorias de tecnologia ativas');
 select t.ok((select count(*) from public.plans) = 3, 'planos ativos com preço são públicos');
 reset role;
 
@@ -128,7 +128,7 @@ insert into public.projects (id, company_id, created_by, kind, title, descriptio
                              budget_min_cents, deadline_days, status)
 select '00000000-0000-0000-0000-00000000aaa2', '00000000-0000-0000-0000-0000000000c1', t.id('c'), 'quick',
        'Ajustar fórmula em planilha', 'Corrigir uma fórmula de PROCV que retorna erro em uma planilha.',
-       id, 'fixed', 15000, 2, 'open' from public.categories where slug = 'administracao-e-financeiro';
+       id, 'fixed', 15000, 2, 'open' from public.categories where slug = 'tecnologia-e-programacao';
 select t.ok((select published_at is not null from public.projects where id = '00000000-0000-0000-0000-00000000aaa1'),
             'published_at preenchido ao abrir');
 select t.fails($$insert into public.projects (company_id, created_by, kind, title, description, category_id, budget_type, status)
@@ -194,6 +194,12 @@ select t.ok((select count(*) from public.contracts) = 0, 'terceiro não vê o co
 reset role;
 
 select t.login('f');
+select t.fails(format($$select public.confirm_contract(%L)$$, :'contract_id'), 'MP_NOT_CONNECTED', 'sem conta Mercado Pago conectada o profissional não confirma contrato');
+select t.fails($$update public.freelancer_profiles set mp_connected = true where user_id = t.id('f')$$, 'permission denied', 'usuário não marca a própria conta como conectada');
+select t.fails($$select * from public.mp_accounts$$, 'permission denied', 'tokens do Mercado Pago inacessíveis pela API');
+reset role;
+update public.freelancer_profiles set mp_connected = true where user_id in (t.id('f'), t.id('g')); -- feito pelo backend após o OAuth
+select t.login('f');
 select public.confirm_contract(:'contract_id') \gset c_
 select t.ok((select status from public.contracts where id = :'contract_id') = 'awaiting_deposit',
             'freelancer confirma -> aguardando entrada');
@@ -214,8 +220,8 @@ select t.ok((select (status, is_first_bico) = ('active', true) from public.contr
             'contrato ativo e marcado como primeiro bico');
 select t.ok((select state from public.freelancer_billing where user_id = t.id('f')) = 'FIRST_PROJECT_ACTIVE',
             'assinatura -> FIRST_PROJECT_ACTIVE');
-select t.ok((select (status, amount_cents) = ('held', 150000::bigint) from public.payouts where contract_id = :'contract_id'),
-            'pagamento confirmado: crédito do profissional nasce retido, no valor integral da proposta');
+select t.ok((select (status, amount_cents, payment_reference) = ('paid', 150000::bigint, 'Mercado Pago (split)') from public.payouts where contract_id = :'contract_id'),
+            'pagamento confirmado: a parte do profissional é destinada a ele pelo Mercado Pago (a plataforma não guarda)');
 select t.ok(public.process_payment_update(:'payment_id', 'MP-1', 'approved', 'accredited', 165000) = 'approved',
             'webhook repetido é idempotente');
 select t.ok((select count(*) from public.subscription_events where user_id = t.id('f')) = 1,
@@ -236,7 +242,7 @@ select public.deliver_contract(:'contract_id', 'Dashboard publicado, segue o lin
   (select jsonb_agg(jsonb_build_object('id', id, 'note', 'Arquivo final', 'url', 'https://exemplo.dev/entrega')) from public.contract_deliverables where contract_id = :'contract_id'));
 select t.ok((select count(*) from public.contract_deliverables where contract_id = :'contract_id' and status = 'delivered' and delivery_url is not null) = 1,
             'entrega fica mapeada item a item dentro da plataforma');
-select t.ok((select status from public.payouts where contract_id = :'contract_id') = 'held', 'entregar não libera o crédito: falta a validação');
+select t.ok((select status from public.contracts where id = :'contract_id') = 'delivered', 'entrega registrada aguarda validação da empresa');
 select t.fails(format($$select public.approve_delivery(%L)$$, :'contract_id'), 'não encontrado',
                'freelancer não aprova a própria entrega');
 reset role;
@@ -244,7 +250,7 @@ select t.login('c');
 select public.approve_delivery(:'contract_id');
 reset role;
 select t.ok((select status from public.contracts where id = :'contract_id') = 'completed', 'contrato concluído');
-select t.ok((select status from public.payouts where contract_id = :'contract_id') = 'released', 'entrega validada libera o crédito do profissional');
+select t.ok((select status from public.payouts where contract_id = :'contract_id') = 'paid', 'registro do repasse permanece após a validação');
 select t.ok((select count(*) from public.contract_deliverables where contract_id = :'contract_id' and status = 'accepted') = 1, 'itens ficam marcados como aceitos');
 select t.ok((select completed_projects from public.freelancer_profiles where user_id = t.id('f')) = 1,
             'contador de projetos concluídos');
@@ -387,7 +393,7 @@ select t.fails($$update public.freelancer_profiles set links = (select jsonb_agg
 select t.fails(format($$insert into public.messages (conversation_id, sender_id, body) values (%L, t.id('f'), repeat('x', 5000))$$, :'conv_id'),
                'violates check', 'mensagem acima do limite é recusada');
 reset role;
-select t.ok((select status from public.payouts where contract_id = :'contract_id') = 'blocked', 'reclamação aberta congela o crédito ainda não repassado');
+select t.ok((select status from public.disputes where contract_id = :'contract_id' order by created_at desc limit 1) = 'open', 'reclamação aberta fica registrada para análise');
 select t.login('g');
 select t.ok((select count(*) from public.payouts) = 0, 'terceiro não vê créditos alheios');
 select t.ok((select count(*) from public.contract_deliverables) = 0, 'terceiro não vê entregas alheias');
@@ -421,30 +427,23 @@ select t.fails(format($$select public.resolve_dispute(%L, 'curta', 'resume')$$, 
 select public.resolve_dispute(:'dispute_id', 'Comprovante de pagamento do saldo apresentado pela empresa.', 'resume');
 reset role;
 select t.ok((select status from public.disputes where id = :'dispute_id') = 'resolved', 'disputa resolvida');
-select t.ok((select status from public.payouts where contract_id = :'contract_id') = 'released', 'decisão favorável volta a liberar o crédito');
+select t.ok((select status from public.contracts where id = :'contract_id') = 'completed', 'decisão favorável ao profissional mantém o contrato concluído');
 select id as payout_id from public.payouts where contract_id = :'contract_id' \gset
 select t.login('a', 'aal2');
 select t.fails(format($$select public.mark_payout_paid(%L, 'PIX-123456')$$, :'payout_id'), 'Acesso negado', 'suporte não registra repasse');
 reset role;
 select t.login('f');
 select t.fails(format($$select public.mark_payout_paid(%L, 'PIX-123456')$$, :'payout_id'), 'Acesso negado', 'profissional não marca o próprio repasse como pago');
-update public.profile_private set pix_key = 'fran@pix.example' where user_id = t.id('f');
 reset role;
 select t.login('d', 'aal2');
-select t.ok((select pix_key from public.profile_private where user_id = t.id('f')) = 'fran@pix.example', 'financeiro vê a chave Pix para o repasse');
-select t.fails(format($$select public.mark_payout_paid(%L, '')$$, :'payout_id'), 'comprovante', 'repasse exige comprovante');
-select public.mark_payout_paid(:'payout_id', 'PIX-E2E-000123');
-select t.fails(format($$select public.mark_payout_paid(%L, 'PIX-OUTRO')$$, :'payout_id'), 'crédito liberado', 'repasse não é registrado duas vezes');
+select t.fails(format($$select public.mark_payout_paid(%L, 'PIX-OUTRO')$$, :'payout_id'), 'crédito liberado', 'repasse feito pelo Mercado Pago não é regravado à mão');
 reset role;
-select t.ok((select (status, payment_reference) = ('paid', 'PIX-E2E-000123') from public.payouts where id = :'payout_id'), 'repasse registrado com comprovante');
-select t.ok((select count(*) from public.audit_logs where entity_type = 'payouts') >= 4, 'toda mudança no crédito é auditada');
-select t.login('g');
-select t.ok((select count(*) from public.profile_private where pix_key is not null) = 0, 'chave Pix de terceiros é invisível');
-reset role;
+select t.ok((select count(*) from public.audit_logs where entity_type = 'payouts') >= 1, 'registro do repasse é auditado');
 select t.ok((select count(*) from public.audit_logs where entity_type = 'disputes' and action = 'update') >= 1, 'decisão da disputa fica na auditoria');
 select t.login('d', 'aal2');
 select t.ok((public.admin_metrics(30) ->> 'contratos_concluidos')::int = 1, 'financeiro com MFA lê indicadores');
-select t.ok((public.admin_metrics(30) ->> 'receita_taxa_servico_centavos')::int = 15000, 'receita = taxa de serviço recebida, não o GMV');
+select t.ok((public.admin_metrics(30) ->> 'receita_taxa_servico_centavos')::int = 15000, 'taxa de projeto concluído (entrega validada) é receita');
+select t.ok((public.admin_metrics(30) ->> 'taxa_a_reconhecer_centavos')::int = 0, 'nada pendente de reconhecimento');
 select t.ok((public.admin_metrics(30) ->> 'gmv_centavos')::int = 150000, 'GMV separado da receita');
 select t.ok(t.affected($$update public.plans set price_cents = 3490 where code = 'pro'$$) = 1, 'financeiro altera preço de plano');
 reset role;
@@ -464,10 +463,11 @@ select t.ok(public.process_payment_update(:'renew_1', 'MP-OUTRO', 'approved', 'a
 -- (b) segundo pagamento de plano com plano vigente => reembolso automático, sem sobrepor ciclo
 insert into public.payments (id, kind, plan_id, payer_id, amount_cents)
 select '00000000-0000-0000-0000-0000000000f2', 'subscription', id, t.id('f'), 5990 from public.plans where code = 'pro_plus';
-select t.ok(public.process_payment_update('00000000-0000-0000-0000-0000000000f2', 'MP-10', 'approved', 'accredited', 5990) = 'approved_needs_refund',
-            'pagamento em duplicidade de plano vira pedido de reembolso');
-select t.ok((select p.code from public.freelancer_billing b join public.plans p on p.id = b.plan_id where b.user_id = t.id('f')) = 'pro',
-            'plano vigente não é sobreposto');
+select cycle_end as end_before from public.freelancer_billing where user_id = t.id('f') \gset
+select t.ok(public.process_payment_update('00000000-0000-0000-0000-0000000000f2', 'MP-10', 'approved', 'accredited', 5990) = 'approved',
+            'pagamento com assinatura vigente vale como renovação');
+select t.ok((select cycle_end = :'end_before'::timestamptz + interval '30 days' from public.freelancer_billing where user_id = t.id('f')),
+            'renovação soma 30 dias ao fim do período vigente: nenhum dia pago é perdido');
 -- (c) taxa de serviço paga para contrato cancelado
 update public.freelancer_billing set proposals_used = 0 where user_id = t.id('g');
 select t.login('g');
@@ -486,12 +486,12 @@ reset role;
 select t.ok(public.process_payment_update(:'pay_2', 'MP-11', 'approved', 'accredited', 16500) = 'approved_needs_refund',
             'taxa paga para contrato cancelado gera reembolso automático');
 select t.ok((select status from public.contracts where id = :'contract_2') = 'cancelled', 'contrato cancelado não é reativado por pagamento tardio');
-select t.ok((select count(*) from public.refunds where origin = 'system' and status = 'requested') = 2, 'reembolsos automáticos ficam na fila do financeiro');
+select t.ok((select count(*) from public.refunds where origin = 'system' and status = 'requested') = 1, 'reembolso automático fica na fila do financeiro');
 select t.login('d', 'aal2');
-select t.ok((select count(*) from public.refunds) = 2, 'financeiro com MFA vê os reembolsos');
+select t.ok((select count(*) from public.refunds) = 1, 'financeiro com MFA vê os reembolsos');
 select t.ok(t.affected(format($$update public.refunds set status = 'approved', decided_by = %L, decided_at = now(), decision_note = 'Devolver' where payment_id = %L$$, t.id('d'), :'pay_2')) = 1,
             'financeiro decide o reembolso');
-select t.fails($$update public.refunds set status = 'processed'$$, 'row-level security', 'financeiro não marca reembolso como processado pela API');
+select t.ok(t.affected($$update public.refunds set status = 'processed'$$) = 0, 'reembolso já decidido não é alterado de novo pela API');
 reset role;
 select t.login('c');
 select t.ok((select count(*) from public.refunds) = 0, 'empresa não vê reembolsos automáticos de terceiros nem os do sistema');
@@ -645,6 +645,62 @@ select t.ok((select suspended_until is null from public.profiles where id = t.id
 select t.ok((select count(*) from public.audit_logs where entity_type = 'profiles' and action = 'unsuspend') = 1, 'decisão de moderação é auditada');
 delete from public.admin_members where user_id = t.id('g');
 delete from public.moderation_flags;
+
+-- ------------------------------------------------------------ 0019: só bicos, cupom, vencimentos
+select t.login('c');
+select t.fails($$insert into public.jobs (company_id, created_by, title, description, category_id, contract_type)
+                 select '00000000-0000-0000-0000-0000000000c1', t.id('c'), 'Analista CLT', 'Vaga de emprego não é mais aceita na plataforma.', id, 'clt' from public.categories limit 1$$,
+               'permission denied', 'publicação de vagas de emprego está bloqueada');
+select t.fails($$select public.redeem_coupon('LANCAMENTO15')$$, 'profissional', 'empresa não usa cupom de profissional');
+reset role;
+-- cupom de lançamento: 15 dias grátis, guardados até a assinatura ser necessária
+delete from public.admin_members where user_id = t.id('a');
+select t.login('a');
+select t.fails($$select public.redeem_coupon('CHUTE1234')$$, 'COUPON_INVALID', 'código inexistente é recusado sem revelar motivo');
+select t.ok((public.redeem_coupon(' lancamento15 ') ->> 'applied_now') = 'false', 'cupom aceito no cadastro fica guardado (ainda no período gratuito)');
+select t.fails($$select public.redeem_coupon('LANCAMENTO15')$$, 'COUPON_ALREADY_USED', 'um cupom por profissional');
+select t.fails($$update public.freelancer_billing set trial_days_pending = 90$$, 'permission denied', 'usuário não altera os próprios dias grátis');
+select t.ok((select count(*) from public.coupons) = 0, 'usuário comum não lista cupons');
+reset role;
+select t.ok((select redeemed_count from public.coupons where code = 'LANCAMENTO15') = 1, 'uso do cupom é contado');
+update public.freelancer_billing set state = 'FIRST_PROJECT_COMPLETED' where user_id = t.id('a'); -- simula a conclusão do primeiro projeto
+select t.ok(private.apply_pending_trial(t.id('a')), 'ao concluir o primeiro projeto, os dias do cupom entram em vigor');
+select t.ok((select state = 'PRO_ACTIVE' and trial_days_pending = 0 and cycle_end between now() + interval '14 days 23 hours' and now() + interval '15 days 1 hour'
+               from public.freelancer_billing where user_id = t.id('a')), 'assinatura ativa por 15 dias, sem cobrança');
+select t.ok((select count(*) from public.payments where payer_id = t.id('a')) = 0, 'cupom não gera cobrança');
+-- controle de vencimento e renovação antecipada
+select t.login('a');
+select t.fails($$select public.request_pro('pro', true)$$, '7 dias antes', 'renovação só abre perto do vencimento');
+reset role;
+update public.freelancer_billing set cycle_end = now() + interval '2 days' where user_id = t.id('a');
+select t.ok(public.notify_expiring_subscriptions() = 1, 'aviso de vencimento enviado 3 dias antes');
+select t.ok(public.notify_expiring_subscriptions() = 0, 'aviso não se repete no mesmo período');
+select t.login('a');
+select id as early_pay from public.request_pro('pro', true) \gset
+select t.ok((select state from public.freelancer_billing) = 'PRO_ACTIVE', 'pedir a renovação não interrompe o acesso atual');
+reset role;
+select t.ok(public.process_payment_update(:'early_pay', 'MP-20', 'approved', 'accredited', (select amount_cents from public.payments where id = :'early_pay')) = 'approved', 'renovação antecipada paga');
+select t.ok((select cycle_end between now() + interval '31 days' and now() + interval '33 days' from public.freelancer_billing where user_id = t.id('a')),
+            'novo período começa quando o atual termina');
+select t.login('f');
+select t.fails($$select public.notify_expiring_subscriptions()$$, 'permission denied', 'usuário não dispara avisos');
+reset role;
+
+-- ------------------------------------------------------------ 0020: taxa só é receita depois da entrega
+select t.login('c');
+select id as c3 from public.accept_proposal((select id from public.proposals where freelancer_id = t.id('f') and project_id = '00000000-0000-0000-0000-00000000aaa2')) \gset
+reset role;
+select t.login('f');
+select public.confirm_contract(:'c3') \gset y_
+reset role;
+select id as pay3, amount_cents as pay3_amount from public.payments where contract_id = :'c3' \gset
+select t.ok(public.process_payment_update(:'pay3', 'MP-30', 'approved', 'accredited', :'pay3_amount') = 'approved', 'projeto novo pago pelo Mercado Pago');
+select t.login('d', 'aal2');
+select t.ok((public.admin_metrics(30) ->> 'receita_taxa_servico_centavos')::int = 15000, 'taxa de projeto pago mas ainda em execução NÃO entra como receita');
+select t.ok((public.admin_metrics(30) ->> 'taxa_a_reconhecer_centavos')::int = 1500, 'ela fica separada como taxa a reconhecer (pode voltar se o projeto for cancelado)');
+reset role;
+select t.ok(not exists (select 1 from information_schema.columns where table_schema = 'public' and (column_name ~ '(card|cartao|cvv|cvc|expir_month|security_code)' or column_name in ('pan', 'pix_key'))),
+            'nenhuma coluna guarda dado de cartão ou chave Pix');
 
 -- ------------------------------------------------------------ vagas: somente remoto
 select t.fails($$insert into public.jobs (company_id, created_by, title, description, category_id, contract_type, work_mode)

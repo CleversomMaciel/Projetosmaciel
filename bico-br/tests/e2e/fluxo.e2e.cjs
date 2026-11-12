@@ -37,8 +37,9 @@ async function newUser(browser, opts = {}) {
 const shot = (page, name) => page.screenshot({ path: `${OUT}/${name}.png`, fullPage: true });
 const pwned = (page) => page.evaluate(() => window.__pwned);
 
-async function signup(page, who, tipo) {
+async function signup(page, who, tipo, coupon = null) {
   await page.goto(`${APP_URL}/cadastro?tipo=${tipo}`);
+  if (coupon) await page.fill('#cupom', coupon);
   await page.fill('#nome', who.name); await page.fill('#email', who.email); await page.fill('#senha', who.pass);
   await page.click('#form button[type=submit]');
   await page.waitForURL('**/onboarding');
@@ -50,7 +51,7 @@ async function onboardFreelancer(page, headline) {
   await page.waitForSelector('#ob-habilidades [data-skill]');
   await page.check('#form-freelancer [data-aceite]');
   await page.click('#form-freelancer button[type=submit]');
-  await page.waitForURL('**/painel');
+  await page.waitForURL('**/painel*');
 }
 // arte de exemplo gerada no próprio teste
 async function makeArt(browser, w, h, html) {
@@ -66,9 +67,12 @@ async function makeArt(browser, w, h, html) {
   const c = await newUser(browser); const f = await newUser(browser);
   let projectUrl; let contractUrl; let slug;
 
-  await step('página inicial lista as 11 categorias do banco', async () => {
+  await step('página inicial: só tecnologia, sem vagas de emprego', async () => {
     await c.page.goto(APP_URL);
-    await c.page.waitForFunction(() => document.querySelectorAll('#categorias a').length === 11);
+    await c.page.waitForFunction(() => document.querySelectorAll('#categorias a').length >= 10);
+    assert((await c.page.locator('a[href="/vagas"]').count()) === 0, 'não há link para vagas de emprego');
+    const moved = await c.page.request.get(`${APP_URL}/vagas`, { maxRedirects: 0 });
+    assert(moved.status() === 301, 'endereço antigo de vagas redireciona');
     await shot(c.page, '01-inicio');
   });
 
@@ -97,7 +101,7 @@ async function makeArt(browser, w, h, html) {
     await c.page.fill('#description', `Preciso de um dashboard com metas e filtros por região. ${XSS}`);
     await c.page.fill('#deliverables', 'Arquivo .pbix do dashboard\nReunião de repasse de 1 hora');
     await c.page.fill('#habilidades input', 'power');
-    await c.page.click('#habilidades [data-skill]:has-text("Power BI")');
+    await c.page.locator('#habilidades [data-skill]', { hasText: /^Power\ BI$/ }).click();
     await c.page.selectOption('#category', { index: 2 });
     await c.page.fill('#min', '1.500'); await c.page.fill('#max', '2.500'); await c.page.fill('#deadline', '10');
     await c.page.click('button[data-status="open"]');
@@ -108,19 +112,19 @@ async function makeArt(browser, w, h, html) {
   });
 
   await step('profissional: cadastro, onboarding e estado inicial de propostas ilimitadas', async () => {
-    await signup(f.page, freela, 'freelancer');
+    await signup(f.page, freela, 'freelancer', 'lancamento15');
     await onboardFreelancer(f.page, 'Analista de dados · Power BI e SQL');
+    await see(f.page, 'Cupom aplicado: 15 dias');
     await see(f.page, 'Propostas ilimitadas');
   });
 
-  await step('profissional: cadastra habilidades e chave Pix no perfil', async () => {
+  await step('profissional: habilidades no perfil e conexão da conta Mercado Pago', async () => {
     await f.page.goto(`${APP_URL}/perfil`);
     await f.page.waitForSelector('#habilidades [data-skill]');
     await f.page.fill('#habilidades input', 'power');
-    await f.page.click('#habilidades [data-skill]:has-text("Power BI")');
+    await f.page.locator('#habilidades [data-skill]', { hasText: /^Power\ BI$/ }).click();
     await f.page.fill('#habilidades input', 'sql');
-    await f.page.click('#habilidades [data-skill]:has-text("SQL")');
-    await f.page.fill('#pix', 'fran@pix.example');
+    await f.page.locator('#habilidades [data-skill]', { hasText: /^SQL$/ }).click();
     await f.page.fill('#bio', 'Me chama no whatsapp 11 98765-4321 que respondo rápido');
     await f.page.click('#form button[type=submit]');
     await see(f.page, 'Texto recusado');
@@ -130,7 +134,10 @@ async function makeArt(browser, w, h, html) {
     await f.page.reload();
     await f.page.waitForSelector('#habilidades [data-skill][aria-pressed="true"]');
     assert((await f.page.locator('#habilidades [data-skill][aria-pressed="true"]').count()) === 2, 'habilidades ficam salvas');
-    assert((await f.page.inputValue('#pix')) === 'fran@pix.example', 'chave Pix fica salva');
+    assert((await f.page.locator('#pix').count()) === 0, 'não pedimos chave Pix nem dados bancários');
+    await f.page.click('#mp-conectar'); // vai ao Mercado Pago (simulado) e volta com a autorização
+    await f.page.waitForURL('**/perfil?mp=ok');
+    await see(f.page, 'Conta do Mercado Pago conectada');
   });
 
   await step('profissional: encontra o projeto na busca e envia proposta', async () => {
@@ -210,19 +217,22 @@ async function makeArt(browser, w, h, html) {
     await see(f.page, 'Aguardando o pagamento da empresa');
   });
 
-  await step('empresa: paga o total (checkout -> webhook assinado -> contrato ativo, crédito retido)', async () => {
+  await step('empresa paga pelo Mercado Pago: pagamento dividido, direto para a conta do profissional', async () => {
     await c.page.goto(contractUrl);
     await c.page.click('[data-action="pay"]');
     await c.page.waitForURL('**/contrato?id=*');
     await see(c.page, 'Em execução');
     await see(c.page, 'Pagamento confirmado');
-    await see(c.page, 'Crédito retido: R$ 2.000,00');
+    await see(c.page, 'Pagamento ao profissional: R$ 2.000,00');
+    const pref = await (await fetch(`${GW_URL}/fake/mp/last-preference`)).json();
+    assert(pref.token === 'profissional', 'cobrança criada na conta Mercado Pago do profissional (a plataforma não recebe a parte dele)');
+    assert(pref.unit_price === 2200 && pref.marketplace_fee === 200, `empresa paga R$ 2.200 e o Mercado Pago separa R$ 200 de taxa (${JSON.stringify(pref)})`);
   });
 
   await step('entrega dentro do app: item a item; empresa pede ajuste em um item', async () => {
     await f.page.goto(contractUrl);
     await see(f.page, 'Primeiro bico');
-    await see(f.page, 'Crédito retido');
+    await see(f.page, 'Pagamento ao profissional');
     // tentar entregar sem preencher os itens é barrado
     await f.page.fill('#n-deliver_contract', 'Dashboard publicado e reunião realizada.');
     await f.page.click('[data-form="deliver_contract"] button');
@@ -232,7 +242,6 @@ async function makeArt(browser, w, h, html) {
     await notes.nth(1).fill(`Reunião feita em 12/11 com a equipe. ${XSS}`);
     await f.page.click('[data-form="deliver_contract"] button');
     await see(f.page, 'Entrega enviada');
-    await see(f.page, 'Crédito retido'); // entregar não libera: falta a validação
 
     await c.page.goto(contractUrl);
     assert(!(await pwned(c.page)), 'XSS da entrega não executa para a empresa');
@@ -252,22 +261,22 @@ async function makeArt(browser, w, h, html) {
     await see(f.page, 'Entrega enviada');
   });
 
-  await step('empresa valida a entrega: contrato concluído e crédito liberado', async () => {
+  await step('empresa valida a entrega: projeto concluído; cupom de 15 dias entra em vigor', async () => {
     await c.page.goto(contractUrl);
     await c.page.click('[data-action="approve_delivery"]');
     await see(c.page, 'Concluído');
-    await see(c.page, 'Crédito liberado: R$ 2.000,00');
     await c.page.fill('#comentario', 'Entrega excelente, no prazo.');
     await c.page.click('[data-form="review"] button');
     await see(c.page, 'Você avaliou com nota 5');
     await shot(c.page, '05-contrato-concluido');
     await f.page.goto(`${APP_URL}/painel`);
-    await see(f.page, 'Primeiro bico concluído');
-    await see(f.page, 'Liberado — repasse em andamento');
+    await see(f.page, 'Bico BR Pro ativo'); // sem cupom seria "Primeiro bico concluído" pedindo assinatura
+    await see(f.page, 'propostas e projetos ilimitados');
+    await see(f.page, 'Pago na sua conta Mercado Pago');
     await shot(f.page, '06-painel-profissional');
   });
 
-  await step('reclamação após a conclusão: abre pelo suporte e congela o crédito', async () => {
+  await step('reclamação após a conclusão: aberta pelo suporte, com protocolo', async () => {
     await c.page.goto(`${APP_URL}/suporte`);
     await c.page.click('#contratos a:has-text("Abrir reclamação")');
     await c.page.waitForSelector('#reclamar[open]');
@@ -275,29 +284,21 @@ async function makeArt(browser, w, h, html) {
     await c.page.fill('#n-open_dispute', 'Uma das páginas do dashboard veio sem o filtro por região.');
     await c.page.click('[data-form="open_dispute"] button');
     await see(c.page, 'Reclamação BICO-');
-    await see(c.page, 'Crédito em análise');
     await shot(c.page, '15-reclamacao');
     await f.page.goto(contractUrl);
-    await see(f.page, 'Crédito em análise');
     await f.page.fill('#n-dispute_entry', 'O filtro por região está na página 2, como combinado no escopo.');
     await f.page.click('[data-form="dispute_entry"] button');
     await see(f.page, 'O filtro por região está na página 2');
   });
 
-  await step('profissional: compra o plano Pro com aceite expresso (pagamento único)', async () => {
+  await step('assinatura: 15 dias do cupom em vigor, sem cobrança, com vencimento visível', async () => {
     await f.page.goto(`${APP_URL}/plano`);
+    await see(f.page, 'Assinatura ativa até');
+    await see(f.page, '(15 dias)');
     await see(f.page, 'R$ 25,00');
-    await see(f.page, 'ilimitados');
-    assert((await f.page.locator('[data-plan]').count()) === 1, 'há um único plano');
-    await f.page.click('[data-plan="pro"]');
-    await f.page.click('#compra button[type=submit]'); // sem marcar o aceite
-    await see(f.page, 'Marque a autorização');
+    assert((await f.page.locator('[data-plan]').count()) === 0, 'renovação só abre 7 dias antes do vencimento');
+    assert(await f.page.locator('#cupom').isHidden(), 'cupom já usado não pode ser usado de novo');
     await shot(f.page, '07-plano');
-    await f.page.check('#aceite');
-    await f.page.click('#compra button[type=submit]');
-    await f.page.waitForURL('**/plano');
-    await see(f.page, 'ativo até');
-    await see(f.page, 'propostas e projetos ilimitados');
   });
 
   await step('profissional: perfil público e portfólio; visitante anônimo enxerga', async () => {
@@ -335,28 +336,6 @@ async function makeArt(browser, w, h, html) {
     await anon.ctx.close();
   });
 
-  await step('vagas: empresa publica vaga remota; profissional se candidata', async () => {
-    await c.page.goto(`${APP_URL}/publicar-vaga`);
-    await c.page.waitForSelector('#form:not([hidden])');
-    await c.page.fill('#title', 'Analista de BI pleno');
-    await c.page.selectOption('#category', { index: 2 });
-    await c.page.fill('#description', 'Atuar na construção de indicadores e painéis para a diretoria.');
-    await c.page.fill('#smin', '6.000'); await c.page.fill('#smax', '8.000');
-    await c.page.click('#form button[type=submit]');
-    await c.page.waitForURL('**/vagas');
-    await see(c.page, 'Analista de BI pleno');
-    await f.page.goto(`${APP_URL}/vagas`);
-    await f.page.click('#lista .xcard-head');
-    await f.page.fill('#lista [name=carta]', 'Tenho três anos de experiência com indicadores.');
-    await f.page.waitForTimeout(400);
-    await shot(f.page, '12-vagas');
-    await f.page.click('#lista [data-apply] button[type=submit]');
-    await see(f.page, 'Candidatura enviada');
-    await f.page.reload();
-    await f.page.click('#lista .xcard-head');
-    await see(f.page, 'Candidatura enviada');
-  });
-
   await step('busca de profissionais por habilidade: empresa convida e a conversa abre na hora', async () => {
     await c.page.goto(`${APP_URL}/publicar-projeto`);
     await c.page.waitForSelector('#form:not([hidden])');
@@ -379,7 +358,7 @@ async function makeArt(browser, w, h, html) {
     await c.page.click('#enviar button');
     await c.page.waitForSelector('#thread [data-id]');
     await c.page.goto(`${APP_URL}/profissionais`);
-    await c.page.selectOption('#habilidade', { label: 'Locução' });
+    await c.page.selectOption('#habilidade', { label: 'Go' });
     await see(c.page, 'Nenhum profissional público com essa habilidade');
   });
 
@@ -450,6 +429,12 @@ async function makeArt(browser, w, h, html) {
         aprovarPagamento: await send('POST', 'rpc/process_payment_update', { p_payment_id: contractId, p_provider_payment_id: 'x', p_provider_status: 'approved', p_status_detail: null, p_amount_cents: 1 }),
         aprovarEntregaAlheia: await send('POST', 'rpc/approve_delivery', { p_contract_id: contractId }),
         metricas: await send('POST', 'rpc/admin_metrics', { p_days: 30 }),
+        cupomDuasVezes: [await send('POST', 'rpc/redeem_coupon', { p_code: 'LANCAMENTO15' }), await send('POST', 'rpc/redeem_coupon', { p_code: 'LANCAMENTO15' })].map((r) => r.status),
+        chutarCupom: await send('POST', 'rpc/redeem_coupon', { p_code: 'GRATIS9999' }),
+        diasGratis: await send('PATCH', `freelancer_billing?user_id=eq.${session.user.id}`, { trial_days_pending: 90 }),
+        publicarVaga: await send('POST', 'jobs', { title: 'Vaga CLT', description: 'Vaga de emprego publicada pela API diretamente.', contract_type: 'clt' }),
+        tokensMp: await get('mp_accounts?select=access_token_enc'),
+        marcarConectado: await send('PATCH', `freelancer_profiles?user_id=eq.${session.user.id}`, { mp_connected: true }),
         lerOcorrencias: await get('moderation_flags?select=id'),
         tirarSuspensao: await send('PATCH', `profiles?id=eq.${session.user.id}`, { suspended_until: null, response_count: 999 }),
         suspenderOutro: await send('POST', 'rpc/set_user_suspension', { p_user: contractId, p_days: 30, p_reason: 'porque eu quero suspender' }),
@@ -459,7 +444,6 @@ async function makeArt(browser, w, h, html) {
         liberarCredito: await send('PATCH', `payouts?contract_id=eq.${contractId}`, { status: 'paid' }),
         marcarRepasse: await send('POST', 'rpc/mark_payout_paid', { p_payout_id: contractId, p_reference: 'PIX-FALSO' }),
         verCreditos: await get('payouts?select=id'),
-        verPix: await get('profile_private?select=pix_key&pix_key=not.is.null'),
         enviarAnuncio: await fetch(`${gw}/storage/v1/object/ads/2026/invasor.png`, { method: 'POST', headers: { apikey: anon, authorization: `Bearer ${session.access_token}`, 'content-type': 'image/png' }, body: new Uint8Array([137, 80, 78, 71]) }).then((r) => r.status),
         checkoutAlheio: await fetch(`/api/payments/${contractId}/checkout`, { method: 'POST', headers: { authorization: `Bearer ${session.access_token}`, 'content-type': 'application/json' }, body: '{}' }).then((r) => r.status),
       };
@@ -478,6 +462,14 @@ async function makeArt(browser, w, h, html) {
     assert([401, 403, 404].includes(out.aprovarPagamento.status), `não aprova pagamento (${out.aprovarPagamento.status})`);
     assert(out.aprovarEntregaAlheia.status >= 400, 'não aprova entrega de contrato alheio');
     assert(out.metricas.status >= 400, 'não lê indicadores administrativos');
+    assert(out.cupomDuasVezes[0] < 300 && out.cupomDuasVezes[1] >= 400, `cupom vale uma vez só (${out.cupomDuasVezes})`);
+    assert(out.chutarCupom.status >= 400, 'código inventado não vale');
+    assert([401, 403].includes(out.diasGratis.status), `não aumenta os próprios dias grátis (${out.diasGratis.status})`);
+    assert([401, 403].includes(out.publicarVaga.status), `não publica vaga de emprego pela API (${out.publicarVaga.status})`);
+    assert([401, 403].includes(out.tokensMp.status), `não lê tokens do Mercado Pago (${out.tokensMp.status})`);
+    const forged = await i.page.request.get(`${APP_URL}/api/mp/callback?code=abc&state=${new URL(contractUrl).searchParams.get('id')}.9999999999.assinatura-falsa`, { maxRedirects: 0 });
+    assert(forged.headers().location === '/perfil?mp=erro', 'autorização forjada do Mercado Pago é recusada');
+    assert([401, 403].includes(out.marcarConectado.status), `não se marca como conectado ao Mercado Pago (${out.marcarConectado.status})`);
     assert(out.lerOcorrencias.body.length === 0, 'não lê ocorrências de moderação');
     assert([401, 403].includes(out.tirarSuspensao.status), `não altera suspensão nem tempo de resposta (${out.tirarSuspensao.status})`);
     assert(out.suspenderOutro.status >= 400, 'não suspende outras pessoas');
@@ -487,7 +479,6 @@ async function makeArt(browser, w, h, html) {
     assert([401, 403].includes(out.liberarCredito.status), `não altera crédito pela API (${out.liberarCredito.status})`);
     assert(out.marcarRepasse.status >= 400, 'não registra repasse');
     assert(out.verCreditos.body.length === 0, 'não vê créditos alheios');
-    assert(out.verPix.body.length === 0, 'não vê chave Pix de ninguém');
     assert(out.enviarAnuncio === 403, `não envia imagem de anúncio (${out.enviarAnuncio})`);
     assert(out.checkoutAlheio === 404, `não inicia checkout alheio (${out.checkoutAlheio})`);
     await i.page.goto(contractUrl);
@@ -511,8 +502,11 @@ async function makeArt(browser, w, h, html) {
     const text = await a.page.locator('#indicadores').innerText();
     assert(/GMV[^\n]*\n\s*R\$\s?2\.000,00/.test(text), `GMV de R$ 2.000 (${text.slice(0, 200)})`);
     assert(/taxa de serviço\s*\n\s*R\$\s?200,00/.test(text), 'receita de taxa de serviço R$ 200');
-    assert(/assinaturas\s*\n\s*R\$\s?25,00/.test(text), 'receita de assinaturas R$ 25,00');
-    assert(/Créditos retidos[^\n]*\n\s*R\$\s?2\.000,00/.test(text), 'crédito em reclamação aparece como retido, não como receita');
+    assert(/assinaturas\s*\n\s*R\$\s?0,00/.test(text), 'período grátis do cupom não é receita');
+    assert(!/Créditos retidos|Repasses a fazer/.test(text), 'a plataforma não tem valores de terceiros sob guarda');
+    await a.page.waitForSelector('#cupons'); await a.page.waitForSelector('#assinaturas');
+    await see(a.page, 'LANCAMENTO15');
+    assert(/[12] de 5000 usos/.test(await a.page.locator('#cupons').innerText()), 'usos do cupom contados');
 
     // denúncia do profissional chegou à moderação, com o texto neutralizado
     await see(a.page, 'pagamento_por_fora');
@@ -531,17 +525,11 @@ async function makeArt(browser, w, h, html) {
     await a.page.fill('#disputas textarea', 'O filtro por região consta na página 2, conforme o escopo e a entrega registrada.');
     await a.page.selectOption('#disputas select', 'complete');
     await a.page.click('#disputas button[type=submit]');
-    await a.page.waitForSelector('#repasses [data-payout]');
-    await see(a.page, 'fran@pix.example');
-    await shot(a.page, '17-admin-repasses');
-    await a.page.click('#repasses button[type=submit]'); // sem comprovante
-    await see(a.page, 'Informe o identificador');
-    await a.page.fill('#repasses input', 'PIX-E2E-000123');
-    await a.page.click('#repasses button[type=submit]');
-    await see(a.page, 'Nenhum repasse pendente');
+    await see(a.page, 'Nenhuma disputa em aberto');
     await f.page.goto(contractUrl);
-    await see(f.page, 'Crédito repassado: R$ 2.000,00');
     await see(f.page, 'Reclamação BICO-');
+    await see(f.page, 'Concluído');
+
     await a.page.waitForSelector('#planos'); await a.page.waitForSelector('#categorias');
     await see(a.page, 'Empresas pedindo para anunciar');
     // arte do anunciante: gerada aqui mesmo, só para o teste
@@ -585,7 +573,7 @@ async function makeArt(browser, w, h, html) {
 
   await step('celular: páginas principais sem rolagem horizontal', async () => {
     const m = await newUser(browser, { ...devices['iPhone 13'] });
-    for (const path of ['/', '/projetos', '/vagas', '/vitrine', '/profissionais', '/termos', `/profissional?u=${slug}`]) {
+    for (const path of ['/', '/projetos', '/vitrine', '/profissionais', '/termos', `/profissional?u=${slug}`]) {
       await m.page.goto(APP_URL + path, { waitUntil: 'networkidle' });
       const overflow = await m.page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
       assert(overflow <= 1, `${path} com rolagem horizontal de ${overflow}px`);

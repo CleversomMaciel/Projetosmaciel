@@ -29,9 +29,12 @@ const empty = (t) => `<p class="text-tinta-500">${t}</p>`;
   if (!profile) return showNotice(aviso, 'error', 'Não encontramos seu perfil.');
   if (!profile.onboarded_at) return location.replace('/onboarding');
   $('#saudacao').textContent = `Olá, ${profile.display_name || 'bem-vindo(a)'}`;
+  const cupom = new URLSearchParams(location.search).get('cupom');
+  if (cupom === 'invalido') showNotice(aviso, 'warn', 'O cupom informado no cadastro é inválido ou já acabou. Você pode tentar outro em Minha assinatura.');
+  else if (/^\d{1,2}$/.test(cupom ?? '')) showNotice(aviso, 'info', `Cupom aplicado: ${cupom} dias de assinatura grátis, contados a partir do fim do seu primeiro projeto. Até lá, propostas ilimitadas.`);
   const isCompany = profile.account_type === 'company';
   $('#acoes').innerHTML = (isCompany
-    ? '<a class="btn-primary" href="/publicar-projeto">Publicar projeto</a><a class="btn-ghost" href="/publicar-vaga">Publicar vaga</a><a class="btn-ghost" href="/profissionais">Buscar profissionais</a>'
+    ? '<a class="btn-primary" href="/publicar-projeto">Publicar projeto</a><a class="btn-ghost" href="/profissionais">Buscar devs</a>'
     : '<a class="btn-primary" href="/projetos">Buscar projetos</a><a class="btn-ghost" href="/perfil">Meu perfil</a>')
     + '<a class="btn-ghost" href="/mensagens">Mensagens</a><a class="btn-ghost" href="/suporte">Ajuda e reclamações</a>';
   $('#acoes').className = 'flex flex-wrap gap-2';
@@ -51,21 +54,27 @@ const empty = (t) => `<p class="text-tinta-500">${t}</p>`;
       <p><a class="linkish" href="/projeto?id=${p.id}">${esc(p.title)}</a><span class="ml-2 text-tinta-500">${esc(PROJECT[p.status] ?? p.status)} · ${p.proposals_count} proposta(s)</span></p>`).join('') || empty('Você ainda não publicou projetos.'))
       + card('Contratos', contractsHtml);
   } else {
-    const PAYOUT = { held: 'Retido até a entrega ser validada', blocked: 'Em análise (reclamação aberta)', released: 'Liberado — repasse em andamento', paid: 'Repassado', refunded: 'Devolvido à empresa' };
+    const PAYOUT = { held: 'Em processamento', blocked: 'Em análise', released: 'Em processamento', paid: 'Pago na sua conta Mercado Pago', refunded: 'Devolvido à empresa' };
     const [{ data: billing }, { data: proposals }, { data: payouts }] = await Promise.all([
-      sb.from('freelancer_billing').select('state, proposals_used, cycle_end, plans(name, proposals_per_cycle)').maybeSingle(),
+      sb.from('freelancer_billing').select('state, proposals_used, cycle_end, trial_days_pending, plans(name, proposals_per_cycle)').maybeSingle(),
       sb.from('proposals').select('id, amount_cents, status, projects(id, title)').eq('freelancer_id', profile.id).order('created_at', { ascending: false }).limit(20),
       sb.from('payouts').select('contract_id, amount_cents, status').eq('freelancer_id', profile.id).order('created_at', { ascending: false }).limit(20),
     ]);
+    const { data: fpMp } = await sb.from('freelancer_profiles').select('mp_connected').eq('user_id', profile.id).maybeSingle();
+    let blocosTop = '';
     const [title, text] = BILLING[billing?.state] ?? ['—', ''];
     const quota = billing?.state === 'PRO_ACTIVE' && billing.plans
       ? `${esc(billing.plans.name)}: ${billing.plans.proposals_per_cycle ? `${billing.proposals_used} de ${billing.plans.proposals_per_cycle} propostas usadas` : 'propostas e projetos ilimitados'} · válido até ${new Date(billing.cycle_end).toLocaleDateString('pt-BR')}` : text;
-    const planCta = ['FIRST_PROJECT_COMPLETED', 'PRO_EXPIRED', 'PRO_PENDING_ACTIVATION', 'PRO_CANCELLED', 'PRO_ACTIVE'].includes(billing?.state)
-      ? '<p><a class="btn-ghost" href="/plano">Ver planos</a></p>' : '';
-    blocos.innerHTML = card('Meu plano', `<p class="chip">${esc(title)}</p><p>${quota}</p>${planCta}`)
+    const daysLeft = billing?.cycle_end ? Math.ceil((new Date(billing.cycle_end) - Date.now()) / 86400000) : null;
+    const expiring = billing?.state === 'PRO_ACTIVE' && daysLeft !== null && daysLeft <= 7;
+    const planCta = (expiring ? `<p class="notice-warn">Sua assinatura vence em ${Math.max(daysLeft, 0)} dia${daysLeft === 1 ? '' : 's'}. Ela não renova sozinha.</p>` : '')
+      + (['FIRST_PROJECT_COMPLETED', 'PRO_EXPIRED', 'PRO_PENDING_ACTIVATION', 'PRO_CANCELLED', 'PRO_ACTIVE'].includes(billing?.state)
+        ? `<p><a class="${expiring || billing.state !== 'PRO_ACTIVE' ? 'btn-primary' : 'btn-ghost'}" href="/plano">${expiring ? 'Renovar agora' : 'Ver assinatura'}</a></p>` : '<p><a class="linkish text-sm" href="/plano">Tem um cupom?</a></p>');
+    if (!fpMp?.mp_connected) blocosTop = '<p class="notice-warn lg:col-span-2">Conecte sua conta do Mercado Pago em <a class="linkish" href="/perfil">Meu perfil</a> para poder confirmar contratos e receber.</p>';
+    blocos.innerHTML = blocosTop + card('Minha assinatura', `<p class="chip">${esc(title)}</p><p>${quota}</p>${planCta}`)
       + card('Minhas propostas', (proposals ?? []).map((p) => `
         <p><a class="linkish" href="/projeto?id=${p.projects?.id}">${esc(p.projects?.title)}</a><span class="ml-2 text-tinta-500">${brl(p.amount_cents)} · ${esc(PROPOSAL[p.status] ?? p.status)}</span></p>`).join('') || empty('Você ainda não enviou propostas.'))
-      + card('Meus créditos', (payouts ?? []).map((p) => `<p><a class="linkish" href="/contrato?id=${p.contract_id}">${brl(p.amount_cents)}</a><span class="ml-2 text-tinta-500">${esc(PAYOUT[p.status] ?? p.status)}</span></p>`).join('') || empty('Seus créditos aparecem aqui quando um contrato é pago pela empresa.'))
+      + card('Recebimentos', (payouts ?? []).map((p) => `<p><a class="linkish" href="/contrato?id=${p.contract_id}">${brl(p.amount_cents)}</a><span class="ml-2 text-tinta-500">${esc(PAYOUT[p.status] ?? p.status)}</span></p>`).join('') || empty('Seus recebimentos aparecem aqui quando um cliente paga um projeto.'))
       + card('Contratos', contractsHtml);
   }
 
