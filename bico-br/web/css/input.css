@@ -81,9 +81,9 @@
   .icon { @apply h-5 w-5 shrink-0; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
   /* ---------- cabeçalho e navegação de app */
-  .site-header { @apply sticky top-0 z-40 border-b border-tinta/[.07] bg-white/90 backdrop-blur-xl; }
-  .nav-link { @apply rounded-lg px-3 py-2 font-display text-sm font-semibold text-tinta-700 transition hover:bg-areia hover:text-floresta-900; }
-  .nav-link[aria-current='page'] { @apply text-floresta-900 underline decoration-ouro decoration-[3px] underline-offset-[10px]; }
+  .site-header { @apply sticky top-0 z-40 border-b border-white/10 bg-floresta-900 text-white; }
+  .nav-link { @apply rounded-lg px-3 py-2 font-display text-sm font-semibold text-white/85 transition hover:bg-white/10 hover:text-white; }
+  .nav-link[aria-current='page'] { @apply text-white underline decoration-ouro decoration-[3px] underline-offset-[10px]; }
   .tabbar { @apply fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-tinta/10 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden; }
   .tabbar a { @apply flex min-h-[56px] flex-col items-center justify-center gap-0.5 text-[11px] font-semibold text-tinta-500; }
   .tabbar a[aria-current='page'] { @apply text-floresta-900; }
@@ -100,7 +100,12 @@
   .hl { @apply bg-gradient-to-b from-ouro to-ouro-600 bg-clip-text text-transparent; }
   .float-chip { @apply flex items-center gap-2 rounded-xl bg-white px-3.5 py-2.5 font-display text-sm font-bold text-floresta-900 shadow-lift ring-1 ring-tinta/5; }
 
-  .quick { @apply flex items-center gap-4 rounded-2xl bg-floresta-900 p-5 text-white shadow-lift ring-1 ring-ouro/25 transition hover:-translate-y-1 hover:ring-sol-400; }
+  .quick { @apply flex items-center gap-4 rounded-2xl bg-floresta-800/90 p-5 text-white shadow-lift ring-1 ring-white/10 backdrop-blur transition hover:-translate-y-1 hover:ring-sol-400; }
+  /* capa da página inicial: verde profundo emendado no cabeçalho */
+  .capa { @apply relative isolate overflow-hidden bg-floresta-900 text-white; }
+  .capa::before { content: ''; @apply pointer-events-none absolute inset-0 -z-10;
+    background: radial-gradient(60rem 30rem at 85% 10%, rgba(27,94,32,.55), transparent 60%), radial-gradient(40rem 26rem at 5% 90%, rgba(212,175,55,.10), transparent 60%); }
+  .capa .faixas { @apply pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-24 w-full sm:h-32; }
   .quick-icon { @apply grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white/10 text-sol-400; }
 
   /* ---------- herói escuro (páginas institucionais) */

@@ -161,7 +161,7 @@ export async function mountChrome() {
   header.className = 'site-header';
   header.innerHTML = `
     <div class="wrap flex items-center justify-between gap-3 py-3">
-      ${logo()}
+      ${logo({ dark: true })}
       <nav class="hidden items-center gap-1 md:flex" aria-label="Principal">
         <a class="nav-link" href="/projetos"${current('/projetos', false)}>Projetos</a>
         <a class="nav-link" href="/projetos?tipo=quick"${current('/projetos', true)}>Bico Rápido</a>
@@ -170,8 +170,8 @@ export async function mountChrome() {
       </nav>
       <div class="flex items-center gap-1.5">
         ${session
-    ? `<a class="nav-link hidden sm:inline-flex" href="/mensagens"${current('/mensagens')}>Mensagens</a><a class="btn-dark" href="/painel">Meu painel</a><button class="nav-link hidden sm:inline-flex" id="logout" type="button">Sair</button>`
-    : '<a class="btn-ghost hidden sm:inline-flex" href="/entrar">Entrar</a><a class="btn-primary" href="/cadastro">Cadastrar</a>'}
+    ? `<a class="nav-link hidden sm:inline-flex" href="/mensagens"${current('/mensagens')}>Mensagens</a><a class="btn-primary" href="/painel">Meu painel</a><button class="nav-link hidden sm:inline-flex" id="logout" type="button">Sair</button>`
+    : '<a class="btn-glass hidden sm:inline-flex" href="/entrar">Entrar</a><a class="btn-primary" href="/cadastro">Cadastrar</a>'}
       </div>
     </div>`;
   // barra inferior no celular: navegação de aplicativo
