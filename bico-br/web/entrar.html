@@ -6,7 +6,7 @@
   <title>Entrar — Bico BR</title>
   <meta name="description" content="Acesse sua conta no Bico BR.">
   <meta name="robots" content="noindex, nofollow">
-  <meta name="theme-color" content="#0d7a4b">
+  <meta name="theme-color" content="#0B1F44">
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/assets/app.css">
 </head>
@@ -20,15 +20,16 @@
   </header>
   <main id="conteudo" class="flex-1">
     <section class="wrap flex justify-center py-12">
-      <div class="card w-full max-w-md">
-        <h1 class="text-2xl font-bold tracking-tight">Entrar</h1>
+      <div class="card w-full max-w-md border-t-4 border-t-sol-400 p-8">
+        <div data-logo class="mb-6 flex justify-center"></div>
+        <h1 class="text-2xl font-bold tracking-tight">Acesse sua conta</h1>
         <p id="aviso" class="mt-4" hidden></p>
         <form id="form" class="mt-5 space-y-4" novalidate>
           <div><label class="label" for="email">E-mail</label><input class="input" id="email" type="email" autocomplete="email" required></div>
           <div><label class="label" for="senha">Senha</label><input class="input" id="senha" type="password" autocomplete="current-password" required></div>
           <div class="hidden" aria-hidden="true"><label for="website_url">Não preencha este campo</label><input id="website_url" name="website_url" tabindex="-1" autocomplete="off"></div>
           <div id="captcha" class="min-h-0"></div>
-          <button class="btn-primary w-full" type="submit">Entrar</button>
+          <button class="btn-dark w-full" type="submit">Entrar</button>
         </form>
         <p class="mt-4 text-sm text-tinta-500"><button id="esqueci" type="button" class="linkish">Esqueci minha senha</button></p>
         <p class="mt-2 text-sm text-tinta-500">Ainda não tem conta? <a class="linkish" href="/cadastro">Criar conta</a></p>

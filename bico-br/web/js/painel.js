@@ -1,4 +1,4 @@
-import { $, brl, esc, getClient, getProfile, mountChrome, requireSession, showNotice } from './core.js';
+import { $, brl, esc, getClient, getProfile, icon, mountChrome, requireSession, showNotice } from './core.js';
 
 mountChrome();
 const aviso = $('#aviso');
@@ -19,7 +19,7 @@ const CONTRACT = {
 };
 const PROJECT = { draft: 'Rascunho', open: 'Aberto', in_progress: 'Em andamento', completed: 'Concluído', closed: 'Fechado', cancelled: 'Cancelado' };
 const PROPOSAL = { sent: 'Enviada', shortlisted: 'Pré-selecionada', accepted: 'Aceita', rejected: 'Recusada', withdrawn: 'Retirada' };
-const card = (title, body) => `<section class="card"><h2 class="font-semibold">${title}</h2><div class="mt-3 space-y-3 text-sm">${body}</div></section>`;
+const card = (title, body) => `<section class="card"><h2 class="font-display text-lg font-bold">${title}</h2><div class="mt-3 space-y-3 text-sm">${body}</div></section>`;
 const empty = (t) => `<p class="text-tinta-500">${t}</p>`;
 
 (async () => {
@@ -28,15 +28,30 @@ const empty = (t) => `<p class="text-tinta-500">${t}</p>`;
   const profile = await getProfile();
   if (!profile) return showNotice(aviso, 'error', 'Não encontramos seu perfil.');
   if (!profile.onboarded_at) return location.replace('/onboarding');
-  $('#saudacao').textContent = `Olá, ${profile.display_name || 'bem-vindo(a)'}`;
+  $('#saudacao').textContent = `Olá, ${(profile.display_name || '').split(' ')[0] || 'bem-vindo(a)'}! 👋`;
   const cupom = new URLSearchParams(location.search).get('cupom');
   if (cupom === 'invalido') showNotice(aviso, 'warn', 'O cupom informado no cadastro é inválido ou já acabou. Você pode tentar outro em Minha assinatura.');
   else if (/^\d{1,2}$/.test(cupom ?? '')) showNotice(aviso, 'info', `Cupom aplicado: ${cupom} dias de assinatura grátis, contados a partir do fim do seu primeiro projeto. Até lá, propostas ilimitadas.`);
   const isCompany = profile.account_type === 'company';
+  // menu lateral (desktop); no celular a barra inferior do app cumpre esse papel
+  const link = (href, ic, label, extra = '') => `<a class="side-link" href="${href}"${href === '/painel' ? ' aria-current="page"' : ''}>${icon(ic)}<span class="flex-1">${label}</span>${extra}</a>`;
+  const menuHtml = (unread) => [
+    link('/painel', 'home', 'Início'),
+    isCompany ? link('/publicar-projeto', 'briefcase', 'Publicar projeto') : link('/projetos', 'layers', 'Buscar projetos'),
+    isCompany ? link('/profissionais', 'users', 'Profissionais') : link('/perfil', 'user', 'Meu perfil'),
+    link('/mensagens', 'chat', 'Mensagens', unread ? `<span class="grid h-5 min-w-[1.25rem] place-items-center rounded-full bg-mata-500 px-1 text-[11px] font-bold text-white">${unread}</span>` : ''),
+    link('/vitrine', 'star', 'Vitrine'),
+    isCompany ? '' : link('/plano', 'wallet', 'Assinatura'),
+    link('/suporte', 'shield', 'Ajuda e reclamações'),
+  ].join('') + `<div class="mt-3 border-t border-white/10 pt-3">${isCompany ? '<a class="btn-primary w-full" href="/publicar-projeto">Publicar projeto</a>' : '<a class="btn-glass w-full border-sol-400 text-sol-400" href="/plano">Plano Pro</a>'}</div>`;
+  const stat = (ic, value, label) => `<li class="stat"><span class="stat-icon">${icon(ic)}</span><strong class="font-display text-2xl font-extrabold text-marinho-900">${value}</strong><span class="text-xs text-tinta-500">${label}</span></li>`;
+  const { data: parts } = await sb.from('conversation_participants').select('last_read_at, conversations(last_message_at)').eq('user_id', profile.id).limit(100);
+  const unread = (parts ?? []).filter((p) => p.conversations?.last_message_at && (!p.last_read_at || p.conversations.last_message_at > p.last_read_at)).length;
+  $('#menu').innerHTML = menuHtml(unread);
   $('#acoes').innerHTML = (isCompany
-    ? '<a class="btn-primary" href="/publicar-projeto">Publicar projeto</a><a class="btn-ghost" href="/profissionais">Buscar devs</a>'
-    : '<a class="btn-primary" href="/projetos">Buscar projetos</a><a class="btn-ghost" href="/perfil">Meu perfil</a>')
-    + '<a class="btn-ghost" href="/mensagens">Mensagens</a><a class="btn-ghost" href="/suporte">Ajuda e reclamações</a>';
+    ? '<a class="btn-primary" href="/publicar-projeto">Publicar projeto</a><a class="btn-ghost lg:hidden" href="/profissionais">Buscar devs</a>'
+    : '<a class="btn-primary" href="/projetos">Buscar projetos</a><a class="btn-ghost lg:hidden" href="/perfil">Meu perfil</a>')
+    + '<a class="btn-ghost lg:hidden" href="/mensagens">Mensagens</a><a class="btn-ghost lg:hidden" href="/suporte">Ajuda e reclamações</a>'; // no desktop o menu lateral já tem esses atalhos
   $('#acoes').className = 'flex flex-wrap gap-2';
 
   const { data: contracts } = await sb.from('contracts')
@@ -50,6 +65,10 @@ const empty = (t) => `<p class="text-tinta-500">${t}</p>`;
   if (isCompany) {
     const { data: company } = await sb.from('companies').select('id').eq('owner_id', profile.id).maybeSingle();
     const { data: projects } = company ? await sb.from('projects').select('id, title, status, proposals_count').eq('company_id', company.id).order('created_at', { ascending: false }).limit(20) : { data: [] };
+    const openCount = (projects ?? []).filter((p) => p.status === 'open').length;
+    const received = (projects ?? []).reduce((n, p) => n + (p.proposals_count || 0), 0);
+    const activeC = (contracts ?? []).filter((c) => ['active', 'delivered', 'awaiting_deposit', 'awaiting_freelancer'].includes(c.status)).length;
+    $('#stats').innerHTML = stat('briefcase', openCount, 'Projetos abertos') + stat('layers', received, 'Propostas recebidas') + stat('check', activeC, 'Contratos em andamento') + stat('chat', unread, 'Conversas não lidas');
     blocos.innerHTML = card('Meus projetos', (projects ?? []).map((p) => `
       <p><a class="linkish" href="/projeto?id=${p.id}">${esc(p.title)}</a><span class="ml-2 text-tinta-500">${esc(PROJECT[p.status] ?? p.status)} · ${p.proposals_count} proposta(s)</span></p>`).join('') || empty('Você ainda não publicou projetos.'))
       + card('Contratos', contractsHtml);
@@ -70,7 +89,11 @@ const empty = (t) => `<p class="text-tinta-500">${t}</p>`;
     const planCta = (expiring ? `<p class="notice-warn">Sua assinatura vence em ${Math.max(daysLeft, 0)} dia${daysLeft === 1 ? '' : 's'}. Ela não renova sozinha.</p>` : '')
       + (['FIRST_PROJECT_COMPLETED', 'PRO_EXPIRED', 'PRO_PENDING_ACTIVATION', 'PRO_CANCELLED', 'PRO_ACTIVE'].includes(billing?.state)
         ? `<p><a class="${expiring || billing.state !== 'PRO_ACTIVE' ? 'btn-primary' : 'btn-ghost'}" href="/plano">${expiring ? 'Renovar agora' : 'Ver assinatura'}</a></p>` : '<p><a class="linkish text-sm" href="/plano">Tem um cupom?</a></p>');
-    if (!fpMp?.mp_connected) blocosTop = '<p class="notice-warn lg:col-span-2">Conecte sua conta do Mercado Pago em <a class="linkish" href="/perfil">Meu perfil</a> para poder confirmar contratos e receber.</p>';
+    if (!fpMp?.mp_connected) blocosTop = '<p class="notice-warn xl:col-span-2">Conecte sua conta do Mercado Pago em <a class="linkish" href="/perfil">Meu perfil</a> para poder confirmar contratos e receber.</p>';
+    const { data: me } = await sb.from('freelancer_profiles').select('rating_avg, rating_count, completed_projects').eq('user_id', profile.id).maybeSingle();
+    const activeC = (contracts ?? []).filter((c) => ['active', 'delivered', 'awaiting_deposit', 'awaiting_freelancer'].includes(c.status)).length;
+    $('#stats').innerHTML = stat('layers', (proposals ?? []).length, 'Propostas enviadas') + stat('briefcase', activeC, 'Projetos em andamento')
+      + stat('check', me?.completed_projects ?? 0, 'Projetos concluídos') + stat('star', me?.rating_count ? Number(me.rating_avg).toFixed(1) : '—', 'Sua avaliação');
     blocos.innerHTML = blocosTop + card('Minha assinatura', `<p class="chip">${esc(title)}</p><p>${quota}</p>${planCta}`)
       + card('Minhas propostas', (proposals ?? []).map((p) => `
         <p><a class="linkish" href="/projeto?id=${p.projects?.id}">${esc(p.projects?.title)}</a><span class="ml-2 text-tinta-500">${brl(p.amount_cents)} · ${esc(PROPOSAL[p.status] ?? p.status)}</span></p>`).join('') || empty('Você ainda não enviou propostas.'))

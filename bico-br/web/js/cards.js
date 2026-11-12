@@ -9,7 +9,7 @@ const PROPOSAL_ERRORS = {
   QUOTA_EXCEEDED: 'Você usou todas as propostas do ciclo atual do seu plano.',
   ABUSE_LIMIT: 'Limite diário de segurança atingido. Tente novamente amanhã.',
 };
-const TONES = ['bg-mata-600', 'bg-tinta', 'bg-sol-500', 'bg-emerald-700', 'bg-teal-700', 'bg-lime-700'];
+const TONES = ['bg-marinho-900', 'bg-mata-600', 'bg-ouro', 'bg-marinho-700', 'bg-mata-500', 'bg-ouro-600'];
 const avatar = (name) => {
   const n = String(name || '?').trim();
   const tone = TONES[[...n].reduce((a, c) => a + c.charCodeAt(0), 0) % TONES.length];
@@ -81,7 +81,7 @@ export function renderProject(p, viewer) {
         <span class="mt-2 block text-lg font-bold leading-snug">${esc(p.title)}</span>
         <span class="mt-1 block text-sm text-tinta-500">${esc(c.display_name)}${place ? ` · ${esc(place)}` : ''} · ${esc(timeAgo(p.published_at))}</span>
         <span class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm">
-          <span class="inline-flex items-center gap-1.5 font-extrabold text-mata-700">${icon('wallet', 'icon h-4 w-4')} ${esc(budgetLabel(p))}</span>
+          <span class="inline-flex items-center gap-1.5 font-extrabold text-mata-600">${icon('wallet', 'icon h-4 w-4')} ${esc(budgetLabel(p))}</span>
           ${p.deadline_days ? `<span class="inline-flex items-center gap-1.5 text-tinta-700">${icon('clock', 'icon h-4 w-4')} ${p.deadline_days} dia${p.deadline_days === 1 ? '' : 's'}</span>` : ''}
           <span class="text-tinta-500">${p.proposals_count} proposta${p.proposals_count === 1 ? '' : 's'}</span>
         </span>

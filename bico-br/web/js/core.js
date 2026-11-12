@@ -129,11 +129,10 @@ const ICONS = {
 export const icon = (name, cls = 'icon') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] ?? ICONS.layers}</svg>`;
 
 // ---------------------------------------------------------------- cabeçalho, barra de app e rodapé
-const LOGO = `<a href="/" class="flex items-center gap-2.5 text-lg font-extrabold tracking-tightest" aria-label="Bico BR — página inicial">
-  <span class="grid h-10 w-10 place-items-center rounded-2xl bg-mata-950 text-sol-400 shadow-glow" aria-hidden="true">
-    <svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor"><path d="M7 3h6.2c3 0 5 1.7 5 4.3 0 1.7-.9 3-2.3 3.7 1.9.6 3.1 2.1 3.1 4.2 0 3-2.3 4.8-5.6 4.8H7V3Zm3.4 7h2.3c1.3 0 2.1-.7 2.1-1.9s-.8-1.9-2.1-1.9h-2.3V10Zm0 7h2.7c1.5 0 2.4-.8 2.4-2.1s-.9-2.1-2.4-2.1h-2.7V17Z"/></svg>
-  </span>
-  <span>Bico<span class="text-mata-600"> BR</span></span></a>`;
+/** Logo horizontal: símbolo + "Bico" (marinho ou branco) + "BR" (amarelo/dourado). */
+export const logo = ({ dark = false, size = 'h-10' } = {}) => `<a href="/" class="flex items-center gap-2" aria-label="Bico BR — página inicial">
+  <img src="/assets/logo-simbolo${dark ? '-claro' : ''}.svg" alt="" class="${size} w-auto" width="40" height="40">
+  <span class="brand-word text-2xl leading-none ${dark ? 'text-white' : 'text-marinho-900'}">Bico<span class="brand-br">BR</span></span></a>`;
 
 export async function mountChrome() {
   const header = $('#site-header');
@@ -141,26 +140,29 @@ export async function mountChrome() {
   const here = location.pathname.replace(/\/$/, '') || '/';
   const current = (path, tipo) => (here === path && (tipo === undefined || (new URLSearchParams(location.search).get('tipo') === 'quick') === tipo) ? ' aria-current="page"' : '');
   if (footer) {
-    footer.className = 'mt-16 bg-mata-950 text-white/70';
+    footer.className = 'mt-16 bg-marinho-900 text-white/70';
     footer.innerHTML = `
+      <div class="h-1.5 bg-gradient-to-r from-mata-600 via-sol-400 to-ouro"></div>
       <div class="wrap grid gap-10 py-14 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
-        <div><p class="text-lg font-extrabold tracking-tightest text-white">Bico<span class="text-mata-400"> BR</span></p>
-          <p class="mt-3 max-w-xs text-sm">Seu próximo bico começa aqui. Projetos remotos de tecnologia para quem contrata e para quem desenvolve, em todo o Brasil.</p></div>
-        <nav aria-label="Para profissionais" class="text-sm"><p class="font-bold text-white">Profissionais</p>
+        <div>${logo({ dark: true })}
+          <p class="mt-4 max-w-xs font-display text-lg font-bold italic text-sol-400">Seu talento vale dinheiro.</p>
+          <p class="mt-2 max-w-xs text-sm">Freelancers, projetos e serviços remotos de tecnologia do Brasil.</p></div>
+        <nav aria-label="Para profissionais" class="text-sm"><p class="font-display font-bold text-white">Profissionais</p>
           <ul class="mt-3 space-y-2"><li><a class="hover:text-white" href="/projetos">Bicos de tecnologia</a></li><li><a class="hover:text-white" href="/projetos?tipo=quick">Bico Rápido</a></li><li><a class="hover:text-white" href="/vitrine">Vitrine de trabalhos</a></li></ul></nav>
-        <nav aria-label="Para empresas" class="text-sm"><p class="font-bold text-white">Empresas</p>
+        <nav aria-label="Para empresas" class="text-sm"><p class="font-display font-bold text-white">Empresas</p>
           <ul class="mt-3 space-y-2"><li><a class="hover:text-white" href="/publicar-projeto">Publicar projeto</a></li><li><a class="hover:text-white" href="/profissionais">Buscar profissionais</a></li><li><a class="hover:text-white" href="/anuncie">Anuncie no Bico BR</a></li></ul></nav>
-        <nav aria-label="Institucional" class="text-sm"><p class="font-bold text-white">Bico BR</p>
+        <nav aria-label="Institucional" class="text-sm"><p class="font-display font-bold text-white">Bico BR</p>
           <ul class="mt-3 space-y-2"><li><a class="hover:text-white" href="/confianca">Central de Confiança</a></li><li><a class="hover:text-white" href="/suporte">Ajuda e reclamações</a></li><li><a class="hover:text-white" href="/termos">Termos de Uso</a></li><li><a class="hover:text-white" href="/privacidade">Privacidade</a></li></ul></nav>
       </div>
       <div class="border-t border-white/10"><p class="wrap py-5 text-xs">© ${new Date().getFullYear()} Bico BR. Anúncios são sempre identificados como “Patrocinado”.</p></div>`;
   }
+  for (const el of document.querySelectorAll('[data-logo]')) el.innerHTML = logo({ size: 'h-12' });
   if (!header) return;
   const session = await getSession();
   header.className = 'site-header';
   header.innerHTML = `
     <div class="wrap flex items-center justify-between gap-3 py-3">
-      ${LOGO}
+      ${logo()}
       <nav class="hidden items-center gap-1 md:flex" aria-label="Principal">
         <a class="nav-link" href="/projetos"${current('/projetos', false)}>Projetos</a>
         <a class="nav-link" href="/projetos?tipo=quick"${current('/projetos', true)}>Bico Rápido</a>
@@ -170,7 +172,7 @@ export async function mountChrome() {
       <div class="flex items-center gap-1.5">
         ${session
     ? `<a class="nav-link hidden sm:inline-flex" href="/mensagens"${current('/mensagens')}>Mensagens</a><a class="btn-dark" href="/painel">Meu painel</a><button class="nav-link hidden sm:inline-flex" id="logout" type="button">Sair</button>`
-    : '<a class="nav-link" href="/entrar">Entrar</a><a class="btn-primary" href="/cadastro">Criar conta</a>'}
+    : '<a class="btn-ghost hidden sm:inline-flex" href="/entrar">Entrar</a><a class="btn-primary" href="/cadastro">Cadastrar</a>'}
       </div>
     </div>`;
   // barra inferior no celular: navegação de aplicativo
