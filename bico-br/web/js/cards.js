@@ -9,7 +9,7 @@ const PROPOSAL_ERRORS = {
   QUOTA_EXCEEDED: 'Você usou todas as propostas do ciclo atual do seu plano.',
   ABUSE_LIMIT: 'Limite diário de segurança atingido. Tente novamente amanhã.',
 };
-const TONES = ['bg-marinho-900', 'bg-mata-600', 'bg-ouro', 'bg-marinho-700', 'bg-mata-500', 'bg-ouro-600'];
+const TONES = ['bg-floresta-900', 'bg-mata-600', 'bg-ouro', 'bg-floresta-700', 'bg-mata-500', 'bg-ouro-600'];
 const avatar = (name) => {
   const n = String(name || '?').trim();
   const tone = TONES[[...n].reduce((a, c) => a + c.charCodeAt(0), 0) % TONES.length];

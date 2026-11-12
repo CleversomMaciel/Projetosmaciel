@@ -44,7 +44,7 @@ const empty = (t) => `<p class="text-tinta-500">${t}</p>`;
     isCompany ? '' : link('/plano', 'wallet', 'Assinatura'),
     link('/suporte', 'shield', 'Ajuda e reclamações'),
   ].join('') + `<div class="mt-3 border-t border-white/10 pt-3">${isCompany ? '<a class="btn-primary w-full" href="/publicar-projeto">Publicar projeto</a>' : '<a class="btn-glass w-full border-sol-400 text-sol-400" href="/plano">Plano Pro</a>'}</div>`;
-  const stat = (ic, value, label) => `<li class="stat"><span class="stat-icon">${icon(ic)}</span><strong class="font-display text-2xl font-extrabold text-marinho-900">${value}</strong><span class="text-xs text-tinta-500">${label}</span></li>`;
+  const stat = (ic, value, label) => `<li class="stat"><span class="stat-icon">${icon(ic)}</span><strong class="font-display text-2xl font-extrabold text-floresta-900">${value}</strong><span class="text-xs text-tinta-500">${label}</span></li>`;
   const { data: parts } = await sb.from('conversation_participants').select('last_read_at, conversations(last_message_at)').eq('user_id', profile.id).limit(100);
   const unread = (parts ?? []).filter((p) => p.conversations?.last_message_at && (!p.last_read_at || p.conversations.last_message_at > p.last_read_at)).length;
   $('#menu').innerHTML = menuHtml(unread);

@@ -53,7 +53,7 @@ const sizeLabel = (n) => (n > 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Ma
     const own = m.sender_id === uid;
     if (m.blocked) return `<div class="flex justify-end" data-id="${m.id}"><div class="notice-warn max-w-[85%]"><strong>Mensagem não enviada.</strong> ${esc(m.body)}<br><span class="text-xs">Tentativas repetidas levam à suspensão da conta.</span></div></div>`;
     return `<div class="flex ${own ? 'justify-end' : ''}" data-id="${m.id}">
-    <div class="max-w-[80%] rounded-2xl px-3.5 py-2 text-sm ${own ? 'bg-marinho-900 text-white' : 'bg-areia'}">
+    <div class="max-w-[80%] rounded-2xl px-3.5 py-2 text-sm ${own ? 'bg-floresta-900 text-white' : 'bg-areia'}">
       <span class="block text-xs opacity-70">${esc(own ? 'Você' : names.get(m.sender_id) ?? 'Participante')} · ${fmtDateTime(m.created_at)}</span>
       ${m.body ? `<span class="whitespace-pre-line break-words">${esc(m.body)}</span>` : ''}
       ${(m.attachments ?? []).map(attachment).join('')}</div></div>`;

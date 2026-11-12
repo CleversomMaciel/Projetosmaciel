@@ -129,10 +129,9 @@ const ICONS = {
 export const icon = (name, cls = 'icon') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] ?? ICONS.layers}</svg>`;
 
 // ---------------------------------------------------------------- cabeçalho, barra de app e rodapé
-/** Logo horizontal: símbolo + "Bico" (marinho ou branco) + "BR" (amarelo/dourado). */
-export const logo = ({ dark = false, size = 'h-10' } = {}) => `<a href="/" class="flex items-center gap-2" aria-label="Bico BR — página inicial">
-  <img src="/assets/logo-simbolo${dark ? '-claro' : ''}.svg" alt="" class="${size} w-auto" width="40" height="40">
-  <span class="brand-word text-2xl leading-none ${dark ? 'text-white' : 'text-marinho-900'}">Bico<span class="brand-br">BR</span></span></a>`;
+/** Logo oficial (SVG vetorial em /assets/marca). Versão negativa para fundos escuros. */
+export const logo = ({ dark = false, size = 'h-10' } = {}) => `<a href="/" class="inline-flex items-center" aria-label="Bico BR — página inicial">
+  <img src="/assets/marca/logo-horizontal${dark ? '-negativa' : ''}.svg" alt="Bico BR" class="${size} w-auto" width="160" height="42"></a>`;
 
 export async function mountChrome() {
   const header = $('#site-header');
@@ -140,12 +139,12 @@ export async function mountChrome() {
   const here = location.pathname.replace(/\/$/, '') || '/';
   const current = (path, tipo) => (here === path && (tipo === undefined || (new URLSearchParams(location.search).get('tipo') === 'quick') === tipo) ? ' aria-current="page"' : '');
   if (footer) {
-    footer.className = 'mt-16 bg-marinho-900 text-white/70';
+    footer.className = 'mt-16 bg-floresta-900 text-white/75';
     footer.innerHTML = `
-      <div class="h-1.5 bg-gradient-to-r from-mata-600 via-sol-400 to-ouro"></div>
+      <div class="h-1.5 bg-gradient-to-r from-mata-600 via-ouro to-sol-400"></div>
       <div class="wrap grid gap-10 py-14 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div>${logo({ dark: true })}
-          <p class="mt-4 max-w-xs font-display text-lg font-bold italic text-sol-400">Seu talento vale dinheiro.</p>
+          <p class="mt-4 max-w-xs font-display text-lg font-bold italic text-ouro">Seu talento vale dinheiro.</p>
           <p class="mt-2 max-w-xs text-sm">Freelancers, projetos e serviços remotos de tecnologia do Brasil.</p></div>
         <nav aria-label="Para profissionais" class="text-sm"><p class="font-display font-bold text-white">Profissionais</p>
           <ul class="mt-3 space-y-2"><li><a class="hover:text-white" href="/projetos">Bicos de tecnologia</a></li><li><a class="hover:text-white" href="/projetos?tipo=quick">Bico Rápido</a></li><li><a class="hover:text-white" href="/vitrine">Vitrine de trabalhos</a></li></ul></nav>

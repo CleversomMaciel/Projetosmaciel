@@ -13,7 +13,7 @@
   <meta property="og:description" content="Bicos remotos de tecnologia: publique projetos e encontre desenvolvedores. Seu próximo bico começa aqui.">
   <meta property="og:url" content="{{PUBLIC_URL}}/">
   <meta name="twitter:card" content="summary">
-  <meta name="theme-color" content="#0B1F44">
+  <meta name="theme-color" content="#071B12">
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/assets/app.css">
   <script type="application/ld+json">
@@ -31,62 +31,45 @@
     </div>
   </header>
   <main id="conteudo" class="flex-1">
-    <section class="hero-light">
-      <svg class="swoosh -right-40 top-0 hidden h-full w-[62%] lg:block" viewBox="0 0 800 600" preserveAspectRatio="none" aria-hidden="true">
-        <defs><linearGradient id="hs" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFCA05"/><stop offset=".5" stop-color="#D4AF37"/><stop offset="1" stop-color="#1B5E20"/></linearGradient></defs>
-        <path d="M260 0C420 140 520 330 800 380V0z" fill="#1B5E20"/>
-        <path d="M180 0C350 170 470 380 800 430v-28C520 360 380 170 230 0z" fill="url(#hs)"/>
-        <path d="M120 600c160-60 340-80 680-40V600z" fill="#F5F6F8"/>
+    <section class="hero-light bg-white">
+      <svg class="swoosh right-0 top-0 hidden h-full w-[58%] lg:block" viewBox="0 0 800 600" preserveAspectRatio="none" aria-hidden="true">
+        <defs><linearGradient id="hs" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#D4AF37"/><stop offset=".6" stop-color="#FFCA05"/><stop offset="1" stop-color="#D4AF37"/></linearGradient></defs>
+        <path d="M330 0C430 120 560 230 800 250V0z" fill="#1B5E20"/>
+        <path d="M250 0C380 150 540 280 800 300v-26C560 250 410 140 300 0z" fill="url(#hs)"/>
+        <path d="M0 600c210-90 470-120 800-70V600z" fill="#F8F7F2"/>
+        <path d="M80 600c200-70 420-92 720-50v-14C500 500 260 520 40 600z" fill="url(#hs)" opacity=".85"/>
       </svg>
-      <div class="wrap grid gap-12 pb-14 pt-10 lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:pb-20 lg:pt-16">
+      <div class="wrap grid gap-10 pb-12 pt-10 lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:pb-16 lg:pt-14">
         <div>
-          <p class="chip-ouro">100% remoto · tecnologia · todo o Brasil</p>
-          <h1 class="mt-4 text-[2.4rem] font-extrabold leading-[1.06] tracking-tightest text-marinho-900 sm:text-[3.4rem]">Encontre talentos, contrate serviços e faça seus <span class="hl">bicos</span> online.</h1>
-          <p class="mt-5 max-w-xl text-lg leading-relaxed text-tinta-700">Conectamos desenvolvedores e especialistas brasileiros a empresas e pessoas que precisam de resultados. Proposta, conversa, arquivos, entrega e pagamento: tudo dentro do Bico BR.</p>
+          <h1 class="text-[2.35rem] font-extrabold leading-[1.06] tracking-tightest sm:text-[3.35rem]">Encontre talentos, contrate serviços e faça seus <span class="hl">bicos</span> online.</h1>
+          <p class="mt-5 max-w-xl text-lg leading-relaxed text-tinta-700">Conectamos profissionais brasileiros a empresas e pessoas que precisam de resultados.</p>
           <form action="/projetos" method="get" class="searchbar mt-7 max-w-xl" role="search">
-            <label class="sr-only" for="busca">O que você precisa encontrar?</label>
-            <svg class="icon ml-3 hidden text-tinta-300 sm:block" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
-            <input id="busca" name="q" placeholder="O que você precisa encontrar?" autocomplete="off">
+            <label class="sr-only" for="busca">Buscar projetos, serviços ou profissionais</label>
+            <svg class="icon ml-3 hidden text-mata-600 sm:block" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+            <input id="busca" name="q" placeholder="Buscar projetos, serviços ou profissionais" autocomplete="off">
             <button class="btn-primary" type="submit">Buscar</button>
           </form>
-          <p class="mt-4 text-xs font-semibold uppercase tracking-wider text-tinta-500">Busque por:</p>
-          <div class="mt-2 flex flex-wrap gap-2">
+          <div class="mt-4 flex flex-wrap gap-2">
             <a class="btn-ghost min-h-0 rounded-full border px-3.5 py-1.5 text-xs" href="/projetos">Projetos</a>
             <a class="btn-ghost min-h-0 rounded-full border px-3.5 py-1.5 text-xs" href="/projetos?tipo=quick">Bico Rápido</a>
             <a class="btn-ghost min-h-0 rounded-full border px-3.5 py-1.5 text-xs" href="/profissionais">Profissionais</a>
             <a class="btn-ghost min-h-0 rounded-full border px-3.5 py-1.5 text-xs" href="/vitrine">Vitrine</a>
           </div>
         </div>
-
-        <div class="relative mx-auto w-full max-w-lg" aria-hidden="true">
-          <div class="rounded-[1.6rem] bg-marinho-900 p-3 shadow-lift ring-1 ring-black/10">
-            <div class="overflow-hidden rounded-[1.1rem] bg-white">
-              <div class="flex items-center justify-between bg-marinho-900 px-4 py-3">
-                <span class="flex items-center gap-1.5"><img src="/assets/logo-simbolo.svg" alt="" class="h-6 w-6 rounded bg-white p-0.5"><span class="brand-word text-base text-white">Bico<span class="brand-br">BR</span></span></span>
-                <span class="rounded-lg bg-sol-400 px-2.5 py-1 font-display text-[11px] font-bold text-marinho-900">Cadastrar</span>
-              </div>
-              <div class="space-y-3 p-4">
-                <p class="font-display text-sm font-bold text-marinho-900">Projetos em destaque</p>
-                <div class="rounded-xl border border-tinta/10 p-3"><span class="chip">Power BI</span><p class="mt-1.5 font-display text-sm font-bold">Dashboard de vendas</p><p class="text-xs text-tinta-500">Orçamento: <strong class="text-mata-600">R$ 1.500 – R$ 3.000</strong> · 8 propostas</p></div>
-                <div class="rounded-xl border border-tinta/10 p-3"><span class="chip-sol">Bico Rápido</span><p class="mt-1.5 font-display text-sm font-bold">Corrigir API em Node.js</p><p class="text-xs text-tinta-500">Preço fechado: <strong class="text-mata-600">R$ 400</strong> · entrega em 2 dias</p></div>
-                <div class="rounded-xl border border-tinta/10 p-3"><span class="chip">Flutter</span><p class="mt-1.5 font-display text-sm font-bold">App de agendamento</p><p class="text-xs text-tinta-500">Orçamento: <strong class="text-mata-600">R$ 4.000 – R$ 7.000</strong> · 12 propostas</p></div>
-              </div>
-            </div>
-          </div>
-          <div class="float-chip absolute -left-4 top-16 sm:-left-10"><span class="grid h-7 w-7 place-items-center rounded-lg bg-sol-100 text-ouro-600"><svg class="icon h-4 w-4" viewBox="0 0 24 24"><rect x="3" y="7.5" width="18" height="12" rx="2.5"/><path d="M9 7.5V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1.5M3 13h18"/></svg></span>Publique seu projeto<svg class="icon h-4 w-4 text-mata-600" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div>
-          <div class="float-chip absolute -right-3 top-1/2 sm:-right-8"><span class="grid h-7 w-7 place-items-center rounded-lg bg-sol-100 text-ouro-600"><svg class="icon h-4 w-4" viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3"/><path d="M3 19.5c.6-3 2.9-4.8 6-4.8s5.4 1.8 6 4.8"/><path d="M16 5.8a3 3 0 0 1 0 5.4M18 15c1.7.6 2.7 2 3 4.5"/></svg></span>Encontre profissionais<svg class="icon h-4 w-4 text-mata-600" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div>
-          <div class="float-chip absolute -bottom-5 left-8"><span class="grid h-7 w-7 place-items-center rounded-lg bg-sol-100 text-ouro-600"><svg class="icon h-4 w-4" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="11" rx="1.5"/><path d="M2 19h20"/></svg></span>Trabalhe remotamente<svg class="icon h-4 w-4 text-mata-600" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div>
+        <div class="relative mx-auto w-full max-w-lg">
+          <img src="/assets/hero-pessoa.svg" alt="Profissional trabalhando em um notebook" class="w-full" width="560" height="480" fetchpriority="high">
+          <div class="float-chip absolute left-0 top-10 sm:-left-6" aria-hidden="true"><span class="grid h-7 w-7 place-items-center rounded-lg bg-ouro-100 text-ouro-600"><svg class="icon h-4 w-4" viewBox="0 0 24 24"><path d="M4 20V4M4 20h16"/><path d="M8 16v-4M12 16V8M16 16v-6"/></svg></span>+ Oportunidades · + Renda</div>
         </div>
+      </div>
+      <div class="wrap relative grid gap-4 pb-10 md:grid-cols-3">
+        <a class="quick" href="/publicar-projeto"><span class="quick-icon"><svg class="icon h-6 w-6" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7.5" width="18" height="12" rx="2.5"/><path d="M9 7.5V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1.5M3 13h18"/></svg></span><span class="flex-1"><strong class="block font-display text-base">Publique seu projeto</strong><span class="text-sm text-white/70">Grátis e sem limite. Receba propostas.</span></span><svg class="icon text-sol-400" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <a class="quick" href="/profissionais"><span class="quick-icon"><svg class="icon h-6 w-6" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8.5" r="3"/><path d="M3 19.5c.6-3 2.9-4.8 6-4.8s5.4 1.8 6 4.8"/><path d="M16 5.8a3 3 0 0 1 0 5.4M18 15c1.7.6 2.7 2 3 4.5"/></svg></span><span class="flex-1"><strong class="block font-display text-base">Encontre profissionais</strong><span class="text-sm text-white/70">Busque por habilidade e convide.</span></span><svg class="icon text-sol-400" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <a class="quick" href="/cadastro?tipo=freelancer"><span class="quick-icon"><svg class="icon h-6 w-6" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="11" rx="1.5"/><path d="M2 19h20"/></svg></span><span class="flex-1"><strong class="block font-display text-base">Trabalhe remotamente</strong><span class="text-sm text-white/70">Bicos de tecnologia de onde estiver.</span></span><svg class="icon text-sol-400" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
       </div>
     </section>
 
-    <section class="bg-areia" aria-label="Comece por aqui">
-      <div class="wrap grid gap-4 py-8 md:grid-cols-3">
-        <a class="tile items-center" href="/publicar-projeto"><span class="tile-icon"><svg class="icon h-6 w-6" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7.5" width="18" height="12" rx="2.5"/><path d="M9 7.5V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1.5M3 13h18"/></svg></span><span class="flex-1"><strong class="block font-display text-marinho-900">Publique seu projeto</strong><span class="text-sm text-tinta-500">Grátis e sem limite. Descreva e receba propostas.</span></span><svg class="icon text-marinho-900" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-        <a class="tile items-center" href="/profissionais"><span class="tile-icon"><svg class="icon h-6 w-6" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8.5" r="3"/><path d="M3 19.5c.6-3 2.9-4.8 6-4.8s5.4 1.8 6 4.8"/><path d="M16 5.8a3 3 0 0 1 0 5.4M18 15c1.7.6 2.7 2 3 4.5"/></svg></span><span class="flex-1"><strong class="block font-display text-marinho-900">Encontre profissionais</strong><span class="text-sm text-tinta-500">Busque por habilidade, veja avaliações e convide.</span></span><svg class="icon text-marinho-900" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-        <a class="tile items-center" href="/cadastro?tipo=freelancer"><span class="tile-icon"><svg class="icon h-6 w-6" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="11" rx="1.5"/><path d="M2 19h20"/></svg></span><span class="flex-1"><strong class="block font-display text-marinho-900">Trabalhe remotamente</strong><span class="text-sm text-tinta-500">Pegue bicos de tecnologia de onde estiver.</span></span><svg class="icon text-marinho-900" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-      </div>
-      <div class="wrap pb-2"><div id="ad-banner" aria-label="Espaço publicitário"></div></div>
+    <section class="bg-areia" aria-label="Espaço publicitário">
+      <div class="wrap py-6"><div id="ad-banner"></div></div>
     </section>
 
     <section class="wrap pt-14" aria-labelledby="t-categorias">
@@ -112,19 +95,19 @@
         <div class="card">
           <span class="chip-sol">Para quem contrata</span>
           <ol class="mt-5 space-y-4 text-sm text-tinta-700">
-            <li class="flex gap-3"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-sol-400 font-display text-sm font-bold text-marinho-900">1</span><span>Cadastre a empresa — o CNPJ preenche os dados automaticamente.</span></li>
-            <li class="flex gap-3"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-sol-400 font-display text-sm font-bold text-marinho-900">2</span><span>Publique quantos projetos quiser, de graça: diga o que precisa, quanto pode pagar e o prazo.</span></li>
-            <li class="flex gap-3"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-sol-400 font-display text-sm font-bold text-marinho-900">3</span><span>Receba propostas ou busque profissionais pela habilidade e converse na hora.</span></li>
-            <li class="flex gap-3"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-sol-400 font-display text-sm font-bold text-marinho-900">4</span><span>Pague só ao fechar (valor + 10%), com cartão ou Pix pelo Mercado Pago. A entrega é feita e conferida dentro do app.</span></li>
+            <li class="flex gap-3"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-sol-400 font-display text-sm font-bold text-preto">1</span><span>Cadastre a empresa — o CNPJ preenche os dados automaticamente.</span></li>
+            <li class="flex gap-3"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-sol-400 font-display text-sm font-bold text-preto">2</span><span>Publique quantos projetos quiser, de graça: diga o que precisa, quanto pode pagar e o prazo.</span></li>
+            <li class="flex gap-3"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-sol-400 font-display text-sm font-bold text-preto">3</span><span>Receba propostas ou busque profissionais pela habilidade e converse na hora.</span></li>
+            <li class="flex gap-3"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-sol-400 font-display text-sm font-bold text-preto">4</span><span>Pague só ao fechar (valor + 10%), com cartão ou Pix pelo Mercado Pago. A entrega é feita e conferida dentro do app.</span></li>
           </ol>
         </div>
         <div class="card">
           <span class="chip">Para quem trabalha</span>
           <ol class="mt-5 space-y-4 text-sm text-tinta-700">
-            <li class="flex gap-3"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-ouro font-display text-sm font-bold text-marinho-900">1</span><span>Entre de graça e monte seu perfil e portfólio.</span></li>
-            <li class="flex gap-3"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-ouro font-display text-sm font-bold text-marinho-900">2</span><span>Cadastre suas habilidades e veja primeiro os projetos que combinam com você.</span></li>
-            <li class="flex gap-3"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-ouro font-display text-sm font-bold text-marinho-900">3</span><span>Primeiro projeto grátis. Depois, R$ 25 por mês com projetos ilimitados e sem comissão do Bico BR sobre o que você recebe.</span></li>
-            <li class="flex gap-3"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-ouro font-display text-sm font-bold text-marinho-900">4</span><span>Conecte sua conta do Mercado Pago e receba direto nela quando o cliente paga. Entregue tudo dentro do app.</span></li>
+            <li class="flex gap-3"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-mata-600 font-display text-sm font-bold text-white">1</span><span>Entre de graça e monte seu perfil e portfólio.</span></li>
+            <li class="flex gap-3"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-mata-600 font-display text-sm font-bold text-white">2</span><span>Cadastre suas habilidades e veja primeiro os projetos que combinam com você.</span></li>
+            <li class="flex gap-3"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-mata-600 font-display text-sm font-bold text-white">3</span><span>Primeiro projeto grátis. Depois, R$ 25 por mês com projetos ilimitados e sem comissão do Bico BR sobre o que você recebe.</span></li>
+            <li class="flex gap-3"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-mata-600 font-display text-sm font-bold text-white">4</span><span>Conecte sua conta do Mercado Pago e receba direto nela quando o cliente paga. Entregue tudo dentro do app.</span></li>
           </ol>
         </div>
       </div>

@@ -43,7 +43,7 @@ em duas etapas; o cadastro do segundo fator é feito no primeiro acesso.
 npm test          # backend: validadores, provedores, API, checkout, webhook (40 testes, sem rede)
 npm run test:db   # sobe um Postgres descartável, aplica migrations, roda 256 verificações de RLS
                   # e de fluxo, reverte tudo e reaplica (requer binários do PostgreSQL 15+)
-npm run test:e2e  # fluxo completo pelo navegador (23 passos) em ambiente local simulado:
+npm run test:e2e  # fluxo completo pelo navegador (26 passos, incluindo a varredura de todas as páginas em desktop e celular, com verificação de que nenhuma cor azul aparece) em ambiente local simulado:
                   # Postgres + PostgREST + Auth/ViaCEP/BrasilAPI/Mercado Pago de teste
 npm run model     # recalcula o modelo financeiro
 ```
@@ -61,6 +61,20 @@ docs                  diagnóstico, plano, provedores, modelo financeiro, escala
 tests/e2e             ambiente local simulado + roteiro de navegador de ponta a ponta
 loadtest              roteiro k6 (ainda não executado)
 ```
+
+## Marca
+
+Identidade definitiva, sem azul: verde profundo `#071B12`, verde-musgo `#1B5E20`, dourado `#D4AF37`,
+amarelo `#FFCA05`, preto `#111111`, branco, creme `#F8F7F2` e cinza claro `#F1F2EF`.
+Títulos e botões em Montserrat; textos em Inter.
+
+Arquivos vetoriais em `web/assets/marca/`: `logo-horizontal.svg`, `logo-horizontal-negativa.svg` (fundo escuro),
+`logo-vertical.svg`, `logo-mono-verde.svg`, `logo-mono-branca.svg`, `simbolo.svg`, `simbolo-negativo.svg`,
+`favicon.svg` e `icone-app.svg`. O texto está convertido em curvas (Montserrat, licença SIL OFL), então os
+arquivos abrem em qualquer programa sem a fonte instalada. Para regenerar: `python3 scripts/gerar-marca.py`.
+
+Botões: conversão em amarelo com texto preto (`btn-primary`), primário em verde profundo (`btn-dark`),
+sucesso em verde-musgo (`btn-success`), secundário branco com borda verde (`btn-ghost`), destaque dourado (`btn-gold`).
 
 ## Segurança
 

@@ -29,7 +29,7 @@ export async function mountSkillPicker(root, { max = 12, selected = [] } = {}) {
     const rows = skills.filter((s) => chosen.has(s.id) || !term || s.name.toLowerCase().includes(term))
       .sort((a, b) => chosen.has(b.id) - chosen.has(a.id) || a.name.localeCompare(b.name, 'pt-BR'));
     list.innerHTML = rows.map((s) => `<button type="button" data-skill="${esc(s.id)}" aria-pressed="${chosen.has(s.id)}"
-      class="rounded-full border px-3 py-1.5 text-sm font-semibold transition ${chosen.has(s.id) ? 'border-marinho-900 bg-marinho-900 text-white' : 'border-tinta/15 bg-white text-tinta-700 hover:border-mata-500'}">${esc(s.name)}</button>`).join('')
+      class="rounded-full border px-3 py-1.5 text-sm font-semibold transition ${chosen.has(s.id) ? 'border-floresta-900 bg-floresta-900 text-white' : 'border-tinta/15 bg-white text-tinta-700 hover:border-mata-500'}">${esc(s.name)}</button>`).join('')
       || '<span class="text-sm text-tinta-500">Nenhuma habilidade com esse nome.</span>';
     count.textContent = `${chosen.size} de ${max} selecionadas`;
   };

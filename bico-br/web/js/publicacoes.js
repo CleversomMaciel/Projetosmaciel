@@ -18,7 +18,7 @@ export function renderPost(item, { base, liked = false, canLike = false, author 
       <h3 class="text-lg font-bold leading-snug">${esc(item.title)}</h3>
       ${item.description ? `<p class="whitespace-pre-line text-sm text-tinta-700">${esc(item.description)}</p>` : ''}
       <div class="mt-auto flex flex-wrap items-center justify-between gap-2 pt-2 text-sm">
-        <button type="button" class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-semibold transition ${liked ? 'bg-sol-400 text-marinho-900' : 'bg-tinta/[.06] text-tinta-700 hover:bg-mata-50'}" data-like aria-pressed="${liked}" ${canLike ? '' : 'disabled'} title="${canLike ? 'Curtir' : 'Entre para curtir'}">${icon('star', 'icon h-4 w-4')} <span data-likes>${item.likes_count}</span></button>
+        <button type="button" class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-semibold transition ${liked ? 'bg-sol-400 text-floresta-900' : 'bg-tinta/[.06] text-tinta-700 hover:bg-mata-50'}" data-like aria-pressed="${liked}" ${canLike ? '' : 'disabled'} title="${canLike ? 'Curtir' : 'Entre para curtir'}">${icon('star', 'icon h-4 w-4')} <span data-likes>${item.likes_count}</span></button>
         ${author ? `<a class="btn-ghost" href="/profissional?u=${encodeURIComponent(author.slug)}#convidar">Solicitar serviço</a>` : `<span class="text-xs text-tinta-500">${fmtDate(item.created_at)}</span>`}
       </div>
     </div></li>`;
@@ -40,7 +40,7 @@ export async function bindLikes(list, userId) {
     btn.disabled = false;
     if (error && error.code !== '23505') return;
     btn.setAttribute('aria-pressed', String(on));
-    btn.className = btn.className.replace(on ? 'bg-tinta/[.06] text-tinta-700 hover:bg-mata-50' : 'bg-sol-400 text-marinho-900', on ? 'bg-sol-400 text-marinho-900' : 'bg-tinta/[.06] text-tinta-700 hover:bg-mata-50');
+    btn.className = btn.className.replace(on ? 'bg-tinta/[.06] text-tinta-700 hover:bg-mata-50' : 'bg-sol-400 text-floresta-900', on ? 'bg-sol-400 text-floresta-900' : 'bg-tinta/[.06] text-tinta-700 hover:bg-mata-50');
     const n = btn.querySelector('[data-likes]'); n.textContent = Math.max(0, Number(n.textContent) + (on ? 1 : -1));
   });
 }

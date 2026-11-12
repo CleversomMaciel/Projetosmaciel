@@ -9,7 +9,7 @@ const company = { name: 'Carla Contratante', email: `empresa${stamp}@teste.dev`,
 const freela = { name: 'Fran Freela', email: `freela${stamp}@teste.dev`, pass: 'senha-forte-123' };
 const intruder = { name: 'Ivo Intruso', email: `intruso${stamp}@teste.dev`, pass: 'senha-forte-123' };
 const admin = { name: 'Ada Admin', email: `admin${stamp}@teste.dev`, pass: 'senha-forte-123' };
-const results = []; const problems = []; const httpErrors = []; const pages = []; let attacking = false;
+const results = []; const problems = []; const httpErrors = []; const pages = []; let attacking = false; let adminState = null;
 
 async function step(name, fn) {
   const t = Date.now();
@@ -568,18 +568,86 @@ async function makeArt(browser, w, h, html) {
     await before.page.goto(APP_URL, { waitUntil: 'networkidle' });
     await shot(before.page, '14-inicio-com-oportunidades');
     await before.ctx.close();
+    adminState = await a.ctx.storageState();
     await a.ctx.close();
   });
 
-  await step('celular: páginas principais sem rolagem horizontal', async () => {
-    const m = await newUser(browser, { ...devices['iPhone 13'] });
-    for (const path of ['/', '/projetos', '/vitrine', '/profissionais', '/termos', `/profissional?u=${slug}`]) {
-      await m.page.goto(APP_URL + path, { waitUntil: 'networkidle' });
-      const overflow = await m.page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
-      assert(overflow <= 1, `${path} com rolagem horizontal de ${overflow}px`);
+  // Identidade sem azul: nenhuma cor azul em texto, fundo, borda ou ícone, em nenhuma página.
+  const findBlue = (page) => page.evaluate(() => {
+    const hits = new Set();
+    const parse = (c) => { const m = c && c.match(/rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?/); return m ? { r: +m[1] / 255, g: +m[2] / 255, b: +m[3] / 255, a: m[4] === undefined ? 1 : +m[4] } : null; };
+    const blue = ({ r, g, b, a }) => {
+      if (a < 0.15) return false;
+      const max = Math.max(r, g, b); const min = Math.min(r, g, b); const l = (max + min) / 2; const d = max - min;
+      if (d < 0.08) return false;
+      const s = d / (1 - Math.abs(2 * l - 1));
+      let h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4; h = (h * 60 + 360) % 360;
+      return h >= 190 && h <= 260 && s > 0.25 && l > 0.1 && l < 0.93;
+    };
+    for (const el of [...document.querySelectorAll('body *')].slice(0, 4000)) {
+      const cs = getComputedStyle(el);
+      if (cs.display === 'none' || cs.visibility === 'hidden') continue;
+      for (const prop of ['color', 'backgroundColor', 'borderTopColor', 'borderBottomColor', 'fill', 'stroke', 'outlineColor']) {
+        if (prop.startsWith('border') && parseFloat(cs[prop.replace('Color', 'Width')]) === 0) continue;
+        if (prop === 'outlineColor' && cs.outlineStyle === 'none') continue;
+        const c = parse(cs[prop]);
+        if (c && blue(c)) hits.add(`${el.tagName.toLowerCase()}.${String(el.className.baseVal ?? el.className).slice(0, 40)} ${prop}=${cs[prop]}`);
+      }
     }
+    return [...hits].slice(0, 5);
+  });
+  const sweep = async (label, opts, paths, state = null) => {
+    const ctx = await browser.newContext({ locale: 'pt-BR', ...opts, ...(state ? { storageState: state } : {}) });
+    const page = await ctx.newPage();
+    const errs = [];
+    page.on('pageerror', (e) => errs.push(e.message));
+    page.on('console', (m) => { if (m.type() === 'error' && !/WebSocket|realtime|status of 40/.test(m.text())) errs.push(m.text()); });
+    for (const path of paths) {
+      await page.goto(APP_URL + path, { waitUntil: 'networkidle' });
+      await page.waitForTimeout(150);
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      assert(overflow <= 1, `${label} ${path}: rolagem horizontal de ${overflow}px`);
+      const blues = await findBlue(page);
+      assert(!blues.length, `${label} ${path}: cor azul encontrada → ${blues.join(' | ')}`);
+    }
+    assert(!errs.length, `${label}: erros no navegador → ${errs.slice(0, 3).join(' | ')}`);
+    await ctx.close();
+  };
+  const publicPaths = ['/', '/projetos', '/projetos?tipo=quick', '/profissionais', '/vitrine', `/profissional?u=${slug}`, projectUrl.replace(APP_URL, ''),
+    '/confianca', '/termos', '/privacidade', '/suporte', '/anuncie', '/entrar', '/cadastro', '/pagina-que-nao-existe'];
+  const freelaPaths = ['/painel', '/perfil', '/plano', '/mensagens', contractUrl.replace(APP_URL, ''), '/suporte', '/projetos'];
+  const companyPaths = ['/painel', '/publicar-projeto', projectUrl.replace(APP_URL, ''), '/profissionais', '/mensagens', contractUrl.replace(APP_URL, '')];
+  const desktop = { viewport: { width: 1366, height: 900 } };
+  const mobile = devices['iPhone 13'];
+
+  await step('todas as páginas públicas, desktop e celular: sem azul, sem rolagem lateral, sem erro', async () => {
+    await sweep('desktop', desktop, publicPaths);
+    await sweep('celular', mobile, publicPaths);
+  });
+  await step('páginas internas do profissional, desktop e celular', async () => {
+    const st = await f.ctx.storageState();
+    await sweep('desktop/profissional', desktop, freelaPaths, st);
+    await sweep('celular/profissional', mobile, freelaPaths, st);
+  });
+  await step('páginas internas da empresa e da administração, desktop e celular', async () => {
+    const st = await c.ctx.storageState();
+    await sweep('desktop/empresa', desktop, companyPaths, st);
+    await sweep('celular/empresa', mobile, companyPaths, st);
+    await sweep('desktop/admin', desktop, ['/admin'], adminState);
+    await sweep('celular/admin', mobile, ['/admin'], adminState);
+  });
+
+  await step('celular: capturas das telas principais', async () => {
+    const m = await newUser(browser, { ...devices['iPhone 13'] });
+    await m.page.goto(APP_URL + '/', { waitUntil: 'networkidle' });
+    await shot(m.page, '21-celular-inicio');
+    await m.page.goto(`${APP_URL}/profissional?u=${slug}`, { waitUntil: 'networkidle' });
     await shot(m.page, '10-celular-perfil');
     await m.ctx.close();
+    const p = await newUser(browser, { ...devices['iPhone 13'], storageState: await f.ctx.storageState() });
+    await p.page.goto(APP_URL + '/painel', { waitUntil: 'networkidle' });
+    await shot(p.page, '22-celular-painel');
+    await p.ctx.close();
   });
 
   await step('painel da empresa mostra projeto e contrato', async () => {
