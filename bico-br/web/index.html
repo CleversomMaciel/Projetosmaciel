@@ -31,11 +31,9 @@
     </div>
   </header>
   <main id="conteudo" class="flex-1">
-    <section class="hero-light bg-white">
+    <section class="hero-light bg-gradient-to-b from-white via-white to-areia">
       <svg class="swoosh right-0 top-0 hidden h-full w-[58%] lg:block" viewBox="0 0 800 600" preserveAspectRatio="none" aria-hidden="true">
         <defs><linearGradient id="hs" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#D4AF37"/><stop offset=".6" stop-color="#FFCA05"/><stop offset="1" stop-color="#D4AF37"/></linearGradient></defs>
-        <path d="M330 0C430 120 560 230 800 250V0z" fill="#1B5E20"/>
-        <path d="M250 0C380 150 540 280 800 300v-26C560 250 410 140 300 0z" fill="url(#hs)"/>
         <path d="M0 600c210-90 470-120 800-70V600z" fill="#F8F7F2"/>
         <path d="M80 600c200-70 420-92 720-50v-14C500 500 260 520 40 600z" fill="url(#hs)" opacity=".85"/>
       </svg>
@@ -56,9 +54,42 @@
             <a class="btn-ghost min-h-0 rounded-full border px-3.5 py-1.5 text-xs" href="/vitrine">Vitrine</a>
           </div>
         </div>
-        <div class="relative mx-auto w-full max-w-lg">
-          <img src="/assets/hero-pessoa.svg" alt="Profissional trabalhando em um notebook" class="w-full" width="560" height="480" fetchpriority="high">
-          <div class="float-chip absolute left-0 top-10 sm:-left-6" aria-hidden="true"><span class="grid h-7 w-7 place-items-center rounded-lg bg-ouro-100 text-ouro-600"><svg class="icon h-4 w-4" viewBox="0 0 24 24"><path d="M4 20V4M4 20h16"/><path d="M8 16v-4M12 16V8M16 16v-6"/></svg></span>+ Oportunidades · + Renda</div>
+        <div class="relative mx-auto w-full max-w-[34rem] pb-6 lg:pb-0">
+          <!-- moldura: forma verde profunda com arco dourado atrás da foto -->
+          <!-- moldura: bloco verde profundo com faixas dourada e verde (recortadas dentro do bloco) -->
+          <svg class="absolute bottom-0 left-[4%] top-[6%] w-[74%]" viewBox="0 0 400 560" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="capa-ouro" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFCA05"/><stop offset="1" stop-color="#D4AF37"/></linearGradient>
+              <clipPath id="capa-bloco"><rect width="400" height="560" rx="44"/></clipPath>
+            </defs>
+            <rect width="400" height="560" rx="44" fill="#071B12"/>
+            <g clip-path="url(#capa-bloco)">
+              <path d="M-20 420C100 330 250 300 420 170v34C260 330 110 360 -20 470z" fill="url(#capa-ouro)"/>
+              <path d="M-20 500C110 420 260 400 420 300v30C270 430 120 450 -20 560z" fill="#1B5E20"/>
+              <circle cx="70" cy="90" r="120" fill="#FFCA05" opacity=".06"/>
+            </g>
+          </svg>
+          <picture>
+            <source srcset="/assets/capa-profissional.webp" type="image/webp">
+            <img src="/assets/capa-profissional.jpg" alt="Profissional sorrindo enquanto trabalha no notebook" width="720" height="1068"
+                 class="relative ml-auto aspect-[720/1068] max-h-[27rem] w-[78%] rounded-[2rem] object-cover object-[50%_25%] shadow-lift ring-4 ring-white sm:max-h-none" fetchpriority="high" decoding="async">
+          </picture>
+          <!-- cartão escuro: proposta de valor -->
+          <div class="absolute left-0 top-6 flex items-center gap-3 rounded-2xl bg-floresta-900/95 px-3 py-2.5 text-white shadow-lift ring-1 ring-ouro/40 backdrop-blur sm:px-4 sm:py-3">
+            <span class="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-sol-400"><svg class="icon h-6 w-6" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V4M4 20h16"/><path d="M8 16v-4M12 16V8M16 16v-6"/></svg></span>
+            <span class="font-display text-xs font-bold leading-tight sm:text-sm">+ Oportunidades<br>+ Renda<br>+ Liberdade</span>
+          </div>
+          <!-- selos com confirmação -->
+          <ul class="absolute bottom-24 left-0 hidden space-y-2.5 sm:block" aria-label="O que você faz no Bico BR">
+            <li class="float-chip"><span class="grid h-7 w-7 place-items-center rounded-lg bg-ouro-100 text-ouro-600"><svg class="icon h-4 w-4" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7.5" width="18" height="12" rx="2.5"/><path d="M9 7.5V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1.5M3 13h18"/></svg></span>Publique seu projeto<svg class="icon h-4 w-4 text-mata-600" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></li>
+            <li class="float-chip ml-4"><span class="grid h-7 w-7 place-items-center rounded-lg bg-ouro-100 text-ouro-600"><svg class="icon h-4 w-4" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8.5" r="3"/><path d="M3 19.5c.6-3 2.9-4.8 6-4.8s5.4 1.8 6 4.8"/><path d="M16 5.8a3 3 0 0 1 0 5.4M18 15c1.7.6 2.7 2 3 4.5"/></svg></span>Encontre profissionais<svg class="icon h-4 w-4 text-mata-600" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></li>
+            <li class="float-chip"><span class="grid h-7 w-7 place-items-center rounded-lg bg-ouro-100 text-ouro-600"><svg class="icon h-4 w-4" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="11" rx="1.5"/><path d="M2 19h20"/></svg></span>Trabalhe remotamente<svg class="icon h-4 w-4 text-mata-600" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></li>
+          </ul>
+          <!-- garantia real do produto (sem números inventados) -->
+          <div class="absolute -bottom-2 right-2 flex items-center gap-2 rounded-xl bg-white px-3.5 py-2.5 font-display text-xs font-bold text-floresta-900 shadow-lift ring-1 ring-tinta/5 sm:right-6">
+            <span class="grid h-7 w-7 place-items-center rounded-lg bg-mata-50 text-mata-600"><svg class="icon h-4 w-4" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5.5c0 4.3 2.9 7.6 7 9.5 4.1-1.9 7-5.2 7-9.5V6l-7-3Z"/><path d="m9 12 2.2 2.2L15 10.5"/></svg></span>
+            Pagamento seguro via Mercado Pago
+          </div>
         </div>
       </div>
       <div class="wrap relative grid gap-4 pb-10 md:grid-cols-3">
