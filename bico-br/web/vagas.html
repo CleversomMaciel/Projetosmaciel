@@ -26,18 +26,27 @@
     </div>
   </header>
   <main id="conteudo" class="flex-1">
-    <section class="wrap py-10">
-      <h1 class="text-3xl font-extrabold tracking-tight">Vagas remotas</h1>
-      <p class="mt-2 max-w-2xl text-sm text-tinta-700">Aqui só entram oportunidades 100% remotas. Vagas são processos seletivos das próprias empresas: não passam pelo fluxo de propostas, contrato e pagamento dos projetos freelance.</p>
-      <form id="filtros" class="mt-6 grid gap-3 md:grid-cols-[1fr_16rem_12rem_auto]" role="search">
-        <div><label class="sr-only" for="q">Buscar</label><input class="input" id="q" name="q" placeholder="Cargo ou palavra-chave"></div>
-        <div><label class="sr-only" for="categoria">Área</label><select class="input" id="categoria" name="categoria"><option value="">Todas as áreas</option></select></div>
-        <div><label class="sr-only" for="contrato">Contrato</label><select class="input" id="contrato" name="contrato"><option value="">Todos os contratos</option><option value="clt">CLT</option><option value="pj">PJ</option><option value="estagio">Estágio</option><option value="temporario">Temporário</option><option value="freelancer">Freelancer</option><option value="projeto">Por projeto</option></select></div>
+    <section class="wrap py-8 lg:py-12">
+      <p class="kicker">100% remoto</p>
+      <h1 class="mt-1 text-3xl font-extrabold sm:text-4xl" id="titulo">Vagas remotas</h1>
+      <p class="mt-2 max-w-2xl text-sm text-tinta-700">Só oportunidades 100% remotas. Abra o card para ver os detalhes e se candidatar aqui mesmo.</p>
+      <form id="filtros" class="card mt-6 grid gap-3 p-3 md:grid-cols-[1fr_15rem_13rem_auto] md:items-center md:rounded-full md:p-2" role="search">
+        <div><label class="sr-only" for="q">Buscar</label><input class="input md:rounded-full md:border-0 md:shadow-none" id="q" name="q" placeholder="Cargo ou palavra-chave"></div>
+        <div><label class="sr-only" for="categoria">Área</label><select class="input md:rounded-full md:border-0 md:shadow-none" id="categoria" name="categoria"><option value="">Todas as áreas</option></select></div>
+        <div><label class="sr-only" for="contrato">Contrato</label><select class="input md:rounded-full md:border-0 md:shadow-none" id="contrato" name="contrato"><option value="">Todos os contratos</option><option value="clt">CLT</option><option value="pj">PJ</option><option value="estagio">Estágio</option><option value="temporario">Temporário</option><option value="freelancer">Freelancer</option><option value="projeto">Por projeto</option></select></div>
         <button class="btn-primary" type="submit">Filtrar</button>
       </form>
       <p id="aviso" class="mt-4" hidden></p>
-      <ul id="lista" class="mt-6 grid gap-4" aria-live="polite"></ul>
-      <div class="mt-6 text-center"><button id="mais" class="btn-ghost" type="button" hidden>Carregar mais</button></div>
+      <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_19rem]">
+        <div>
+          <ul id="lista" class="grid gap-4" aria-live="polite"></ul>
+          <div class="mt-6 text-center"><button id="mais" class="btn-ghost" type="button" hidden>Carregar mais</button></div>
+        </div>
+        <aside class="space-y-4 lg:sticky lg:top-24 lg:self-start" aria-label="Espaço publicitário e dicas">
+          <div id="ad-lateral" class="grid gap-4"></div>
+          <div class="panel text-sm"><p class="font-bold">Tudo acontece aqui dentro</p><p class="mt-1 text-tinta-500">Abra um card para ver os detalhes e responder sem sair da página. Conversas e contratos ficam registrados.</p></div>
+        </aside>
+      </div>
     </section>
   </main>
   <footer id="site-footer" class="border-t border-tinta/10 bg-white"></footer>

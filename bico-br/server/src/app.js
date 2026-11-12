@@ -20,7 +20,7 @@ const require = createRequire(import.meta.url);
 
 // páginas privadas: servidas normalmente, mas marcadas para não indexar
 const PRIVATE_PAGES = new Set(['entrar', 'cadastro', 'onboarding', 'painel', 'publicar-projeto', 'publicar-vaga', 'contrato', 'plano', 'mensagens', 'admin', 'perfil']);
-const PUBLIC_PAGES = new Set(['index', 'projetos', 'projeto', 'vagas', 'confianca', 'profissional']);
+const PUBLIC_PAGES = new Set(['index', 'projetos', 'projeto', 'vagas', 'confianca', 'profissional', 'anuncie']);
 
 export function createApp({ config, store, registries, mp, logger }) {
   const app = express();

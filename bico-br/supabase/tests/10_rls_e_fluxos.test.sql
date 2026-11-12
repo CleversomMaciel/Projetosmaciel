@@ -470,6 +470,43 @@ select t.login('f');
 select t.fails($$select public.purge_expired_cache()$$, 'permission denied', 'usuário não executa a limpeza');
 reset role;
 
+-- ------------------------------------------------------------ 0014: anúncios
+select t.login('d', 'aal2');
+insert into public.ad_campaigns (id, advertiser_name, title, body, target_url, placement, ends_at, status, price_cents, internal_note, created_by)
+values ('00000000-0000-0000-0000-00000000ad01', 'Acme Cursos', 'Formação em Power BI', 'Turmas noturnas online.', 'https://acme.example/curso', 'feed_inline', now() + interval '30 days', 'active', 150000, 'Fechado por 30 dias', t.id('d')),
+       ('00000000-0000-0000-0000-00000000ad02', 'Rascunho SA', 'Ainda não aprovado', null, 'https://rascunho.example', 'feed_inline', now() + interval '30 days', 'draft', 1, null, t.id('d'));
+select t.fails($$insert into public.ad_campaigns (advertiser_name, title, target_url, placement, ends_at, created_by)
+                 values ('Golpe', 'Link perigoso', 'javascript:alert(1)', 'sidebar', now() + interval '1 day', t.id('d'))$$,
+               'check constraint', 'anúncio só aceita destino https');
+reset role;
+select t.anon();
+select t.ok((select count(*) from public.live_ads('feed_inline')) = 1, 'visitante vê só anúncio ativo e aprovado');
+select t.fails($$select price_cents from public.ad_campaigns$$, 'permission denied', 'visitante não lê preço nem nota interna do anúncio');
+select public.ad_event('00000000-0000-0000-0000-00000000ad01', 'click');
+select public.ad_event('00000000-0000-0000-0000-00000000ad02', 'click');
+reset role;
+select t.ok((select clicks from public.ad_campaigns where id = '00000000-0000-0000-0000-00000000ad01') = 1, 'clique é contado em total agregado');
+select t.ok((select clicks from public.ad_campaigns where id = '00000000-0000-0000-0000-00000000ad02') = 0, 'anúncio não aprovado não recebe eventos');
+select t.login('f');
+select t.ok((select count(*) from public.ad_campaigns) = 0, 'usuário comum não lista campanhas (nem preço)');
+select t.fails($$insert into public.ad_campaigns (advertiser_name, title, target_url, placement, ends_at, status, created_by)
+                 values ('Eu mesmo', 'Anúncio grátis', 'https://eu.example', 'home_banner', now() + interval '1 day', 'active', t.id('f'))$$,
+               'row-level security', 'usuário comum não publica anúncio por conta própria');
+insert into public.ad_requests (user_id, company_name, contact, placement, message) values (t.id('f'), 'Minha Empresa', 'contato@minha.example', 'sidebar', 'Quero anunciar.');
+reset role;
+select t.login('g');
+select t.ok((select count(*) from public.ad_requests) = 0, 'pedido de anúncio de terceiro é invisível');
+reset role;
+select t.login('d', 'aal2');
+select t.ok((select count(*) from public.ad_requests) = 1, 'financeiro vê pedidos de anúncio');
+reset role;
+update public.ad_campaigns set ends_at = now() + interval '1 second', starts_at = now() - interval '1 hour' where id = '00000000-0000-0000-0000-00000000ad01';
+select pg_sleep(1.1);
+select t.ok((select count(*) from public.live_ads('feed_inline')) = 0, 'anúncio vencido sai do ar sozinho');
+select public.purge_expired_cache();
+select t.ok((select status from public.ad_campaigns where id = '00000000-0000-0000-0000-00000000ad01') = 'ended', 'campanha vencida é encerrada pela rotina diária');
+select t.ok((select count(*) from public.audit_logs where entity_type = 'ad_campaigns') >= 3, 'campanhas são auditadas');
+
 -- ------------------------------------------------------------ vagas: somente remoto
 select t.fails($$insert into public.jobs (company_id, created_by, title, description, category_id, contract_type, work_mode)
                  select '00000000-0000-0000-0000-0000000000c1', t.id('c'), 'Analista de marketing',

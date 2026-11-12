@@ -31,75 +31,90 @@
     </div>
   </header>
   <main id="conteudo" class="flex-1">
-    <section class="relative overflow-hidden bg-mata-900 text-white">
-      <div class="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-mata-500/30 blur-3xl" aria-hidden="true"></div>
-      <div class="wrap relative grid gap-10 py-14 md:grid-cols-[1.15fr_.85fr] md:items-center md:py-20">
+    <section class="hero">
+      <div class="wrap grid gap-12 pb-20 pt-14 lg:grid-cols-[1.1fr_.9fr] lg:items-center lg:pb-28 lg:pt-20">
         <div>
-          <p class="chip-sol">100% remoto · todo o Brasil</p>
-          <h1 class="mt-4 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">Seu próximo bico começa aqui.</h1>
-          <p class="mt-4 max-w-xl text-lg text-white/80">Empresas publicam projetos e vagas remotas. Profissionais de qualquer área mostram o que sabem fazer, enviam propostas e constroem reputação.</p>
-          <form action="/projetos" method="get" class="mt-7 flex max-w-xl flex-col gap-2 sm:flex-row" role="search">
+          <p class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[.14em] text-sol-300 backdrop-blur">100% remoto · todo o Brasil</p>
+          <h1 class="mt-5 text-[2.6rem] font-extrabold leading-[1.02] tracking-tightest sm:text-6xl">Seu próximo bico <span class="bg-gradient-to-r from-mata-300 to-sol-300 bg-clip-text text-transparent">começa aqui.</span></h1>
+          <p class="mt-5 max-w-xl text-lg leading-relaxed text-white/75">Projetos freelance, serviços rápidos e vagas remotas em um só lugar. Proposta, conversa, contrato e avaliação acontecem dentro do Bico BR.</p>
+          <form action="/projetos" method="get" class="searchbar mt-8 max-w-xl" role="search">
             <label class="sr-only" for="busca">O que você procura?</label>
-            <input id="busca" name="q" class="input flex-1" placeholder="Ex.: dashboard em Power BI, edição de vídeo…" autocomplete="off">
-            <button class="btn-sol" type="submit">Buscar projetos</button>
+            <input id="busca" name="q" placeholder="Ex.: dashboard em Power BI, edição de vídeo…" autocomplete="off">
+            <button class="btn-primary" type="submit">Buscar</button>
           </form>
           <div class="mt-6 flex flex-wrap gap-3">
-            <a class="btn bg-white text-tinta hover:bg-mata-50" href="/cadastro?tipo=company">Quero contratar</a>
-            <a class="btn border border-white/40 text-white hover:bg-white/10" href="/cadastro?tipo=freelancer">Quero trabalhar</a>
+            <a class="btn-sol" href="/cadastro?tipo=company">Quero contratar</a>
+            <a class="btn-glass" href="/cadastro?tipo=freelancer">Quero trabalhar</a>
           </div>
         </div>
-        <ul class="grid gap-3 text-sm">
-          <li class="rounded-2xl bg-white/10 p-4 ring-1 ring-white/15"><strong class="block text-base">Projetos freelance</strong>Escopo, prazo e orçamento definidos. Propostas comparáveis lado a lado.</li>
-          <li class="rounded-2xl bg-white/10 p-4 ring-1 ring-white/15"><strong class="block text-base">Bico Rápido</strong>Serviços pequenos com preço fechado e entrega em poucos dias.</li>
-          <li class="rounded-2xl bg-white/10 p-4 ring-1 ring-white/15"><strong class="block text-base">Vagas remotas</strong>CLT, PJ, estágio e temporário — só oportunidades 100% remotas.</li>
+        <ul class="grid gap-4">
+          <li><a href="/projetos" class="flex items-start gap-4 rounded-3xl border border-white/10 bg-white/[.07] p-5 backdrop-blur transition hover:bg-white/[.12]">
+            <span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-mata-400/20 text-mata-300"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></svg></span>
+            <span><strong class="block text-base">Projetos freelance</strong><span class="text-sm text-white/70">Escopo, prazo e orçamento definidos. Envie sua proposta sem sair do card.</span></span></a></li>
+          <li class="lg:translate-x-6"><a href="/projetos?tipo=quick" class="flex items-start gap-4 rounded-3xl border border-white/10 bg-white/[.07] p-5 backdrop-blur transition hover:bg-white/[.12]">
+            <span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-sol-400/20 text-sol-300"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3 5 13.5h6L10 21l8-10.5h-6L13 3Z"/></svg></span>
+            <span><strong class="block text-base">Bico Rápido</strong><span class="text-sm text-white/70">Serviços pequenos com preço fechado e entrega em poucos dias.</span></span></a></li>
+          <li><a href="/vagas" class="flex items-start gap-4 rounded-3xl border border-white/10 bg-white/[.07] p-5 backdrop-blur transition hover:bg-white/[.12]">
+            <span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/15 text-white"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7.5" width="18" height="12" rx="2.5"/><path d="M9 7.5V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1.5M3 13h18"/></svg></span>
+            <span><strong class="block text-base">Vagas remotas</strong><span class="text-sm text-white/70">CLT, PJ, estágio e temporário — só oportunidades 100% remotas.</span></span></a></li>
         </ul>
       </div>
     </section>
 
-    <section class="wrap py-12" aria-labelledby="t-categorias">
+    <div class="wrap -mt-10 relative z-10"><div id="ad-banner" aria-label="Espaço publicitário"></div></div>
+
+    <section class="wrap pt-16" aria-labelledby="t-categorias">
       <div class="flex items-end justify-between gap-4">
-        <h2 id="t-categorias" class="text-2xl font-bold tracking-tight">Áreas de atuação</h2>
-        <a class="linkish text-sm" href="/projetos">Ver todos os projetos</a>
+        <div><p class="kicker">Áreas de atuação</p><h2 id="t-categorias" class="mt-1 text-3xl font-extrabold">Trabalho remoto em qualquer área</h2></div>
+        <a class="linkish hidden text-sm sm:inline" href="/projetos">Ver todos os projetos</a>
       </div>
       <p id="aviso" hidden></p>
-      <ul id="categorias" class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <li class="card text-sm text-tinta-500">Carregando áreas…</li>
+      <ul id="categorias" class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <li class="skeleton h-24"></li><li class="skeleton h-24"></li><li class="skeleton h-24"></li>
       </ul>
     </section>
 
-    <section class="bg-white py-12" aria-labelledby="t-como">
-      <div class="wrap">
-        <h2 id="t-como" class="text-2xl font-bold tracking-tight">Como funciona</h2>
-        <div class="mt-6 grid gap-6 md:grid-cols-2">
-          <div class="card">
-            <h3 class="font-semibold">Para quem contrata</h3>
-            <ol class="mt-3 list-decimal space-y-2 pl-5 text-sm text-tinta-700">
-              <li>Cadastre a empresa — o CNPJ preenche os dados automaticamente.</li>
-              <li>Publique o projeto, o bico rápido ou a vaga remota.</li>
-              <li>Compare propostas, converse e feche o contrato dentro da plataforma.</li>
-              <li>Acompanhe a entrega, aprove e avalie o profissional.</li>
-            </ol>
-          </div>
-          <div class="card">
-            <h3 class="font-semibold">Para quem trabalha</h3>
-            <ol class="mt-3 list-decimal space-y-2 pl-5 text-sm text-tinta-700">
-              <li>Entre de graça e monte seu perfil e portfólio.</li>
-              <li>Envie propostas sem limite até fechar o primeiro projeto.</li>
-              <li>Execute o primeiro bico sem pagar assinatura antecipada.</li>
-              <li>Depois da primeira entrega aprovada, você decide se quer um plano Pro — nada é cobrado sem o seu aceite.</li>
-            </ol>
-          </div>
+    <section class="wrap pt-16" aria-labelledby="t-recentes">
+      <p class="kicker">Acabou de chegar</p><h2 id="t-recentes" class="mt-1 text-3xl font-extrabold">Oportunidades recentes</h2>
+      <div class="mt-8 grid gap-8 lg:grid-cols-2">
+        <div><div class="flex items-center justify-between"><h3 class="text-lg font-bold">Projetos e Bico Rápido</h3><a class="linkish text-sm" href="/projetos">Ver todos</a></div>
+          <ul id="home-projetos" class="mt-4 grid gap-4"><li class="skeleton h-36"></li><li class="skeleton h-36"></li></ul></div>
+        <div><div class="flex items-center justify-between"><h3 class="text-lg font-bold">Vagas remotas</h3><a class="linkish text-sm" href="/vagas">Ver todas</a></div>
+          <ul id="home-vagas" class="mt-4 grid gap-4"><li class="skeleton h-36"></li><li class="skeleton h-36"></li></ul></div>
+      </div>
+    </section>
+
+    <section class="wrap pt-16" aria-labelledby="t-como">
+      <p class="kicker">Como funciona</p><h2 id="t-como" class="mt-1 text-3xl font-extrabold">Do primeiro contato à avaliação</h2>
+      <div class="mt-8 grid gap-6 lg:grid-cols-2">
+        <div class="card">
+          <span class="chip-sol">Para quem contrata</span>
+          <ol class="mt-5 space-y-4 text-sm text-tinta-700">
+            <li class="flex gap-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-tinta text-xs font-bold text-white">1</span><span>Cadastre a empresa — o CNPJ preenche os dados automaticamente.</span></li>
+            <li class="flex gap-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-tinta text-xs font-bold text-white">2</span><span>Publique o projeto, o bico rápido ou a vaga remota.</span></li>
+            <li class="flex gap-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-tinta text-xs font-bold text-white">3</span><span>Compare propostas, converse e feche o contrato dentro da plataforma.</span></li>
+            <li class="flex gap-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-tinta text-xs font-bold text-white">4</span><span>Acompanhe a entrega, aprove e avalie o profissional.</span></li>
+          </ol>
+        </div>
+        <div class="card">
+          <span class="chip">Para quem trabalha</span>
+          <ol class="mt-5 space-y-4 text-sm text-tinta-700">
+            <li class="flex gap-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-mata-600 text-xs font-bold text-white">1</span><span>Entre de graça e monte seu perfil e portfólio.</span></li>
+            <li class="flex gap-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-mata-600 text-xs font-bold text-white">2</span><span>Envie propostas sem limite até concluir o primeiro projeto.</span></li>
+            <li class="flex gap-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-mata-600 text-xs font-bold text-white">3</span><span>Receba 100% do valor combinado: a taxa de serviço é paga pela empresa.</span></li>
+            <li class="flex gap-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-mata-600 text-xs font-bold text-white">4</span><span>Plano Pro só depois da primeira entrega aprovada, e nada é cobrado sem o seu aceite.</span></li>
+          </ol>
         </div>
       </div>
     </section>
 
-    <section class="wrap py-12" aria-labelledby="t-confianca">
-      <div class="card flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h2 id="t-confianca" class="text-xl font-bold tracking-tight">Contratação com registro de ponta a ponta</h2>
-          <p class="mt-1 max-w-2xl text-sm text-tinta-700">Proposta, contrato, pagamento, entrega e avaliação ficam registrados. Se algo sair do combinado, a Central de Confiança abre um protocolo e acompanha o caso.</p>
+    <section class="wrap pt-16" aria-labelledby="t-confianca">
+      <div class="hero rounded-[2rem] px-6 py-10 sm:px-12 sm:py-14">
+        <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div><h2 id="t-confianca" class="text-3xl font-extrabold">Contratação com registro de ponta a ponta</h2>
+            <p class="mt-3 max-w-2xl text-white/75">Proposta, contrato, pagamento, entrega e avaliação ficam registrados. Se algo sair do combinado, a Central de Confiança abre um protocolo e acompanha o caso.</p></div>
+          <a class="btn-sol shrink-0" href="/confianca">Conhecer a Central de Confiança</a>
         </div>
-        <a class="btn-ghost shrink-0" href="/confianca">Conhecer a Central de Confiança</a>
       </div>
     </section>
   </main>

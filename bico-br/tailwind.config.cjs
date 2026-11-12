@@ -4,15 +4,21 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        tinta: { DEFAULT: '#0e1f18', 700: '#1c3a2d', 500: '#4b6358', 300: '#9db0a6' },
-        mata: { 50: '#eefaf3', 100: '#d6f3e2', 500: '#12905a', 600: '#0d7a4b', 700: '#0a613c', 900: '#06311f' },
-        sol: { 100: '#fff3d1', 400: '#f7c244', 500: '#eaa91c' },
-        areia: '#f7f5ef',
+        tinta: { DEFAULT: '#0a1411', 700: '#22352e', 500: '#5b6c65', 300: '#a5b3ad' },
+        mata: { 50: '#ecfbf3', 100: '#d3f5e3', 300: '#6fe0ad', 400: '#2fcf8a', 500: '#12a76a', 600: '#0b8a56', 700: '#086c44', 900: '#062c1e', 950: '#03170f' },
+        sol: { 100: '#fff4d6', 300: '#ffd978', 400: '#f9c440', 500: '#e5a81b' },
+        areia: '#f5f3ec',
+        creme: '#fbfaf6',
       },
       fontFamily: {
-        sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+        sans: ['"Plus Jakarta Sans Variable"', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Arial', 'sans-serif'],
       },
-      boxShadow: { card: '0 1px 2px rgba(14,31,24,.06), 0 8px 24px -12px rgba(14,31,24,.18)' },
+      boxShadow: {
+        card: '0 1px 0 rgba(10,20,17,.04), 0 12px 32px -18px rgba(10,20,17,.22)',
+        lift: '0 2px 0 rgba(10,20,17,.04), 0 24px 48px -20px rgba(10,20,17,.32)',
+        glow: '0 0 0 1px rgba(47,207,138,.25), 0 18px 50px -18px rgba(18,167,106,.55)',
+      },
+      letterSpacing: { tightest: '-0.035em' },
     },
   },
   plugins: [],

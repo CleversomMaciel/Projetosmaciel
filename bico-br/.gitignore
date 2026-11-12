@@ -4,3 +4,4 @@ node_modules/
 !.env.example
 web/assets/app.css
 *.log
+web/assets/fonts/

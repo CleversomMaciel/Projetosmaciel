@@ -14,6 +14,7 @@ Critério de desempate em todas: a opção mais segura e de menor risco regulat�
 | D6 | Teto antiabuso de 50 propostas por dia | Protege empresas de spam; não é limite comercial | `platform_settings.proposal_abuse_daily_limit` |
 | D7 | Contratante pessoa física desligado | Depende de política comercial e jurídica | `ALLOW_PF_CONTRACTORS` |
 | D8 | Área administrativa **só abre com verificação em duas etapas** | Senha de administrador vazada, sozinha, não dá acesso a dados financeiros nem a decisões | funções `private.is_admin` / `has_admin_role` |
+| D10 | Anúncios de empresas: espaços próprios (início, feed, lateral), vendidos por **período a preço fixo**, sempre rotulados “Patrocinado”, aprovados por um administrador; sem rede de anúncios de terceiros e sem rastreamento individual; nunca em contrato, chat ou pagamento | Receita extra sem perder a confiança do usuário nem abrir a página a scripts de terceiros. Exibições e cliques são só informativos, porque contadores públicos podem ser inflados | tela de administração → Anúncios patrocinados |
 | D9 | Primeiro bico cancelado por decisão de disputa não consome o benefício do primeiro projeto gratuito | Justo com o profissional | função `resolve_dispute` |
 
 **Consequência de D2 que precisa estar clara para a direção:** o profissional entrega antes de receber o saldo.
@@ -39,7 +40,7 @@ Se no futuro a decisão for intermediar 100% do valor, isso exige o modelo de sp
 
 ## Segurança: o que ainda falta antes de abrir ao público
 
-1. **Homologação em Supabase real e teste de invasão independente.** Regras do banco (141 verificações) e fluxo de telas (18 passos, com tentativas de invasão) passam na simulação local; falta repetir no Supabase real.
+1. **Homologação em Supabase real e teste de invasão independente.** Regras do banco (153 verificações) e fluxo de telas (19 passos, com tentativas de invasão) passam na simulação local; falta repetir no Supabase real.
 2. **CAPTCHA no cadastro e no login** (o Supabase Auth integra Turnstile/hCaptcha) e política de senha forte no painel do Supabase.
 3. **Rate limit compartilhado** (Redis) quando houver mais de uma instância do backend.
 4. **Verificação de arquivos enviados** (tipo real e antivírus) antes de habilitar upload de portfólio e anexos.
@@ -59,6 +60,7 @@ Se no futuro a decisão for intermediar 100% do valor, isso exige o modelo de sp
 | Inteligência competitiva | Primeira rodada em `06-inteligencia-competitiva.md`; falta leitura de amostra de reclamações e as páginas do 99Freelas e do Fiverr |
 | Agendamentos | Criados automaticamente se a extensão pg_cron estiver habilitada antes das migrations |
 | Páginas de destino por busca | Não iniciado |
+| Anúncios: imagem no anúncio, cobrança online e relatório para o anunciante | Hoje o anúncio é texto, a venda é combinada pela equipe e o valor é registrado na campanha |
 | Programa de indicação, cupons, campanhas, planos empresariais | Indicação tem tabelas e regra de qualificação; o resto não foi iniciado |
 | Gestão de usuários e de habilidades no painel administrativo | Painel cobre indicadores, planos, disputas, denúncias e categorias |
 | Tela de solicitações LGPD do titular | Tabela e políticas prontas |
@@ -68,7 +70,7 @@ Se no futuro a decisão for intermediar 100% do valor, isso exige o modelo de sp
 
 Postgres real + PostgREST (o mesmo motor de API de dados do Supabase) + servidor real + navegador. O login,
 o ViaCEP, a BrasilAPI e o Mercado Pago são simulados por um gateway de teste; o webhook é assinado de verdade.
-18 passos: cadastro de empresa com CNPJ/CEP → projeto → cadastro de profissional → busca → proposta → chat →
+19 passos: cadastro de empresa com CNPJ/CEP → projeto → cadastro de profissional → busca → proposta → chat →
 aceite → confirmação → pagamento da taxa → entrega → aprovação → saldo → avaliação → compra do Pro →
 perfil público → vaga e candidatura → 15 tentativas de invasão pela API → administração → celular.
 Os textos carregam uma carga de ataque (XSS) e o teste confirma que ela nunca executa.

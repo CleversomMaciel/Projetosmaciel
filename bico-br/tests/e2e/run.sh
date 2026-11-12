@@ -25,7 +25,7 @@ PIDS=()
 cleanup() { for p in "${PIDS[@]:-}"; do kill "$p" 2>/dev/null || true; done; "${RUNAS[@]}" "$PGBIN/pg_ctl" -D "$WORK/data" -m immediate stop >/dev/null 2>&1 || true; [ -n "${E2E_OUT:-}" ] && rm -rf "$WORK/data" "$WORK/supabase" || rm -rf "$WORK"; }
 trap cleanup EXIT
 
-"${RUNAS[@]}" "$PGBIN/initdb" -D "$WORK/data" -U postgres -A trust >/dev/null
+"${RUNAS[@]}" "$PGBIN/initdb" -D "$WORK/data" -U postgres -A trust -E UTF8 --no-locale >/dev/null
 "${RUNAS[@]}" "$PGBIN/pg_ctl" -D "$WORK/data" -o "-p $PGPORT -c listen_addresses='' -k $WORK" -w start >/dev/null
 PSQL=("${RUNAS[@]}" "$PGBIN/psql" -h "$WORK" -p "$PGPORT" -U postgres -v ON_ERROR_STOP=1 -q)
 "${PSQL[@]}" -c "create database bico" postgres
@@ -42,7 +42,7 @@ for i in $(seq 1 60); do curl -fs "http://127.0.0.1:$GW_PORT/fake/tokens" >/dev/
 TOKENS="$(curl -fs "http://127.0.0.1:$GW_PORT/fake/tokens")"
 ANON="$(node -e "console.log(JSON.parse(process.argv[1]).anon)" "$TOKENS")"; SERVICE="$(node -e "console.log(JSON.parse(process.argv[1]).service)" "$TOKENS")"
 
-(cd "$APP" && npm run build:css >/dev/null 2>&1)
+(cd "$APP" && npm run build >/dev/null 2>&1)
 NODE_ENV=test PORT=$APP_PORT PUBLIC_URL="http://127.0.0.1:$APP_PORT" SUPABASE_URL="http://127.0.0.1:$GW_PORT" \
   SUPABASE_ANON_KEY="$ANON" SUPABASE_SERVICE_ROLE_KEY="$SERVICE" \
   VIACEP_BASE_URL="http://127.0.0.1:$GW_PORT/fake/viacep" BRASILAPI_BASE_URL="http://127.0.0.1:$GW_PORT/fake/brasilapi" CEP_PROVIDERS=viacep \

@@ -92,6 +92,33 @@ async function ensureMfa(sb) {
       <p class="text-tinta-700">${esc(r.details)}</p><div class="mt-2 flex gap-2"><button class="btn-ghost" type="button" data-report="${esc(r.id)}" data-status="actioned">Medida tomada</button><button class="btn-ghost" type="button" data-report="${esc(r.id)}" data-status="dismissed">Improcedente</button></div></div>`).join('') || '<p class="text-tinta-500">Nenhuma denúncia em aberto.</p>');
   }
 
+  if (can('finance', 'content')) {
+    const PLACES = { home_banner: 'Destaque na página inicial', feed_inline: 'Card no feed', sidebar: 'Lateral das listagens' };
+    const AD_STATUS = { draft: 'Rascunho', active: 'No ar', paused: 'Pausado', ended: 'Encerrado' };
+    const [{ data: ads }, { data: requests }] = await Promise.all([
+      sb.from('ad_campaigns').select('id, advertiser_name, title, placement, status, starts_at, ends_at, price_cents, impressions, clicks').order('created_at', { ascending: false }).limit(50),
+      sb.from('ad_requests').select('id, company_name, contact, placement, message, created_at').eq('status', 'new').order('created_at').limit(50),
+    ]);
+    html += section('anuncios', 'Anúncios patrocinados', `
+      ${(requests ?? []).length ? `<div class="notice-info"><p class="font-bold">Pedidos de anúncio aguardando contato</p><ul class="mt-2 space-y-2">${requests.map((r) => `<li><strong>${esc(r.company_name)}</strong> · ${esc(r.contact)} · ${esc(PLACES[r.placement] ?? 'formato a definir')}${r.message ? `<br><span class="text-tinta-700">${esc(r.message)}</span>` : ''} <button class="linkish text-xs" type="button" data-adreq="${esc(r.id)}">Marcar como contatado</button></li>`).join('')}</ul></div>` : ''}
+      <ul class="space-y-2">${(ads ?? []).map((a) => `<li class="flex flex-wrap items-center justify-between gap-3 border-t border-tinta/10 pt-2">
+        <span><strong>${esc(a.title)}</strong> — ${esc(a.advertiser_name)}<span class="block text-xs text-tinta-500">${esc(PLACES[a.placement])} · até ${fmtDateTime(a.ends_at)} · ${a.price_cents != null ? brlExact(a.price_cents) : 'sem valor'} · ${a.impressions} exibições · ${a.clicks} cliques</span></span>
+        <span class="flex items-center gap-2"><span class="chip-neutral">${esc(AD_STATUS[a.status])}</span>
+          ${a.status === 'ended' ? '' : `<button class="linkish text-xs" type="button" data-ad-id="${esc(a.id)}" data-ad-status="${a.status === 'active' ? 'paused' : 'active'}">${a.status === 'active' ? 'Pausar' : 'Colocar no ar'}</button>`}</span></li>`).join('') || '<li class="text-tinta-500">Nenhuma campanha cadastrada.</li>'}</ul>
+      <form id="novo-anuncio" class="grid gap-3 border-t border-tinta/10 pt-4 sm:grid-cols-2" novalidate>
+        <p class="font-bold sm:col-span-2">Nova campanha</p>
+        <div><label class="label" for="ad-anunciante">Anunciante</label><input class="input" id="ad-anunciante" maxlength="60" required></div>
+        <div><label class="label" for="ad-local">Espaço</label><select class="input" id="ad-local">${Object.entries(PLACES).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select></div>
+        <div class="sm:col-span-2"><label class="label" for="ad-titulo">Título (até 70 caracteres)</label><input class="input" id="ad-titulo" maxlength="70" required></div>
+        <div class="sm:col-span-2"><label class="label" for="ad-texto">Texto (até 160 caracteres)</label><input class="input" id="ad-texto" maxlength="160"></div>
+        <div><label class="label" for="ad-url">Link de destino (https)</label><input class="input" id="ad-url" type="url" placeholder="https://" required></div>
+        <div><label class="label" for="ad-cta">Texto do botão</label><input class="input" id="ad-cta" maxlength="24" value="Saiba mais"></div>
+        <div><label class="label" for="ad-dias">Duração (dias)</label><input class="input" id="ad-dias" type="number" min="1" max="365" value="30"></div>
+        <div><label class="label" for="ad-preco">Valor cobrado (R$)</label><input class="input" id="ad-preco" inputmode="decimal"></div>
+        <div class="sm:col-span-2"><button class="btn-ghost" type="submit">Salvar como rascunho</button><span class="ml-3 text-xs text-tinta-500">A campanha só aparece depois de “Colocar no ar”.</span></div>
+      </form>`);
+  }
+
   if (can('content')) {
     const { data: cats } = await sb.from('categories').select('id, name, slug, is_active').order('sort_order');
     html += section('categorias', 'Categorias', `<ul class="space-y-1">${(cats ?? []).map((c) => `<li class="flex items-center justify-between gap-3"><span>${esc(c.name)} <span class="text-xs text-tinta-500">/${esc(c.slug)}</span></span>
@@ -119,6 +146,18 @@ async function ensureMfa(sb) {
       if (!confirm('Registrar esta decisão? Ela é definitiva e fica na auditoria.')) return;
       return done((await sb.rpc('resolve_dispute', { p_dispute_id: f.dataset.dispute, p_resolution: text, p_outcome: $('select', f).value })).error);
     }
+    if (f.id === 'novo-anuncio') {
+      const url = $('#ad-url').value.trim();
+      const days = Number.parseInt($('#ad-dias').value, 10) || 30;
+      if (!/^https:\/\//i.test(url)) return showNotice(aviso, 'error', 'O link de destino precisa começar com https://');
+      if ($('#ad-titulo').value.trim().length < 4 || $('#ad-anunciante').value.trim().length < 2) return showNotice(aviso, 'error', 'Informe anunciante e título.');
+      return done((await sb.from('ad_campaigns').insert({
+        advertiser_name: $('#ad-anunciante').value.trim(), title: $('#ad-titulo').value.trim(), body: $('#ad-texto').value.trim() || null,
+        target_url: url, cta_label: $('#ad-cta').value.trim() || 'Saiba mais', placement: $('#ad-local').value,
+        ends_at: new Date(Date.now() + days * 86400000).toISOString(), price_cents: parseBrlToCents($('#ad-preco').value),
+        status: 'draft', created_by: session.user.id,
+      })).error);
+    }
     if (f.id === 'nova-cat') {
       const slug = $('#cs').value.trim().toLowerCase();
       if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug) || $('#cn').value.trim().length < 2) return showNotice(aviso, 'error', 'Informe nome e slug (letras minúsculas, números e hífen).');
@@ -129,6 +168,10 @@ async function ensureMfa(sb) {
   paineis.addEventListener('click', async (ev) => {
     const cat = ev.target.closest('[data-cat]');
     if (cat) return done((await sb.from('categories').update({ is_active: cat.dataset.active === '1' }).eq('id', cat.dataset.cat)).error);
+    const ad = ev.target.closest('[data-ad-id]');
+    if (ad) return done((await sb.from('ad_campaigns').update({ status: ad.dataset.adStatus }).eq('id', ad.dataset.adId)).error);
+    const req = ev.target.closest('[data-adreq]');
+    if (req) return done((await sb.from('ad_requests').update({ status: 'contacted' }).eq('id', req.dataset.adreq)).error);
     const rep = ev.target.closest('[data-report]');
     if (rep) return done((await sb.from('reports').update({ status: rep.dataset.status, handled_by: session.user.id, handled_at: new Date().toISOString() }).eq('id', rep.dataset.report)).error);
     return undefined;

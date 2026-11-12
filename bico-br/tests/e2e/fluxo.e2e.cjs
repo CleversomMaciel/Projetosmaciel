@@ -107,19 +107,21 @@ async function onboardFreelancer(page, headline) {
 
   await step('profissional: encontra o projeto na busca e envia proposta', async () => {
     await f.page.goto(`${APP_URL}/projetos?q=dashboard`);
-    await f.page.waitForSelector('#lista a');
+    await f.page.waitForSelector('#lista .xcard');
     assert(!(await pwned(f.page)), 'XSS não executa na listagem');
+    assert(await f.page.locator('#lista .xcard-panel').first().evaluate((el) => el.hasAttribute('inert')), 'card fechado fica fora da navegação por teclado');
+    await f.page.click('#lista .xcard-head');
+    await f.page.waitForSelector('#lista .xcard[data-open] [name=valor]');
+    await f.page.waitForTimeout(400);
     await shot(f.page, '03-projetos');
-    await f.page.click('#lista a');
-    await f.page.waitForSelector('#proposta');
-    await f.page.fill('#valor', '2.000'); await f.page.fill('#prazo', '7');
-    await f.page.fill('#carta', `Tenho experiência com Power BI e modelagem de dados. ${XSS}`);
-    await f.page.click('#proposta button[type=submit]');
-    await see(f.page, 'Sua proposta');
+    await f.page.fill('#lista [name=valor]', '2.000'); await f.page.fill('#lista [name=prazo]', '7');
+    await f.page.fill('#lista [name=carta]', `Tenho experiência com Power BI e modelagem de dados. ${XSS}`);
+    await f.page.click('#lista [data-proposal] button[type=submit]');
+    await see(f.page, 'Proposta enviada');
   });
 
   await step('chat: profissional abre conversa e envia mensagem', async () => {
-    await f.page.click('#falar');
+    await f.page.click('#lista [data-chat]');
     await f.page.waitForURL('**/mensagens?c=*');
     await f.page.waitForSelector('#enviar:not([hidden])');
     await f.page.fill('#texto', `Olá! Posso começar na segunda. ${XSS}`);
@@ -241,9 +243,23 @@ async function onboardFreelancer(page, headline) {
     await c.page.waitForURL('**/vagas');
     await see(c.page, 'Analista de BI pleno');
     await f.page.goto(`${APP_URL}/vagas`);
-    await f.page.click('details summary');
-    await f.page.click('[data-apply]');
+    await f.page.click('#lista .xcard-head');
+    await f.page.fill('#lista [name=carta]', 'Tenho três anos de experiência com indicadores.');
+    await f.page.waitForTimeout(400);
+    await shot(f.page, '12-vagas');
+    await f.page.click('#lista [data-apply] button[type=submit]');
     await see(f.page, 'Candidatura enviada');
+    await f.page.reload();
+    await f.page.click('#lista .xcard-head');
+    await see(f.page, 'Candidatura enviada');
+  });
+
+  await step('anúncios: profissional pede para anunciar pelo site', async () => {
+    await f.page.goto(`${APP_URL}/anuncie`);
+    await f.page.fill('#empresa', 'Acme Cursos'); await f.page.fill('#contato', 'comercial@acme.example');
+    await f.page.selectOption('#formato', 'sidebar');
+    await f.page.click('#form button[type=submit]');
+    await see(f.page, 'Pedido recebido');
   });
 
   await step('invasor: API recusa leitura e escrita fora das permissões', async () => {
@@ -313,7 +329,26 @@ async function onboardFreelancer(page, headline) {
     assert(/taxa de serviço\s*\n\s*R\$\s?200,00/.test(text), 'receita de taxa de serviço R$ 200');
     assert(/assinaturas\s*\n\s*R\$\s?29,90/.test(text), 'receita de assinaturas R$ 29,90');
     await a.page.waitForSelector('#planos'); await a.page.waitForSelector('#categorias');
+    await see(a.page, 'Pedidos de anúncio aguardando contato');
+    await a.page.fill('#ad-anunciante', 'Acme Cursos'); await a.page.selectOption('#ad-local', 'sidebar');
+    await a.page.fill('#ad-titulo', `Formação em Power BI ${XSS}`.slice(0, 70)); await a.page.fill('#ad-texto', 'Turmas noturnas, 100% online.');
+    await a.page.fill('#ad-url', 'https://acme.example/curso'); await a.page.fill('#ad-preco', '1.500');
+    await a.page.click('#novo-anuncio button[type=submit]');
+    await a.page.waitForSelector('[data-ad-status="active"]');
+    const before = await newUser(browser);
+    await before.page.goto(`${APP_URL}/projetos`, { waitUntil: 'networkidle' });
+    assert(!(await before.page.content()).includes('Formação em Power BI'), 'rascunho de anúncio não aparece para o público');
+    await a.page.click('[data-ad-status="active"]');
+    await a.page.waitForSelector('[data-ad-status="paused"]');
     await shot(a.page, '09-admin');
+    await before.page.reload({ waitUntil: 'networkidle' });
+    await see(before.page, 'Formação em Power BI');
+    await see(before.page, 'Patrocinado');
+    assert(!(await pwned(before.page)), 'XSS não executa no anúncio');
+    const rel = await before.page.locator('#ad-lateral a.ad').getAttribute('rel');
+    assert(/sponsored/.test(rel) && /noopener/.test(rel), 'link de anúncio marcado como patrocinado e isolado');
+    await shot(before.page, '13-projetos-com-anuncio');
+    await before.ctx.close();
     await a.ctx.close();
   });
 

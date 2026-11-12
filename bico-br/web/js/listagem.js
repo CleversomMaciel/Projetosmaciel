@@ -1,40 +1,46 @@
 import { $, getClient, showNotice } from './core.js';
+import { bindCards, emptyState, fetchAds, houseAd, loadViewerState, renderAd, skeletons, trackAds } from './cards.js';
 
-const PAGE = 12;
+const PAGE = 10;
 const quote = (v) => `"${String(v).replace(/"/g, '')}"`;
 
 /**
- * Listagem paginada por cursor (keyset): nunca carrega tudo de uma vez e não fica lenta
- * em páginas profundas como OFFSET. Ordenação: published_at desc, id desc.
+ * Feed paginado por cursor (keyset): nunca carrega tudo de uma vez e não degrada em páginas
+ * profundas. A cada página, um espaço patrocinado é intercalado (sempre rotulado).
  */
-export function createFeed({ table, select, applyFilters, renderItem, emptyText }) {
+export function createFeed({ table, kind, select, applyFilters, renderItem, viewer, empty, adCategory = () => null }) {
   const list = $('#lista');
   const more = $('#mais');
   const aviso = $('#aviso');
-  let cursor = null;
-  let loading = false;
+  let cursor = null; let loading = false; let page = 0;
+  bindCards(list, viewer);
 
   async function load(reset) {
     if (loading) return;
     loading = true;
     const { sb } = await getClient();
     if (!sb) { loading = false; return; }
-    if (reset) { cursor = null; list.innerHTML = '<li class="card text-sm text-tinta-500">Carregando…</li>'; }
+    if (reset) { cursor = null; page = 0; list.innerHTML = skeletons(); }
     let query = sb.from(table).select(select).eq('status', 'open')
       .order('published_at', { ascending: false }).order('id', { ascending: false }).limit(PAGE + 1);
     query = applyFilters(query);
     if (cursor) query = query.or(`published_at.lt.${quote(cursor.at)},and(published_at.eq.${quote(cursor.at)},id.lt.${cursor.id})`);
-    const { data, error } = await query;
-    loading = false;
-    if (reset) list.innerHTML = '';
-    if (error) return showNotice(aviso, 'error', 'Não foi possível carregar a lista. Tente novamente.');
+    const [{ data, error }, ads] = await Promise.all([query, fetchAds('feed_inline', adCategory(), 1)]);
+    if (error) { loading = false; if (reset) list.innerHTML = ''; return showNotice(aviso, 'error', 'Não foi possível carregar a lista. Tente novamente.'); }
     aviso.hidden = true;
     const rows = data.slice(0, PAGE);
-    if (reset && !rows.length) list.innerHTML = `<li class="card text-sm text-tinta-500">${emptyText}</li>`;
-    list.insertAdjacentHTML('beforeend', rows.map(renderItem).join(''));
+    await loadViewerState(viewer, kind, rows.map((r) => r.id));
+    loading = false;
+    if (reset) list.innerHTML = '';
+    if (reset && !rows.length) list.innerHTML = emptyState(empty[0], empty[1]);
+    const items = rows.map((r) => renderItem(r, viewer));
+    if (rows.length >= 3) items.splice(3, 0, ads[0] ? renderAd(ads[0]) : (page === 0 ? houseAd() : ''));
+    list.insertAdjacentHTML('beforeend', items.join(''));
+    trackAds(list);
     more.hidden = data.length <= PAGE;
     const last = rows.at(-1);
     if (last) cursor = { at: last.published_at, id: last.id };
+    page += 1;
   }
 
   more.addEventListener('click', () => load(false));
