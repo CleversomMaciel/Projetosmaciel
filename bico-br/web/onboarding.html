@@ -87,34 +87,7 @@
             <span><strong>Deixar meu perfil público.</strong> Ele poderá aparecer para visitantes e em buscadores como o Google. Você pode mudar isso quando quiser.</span>
           </label>
         </div>
-        <div class="card space-y-4">
-          <h2 class="font-semibold">Endereço</h2>
-          <p class="text-sm text-tinta-500">Usado para dados de cobrança e documentos. Não aparece no seu perfil.</p>
-            <div class="grid gap-4 sm:grid-cols-[10rem_1fr]">
-              <div>
-                <label class="label" for="f-cep">CEP</label>
-                <input class="input" id="f-cep" inputmode="numeric" autocomplete="postal-code" maxlength="9" placeholder="00000-000" required aria-describedby="f-cep-status">
-              </div>
-              <p id="f-cep-status" class="self-end pb-2 text-sm text-tinta-500" aria-live="polite"></p>
-            </div>
-            <div class="grid gap-4 sm:grid-cols-[1fr_8rem]">
-              <div><label class="label" for="f-street">Logradouro</label><input class="input" id="f-street" autocomplete="address-line1" maxlength="200" required></div>
-              <div><label class="label" for="f-number">Número</label><input class="input" id="f-number" maxlength="20"></div>
-            </div>
-            <div class="grid gap-4 sm:grid-cols-2">
-              <div><label class="label" for="f-complement">Complemento <span class="font-normal text-tinta-500">(opcional)</span></label><input class="input" id="f-complement" autocomplete="address-line2" maxlength="120"></div>
-              <div><label class="label" for="f-district">Bairro</label><input class="input" id="f-district" maxlength="120"></div>
-            </div>
-            <div class="grid gap-4 sm:grid-cols-[1fr_6rem]">
-              <div><label class="label" for="f-city">Cidade</label><input class="input" id="f-city" autocomplete="address-level2" maxlength="120" required></div>
-              <div><label class="label" for="f-uf">UF</label><input class="input uppercase" id="f-uf" autocomplete="address-level1" maxlength="2" required></div>
-            </div>
-            <input type="hidden" id="f-ibge">
-            <label class="flex items-start gap-3 text-sm">
-              <input class="mt-1 accent-mata-600" type="checkbox" id="f-confirma-endereco" required>
-              <span>Conferi o endereço acima e ele está correto.</span>
-            </label>
-        </div>
+        <div class="card space-y-2"><h2 class="font-semibold">Suas habilidades</h2><p class="hint">É por elas que as empresas encontram você. Dá para mudar depois.</p><div id="ob-habilidades"></div></div>
         <div class="card space-y-3" data-termos></div>
         <button class="btn-primary w-full sm:w-auto" type="submit">Salvar e continuar</button>
       </form>

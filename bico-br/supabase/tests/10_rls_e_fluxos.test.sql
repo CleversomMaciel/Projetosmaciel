@@ -550,6 +550,102 @@ select public.purge_expired_cache();
 select t.ok((select status from public.ad_campaigns where id = '00000000-0000-0000-0000-00000000ad01') = 'ended', 'campanha vencida é encerrada pela rotina diária');
 select t.ok((select count(*) from public.audit_logs where entity_type = 'ad_campaigns') >= 3, 'campanhas são auditadas');
 
+-- ------------------------------------------------------------ 0018: conduta, suspensão, anexos, curtidas
+-- filtro: o que deve ser barrado
+select t.ok(private.moderate_text(x) is not null, 'barra: ' || x) from (values
+  ('me chama no whatsapp'), ('meu zap é esse'), ('fala comigo pelo Telegram'), ('segue no insta'), ('w h a t s a p p'),
+  ('wh4ts4pp'), ('t.e.l.e.g.r.a.m'), ('11 98765-4321'), ('(11) 98765 4321'), ('+55 11 987654321'), ('fulano@gmail.com'),
+  ('fulano arroba hotmail ponto com'), ('@fulano_dev'), ('wa.me/5511987654321'), ('https://instagram.com/fulano'),
+  ('vamos fechar por fora'), ('pagamento por fora da plataforma'), ('seu idiota'), ('vai tomar no cu'), ('que merda de serviço')) v(x);
+-- filtro: o que NÃO deve ser barrado (texto normal de trabalho)
+select t.ok(private.moderate_text(x) is null, 'permite: ' || x) from (values
+  ('Preciso de um dashboard em Power BI com 12 páginas até 20/11/2026.'), ('Orçamento de R$ 1.500,00 a R$ 2.500,00, prazo de 10 dias.'),
+  ('Integração com o Zapier e instalação do sistema.'), ('O arquivo final está em https://exemplo.dev/entrega/arquivo.pbix'),
+  ('Tenho 8 anos de experiência e 120 projetos entregues.'), ('Reunião às 14h30 na segunda-feira.'), ('Planilha com 15000 linhas e 32 colunas.'),
+  ('Pinte o gráfico de azul e use a fonte Inter.'), ('Análise de computadores e instalações elétricas.')) v(x);
+
+-- textos públicos são recusados na gravação
+select t.login('f');
+select t.fails($$update public.freelancer_profiles set bio = 'Me chama no whatsapp 11 98765-4321' where user_id = t.id('f')$$,
+               'MODERATION_', 'perfil não aceita contato por fora');
+select t.fails($$update public.freelancer_profiles set headline = 'Dev @fulano_dev' where user_id = t.id('f')$$, 'MODERATION_', 'título do perfil não aceita @ de rede social');
+select t.fails($$insert into public.portfolio_items (user_id, title, link_url) values (t.id('f'), 'Meu trabalho', 'https://instagram.com/fulano')$$,
+               'MODERATION_', 'publicação não aceita link de rede social');
+select t.fails($$insert into public.portfolio_items (user_id, title, description) values (t.id('f'), 'Trabalho', 'cliente idiota não pagou')$$,
+               'ofensiva', 'publicação não aceita ofensa');
+select t.fails($$insert into public.portfolio_items (user_id, title, media) values (t.id('f'), 'Imagem alheia', '[{"path":"00000000-0000-0000-0000-000000000000/abcdef12.png"}]')$$,
+               'MEDIA_INVALID', 'publicação só usa imagem da pasta do próprio autor');
+insert into public.portfolio_items (user_id, title, description, media)
+values (t.id('f'), 'Dashboard de vendas', 'Painel com metas por região.',
+        jsonb_build_array(jsonb_build_object('path', t.id('f')::text || '/abcdef12-3456.png')));
+select id as post_id from public.portfolio_items where title = 'Dashboard de vendas' \gset
+select t.fails($$update public.portfolio_items set likes_count = 999$$, 'permission denied', 'autor não infla as próprias curtidas');
+select t.fails(format($$insert into public.post_likes (item_id, user_id) values (%L, t.id('f'))$$, :'post_id'),
+               'row-level security', 'autor não curte a própria publicação');
+reset role;
+select t.login('c');
+select t.fails($$insert into public.projects (company_id, created_by, title, description, category_id, status)
+                 select '00000000-0000-0000-0000-0000000000c1', t.id('c'), 'Projeto com contato', 'Interessados falem comigo no telegram, por favor.', id, 'open'
+                 from public.categories limit 1$$, 'MODERATION_', 'projeto não aceita contato por fora');
+insert into public.post_likes (item_id, user_id) values (:'post_id', t.id('c'));
+select t.fails(format($$insert into public.post_likes (item_id, user_id) values (%L, t.id('c'))$$, :'post_id'), 'duplicate key', 'uma curtida por pessoa');
+reset role;
+select t.ok((select likes_count from public.portfolio_items where id = :'post_id') = 1, 'curtida é contada');
+
+-- chat: tempo de resposta, anexos e bloqueio com suspensão
+delete from public.user_blocks;
+select t.login('c');
+insert into public.messages (conversation_id, sender_id, body) values (:'conv_id', t.id('c'), 'Segue a planilha base para começar.');
+select t.fails(format($$insert into public.messages (conversation_id, sender_id, attachments) values (%L, t.id('c'), '[{"path":"outra-pasta/x/abcdef12.xlsx","name":"base.xlsx","size":100,"mime":"x"}]')$$, :'conv_id'),
+               'ATTACHMENT_INVALID', 'anexo fora da pasta da conversa é recusado');
+select t.fails(format($$insert into public.messages (conversation_id, sender_id, attachments) values (%L, t.id('c'), %L)$$, :'conv_id',
+               jsonb_build_array(jsonb_build_object('path', :'conv_id' || '/' || t.id('c')::text || '/abcdef12.exe', 'name', 'virus.exe', 'size', 100, 'mime', 'x'))::text),
+               'ATTACHMENT_INVALID', 'tipo de arquivo não permitido é recusado');
+select t.fails(format($$insert into public.messages (conversation_id, sender_id, attachments) values (%L, t.id('c'), %L)$$, :'conv_id',
+               jsonb_build_array(jsonb_build_object('path', :'conv_id' || '/' || t.id('f')::text || '/abcdef12.xlsx', 'name', 'base.xlsx', 'size', 100, 'mime', 'x'))::text),
+               'ATTACHMENT_INVALID', 'não anexa arquivo da pasta de outro usuário');
+select t.ok(t.affected(format($$insert into public.messages (conversation_id, sender_id, attachments) values (%L, t.id('c'), %L)$$, :'conv_id',
+               jsonb_build_array(jsonb_build_object('path', :'conv_id' || '/' || t.id('c')::text || '/abcdef12-3456.xlsx', 'name', 'base de vendas.xlsx', 'size', 20480, 'mime', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'))::text)) = 1,
+            'planilha válida é anexada pelo chat');
+reset role;
+update public.messages set created_at = now() - interval '2 hours' where sender_id = t.id('c') and conversation_id = :'conv_id';
+select t.login('f');
+insert into public.messages (conversation_id, sender_id, body) values (:'conv_id', t.id('f'), 'Recebi, obrigado!');
+reset role;
+select t.ok((select response_count = 1 and response_seconds between 7000 and 7400 from public.profiles where id = t.id('f')), 'tempo de resposta é medido (cerca de 2 horas)');
+select t.login('f');
+select t.fails($$update public.profiles set response_seconds = 1, response_count = 99 where id = t.id('f')$$, 'permission denied', 'usuário não altera o próprio tempo de resposta');
+select t.fails($$update public.profiles set suspended_until = null where id = t.id('f')$$, 'permission denied', 'usuário não mexe na própria suspensão');
+insert into public.messages (conversation_id, sender_id, body) values (:'conv_id', t.id('f'), 'Me passa seu whatsapp que a gente fecha por fora');
+select t.ok((select blocked and body like 'Texto recusado%' from public.messages where sender_id = t.id('f') order by id desc limit 1), 'mensagem com contato é bloqueada e substituída por aviso');
+reset role;
+select t.login('c');
+select t.ok(not exists (select 1 from public.messages where blocked), 'a outra parte nunca recebe a mensagem bloqueada');
+reset role;
+select t.ok((select count(*) from public.moderation_flags where user_id = t.id('f')) = 1, 'ocorrência registrada para a moderação');
+select t.login('f');
+select t.ok((select count(*) from public.moderation_flags) = 0, 'usuário não lê o registro de ocorrências');
+insert into public.messages (conversation_id, sender_id, body) values (:'conv_id', t.id('f'), 'meu numero 11 98765-4321');
+insert into public.messages (conversation_id, sender_id, body) values (:'conv_id', t.id('f'), 'me acha no insta entao');
+select t.fails(format($$insert into public.messages (conversation_id, sender_id, body) values (%L, t.id('f'), 'oi')$$, :'conv_id'),
+               'ACCOUNT_SUSPENDED', 'terceira tentativa em 24h suspende a conta');
+select t.fails($$select public.submit_proposal('00000000-0000-0000-0000-00000000aaa2', 15000, 2, 'Proposta de uma conta suspensa aqui.')$$,
+               'ACCOUNT_SUSPENDED', 'conta suspensa não envia proposta');
+select t.fails($$insert into public.portfolio_items (user_id, title) values (t.id('f'), 'Publicação de conta suspensa')$$, 'ACCOUNT_SUSPENDED', 'conta suspensa não publica');
+select t.fails(format($$select public.set_user_suspension(%L, 0, 'Vou me liberar sozinho agora')$$, t.id('f')), 'Acesso negado', 'usuário não retira a própria suspensão');
+reset role;
+select t.ok((select status from public.contracts where id = :'contract_id') = 'completed', 'suspensão não altera contratos existentes');
+insert into public.admin_members (user_id, role) values (t.id('g'), 'moderation');
+select t.login('g', 'aal2');
+select t.ok((select count(*) from public.moderation_flags where reviewed_at is null) = 3, 'moderação vê as ocorrências com o trecho original');
+select t.fails(format($$select public.set_user_suspension(%L, 0, 'curta')$$, t.id('f')), 'justificativa', 'retirar suspensão exige justificativa');
+select public.set_user_suspension(t.id('f'), 0, 'Revisado: orientado sobre as regras de conduta.');
+reset role;
+select t.ok((select suspended_until is null from public.profiles where id = t.id('f')), 'moderação retira a suspensão');
+select t.ok((select count(*) from public.audit_logs where entity_type = 'profiles' and action = 'unsuspend') = 1, 'decisão de moderação é auditada');
+delete from public.admin_members where user_id = t.id('g');
+delete from public.moderation_flags;
+
 -- ------------------------------------------------------------ vagas: somente remoto
 select t.fails($$insert into public.jobs (company_id, created_by, title, description, category_id, contract_type, work_mode)
                  select '00000000-0000-0000-0000-0000000000c1', t.id('c'), 'Analista de marketing',

@@ -1,4 +1,4 @@
-import { $, esc, getClient, getProfile, icon, mountChrome, rpcMessage, showNotice, warnIfUnconfigured } from './core.js';
+import { $, esc, getClient, getProfile, icon, mountChrome, responseLabel, rpcMessage, showNotice, warnIfUnconfigured } from './core.js';
 import { allSkills } from './habilidades.js';
 import { emptyState, skeletons } from './cards.js';
 
@@ -31,7 +31,8 @@ const AVAIL = { full_time: 'Tempo integral', part_time: 'Meio período', weekend
   const card = (f) => `<li class="card flex flex-col gap-3">
     <div><a class="text-lg font-bold hover:text-mata-700" href="/profissional?u=${encodeURIComponent(f.slug)}">${esc(f.profiles?.display_name || 'Profissional')}</a>
       <p class="text-sm text-tinta-700">${esc(f.headline)}</p>
-      <p class="mt-1 text-xs text-tinta-500">${esc([f.profiles?.city, f.profiles?.uf].filter(Boolean).join(' · '))}${f.availability ? ` · ${esc(AVAIL[f.availability])}` : ''} · ${f.completed_projects} projeto(s) concluído(s) · ${f.rating_count ? `nota ${Number(f.rating_avg).toFixed(1)}` : 'sem avaliações'}</p></div>
+      <p class="mt-1 text-xs text-tinta-500">${esc([f.profiles?.city, f.profiles?.uf].filter(Boolean).join(' · '))}${f.availability ? ` · ${esc(AVAIL[f.availability])}` : ''} · ${f.completed_projects} projeto(s) concluído(s) · ${f.rating_count ? `nota ${Number(f.rating_avg).toFixed(1)}` : 'sem avaliações'}</p>
+      ${responseLabel(f.profiles?.response_count, f.profiles?.response_seconds) ? `<p class="mt-1 text-xs font-semibold text-mata-700">${esc(responseLabel(f.profiles.response_count, f.profiles.response_seconds))}</p>` : ''}</div>
     <p class="flex flex-wrap gap-1.5">${(f.freelancer_skills ?? []).slice(0, 10).map((k) => `<span class="chip">${esc(k.skills?.name)}</span>`).join('')}</p>
     <div class="mt-auto">${invite(f)}</div></li>`;
 
@@ -41,7 +42,7 @@ const AVAIL = { full_time: 'Tempo integral', part_time: 'Meio período', weekend
     const skill = $('#habilidade').value;
     const embed = skill ? 'freelancer_skills!inner(skill_id, skills(name))' : 'freelancer_skills(skill_id, skills(name))';
     let q = sb.from('freelancer_profiles')
-      .select(`user_id, slug, headline, availability, completed_projects, rating_avg, rating_count, profiles!freelancer_profiles_user_id_fkey(display_name, city, uf), ${embed}`)
+      .select(`user_id, slug, headline, availability, completed_projects, rating_avg, rating_count, profiles!freelancer_profiles_user_id_fkey(display_name, city, uf, response_count, response_seconds), ${embed}`)
       .eq('is_public', true) // só quem autorizou aparecer
       .order('completed_projects', { ascending: false }).order('user_id').range(offset, offset + PAGE);
     if (skill) q = q.eq('freelancer_skills.skill_id', skill);

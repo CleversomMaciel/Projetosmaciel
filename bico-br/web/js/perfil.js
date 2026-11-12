@@ -1,4 +1,5 @@
-import { $, esc, getClient, mountChrome, requireSession, setBusy, showNotice } from './core.js';
+import { $, esc, getClient, imageKind, mountChrome, requireSession, rpcMessage, setBusy, showNotice } from './core.js';
+import { POST_SELECT, renderPost } from './publicacoes.js';
 import { mountSkillPicker, saveSkills } from './habilidades.js';
 
 mountChrome();
@@ -40,35 +41,43 @@ const aviso = $('#aviso');
       } catch { setBusy(ev.submitter, false); return showNotice(aviso, 'error', 'Perfil salvo, mas não foi possível gravar habilidades ou a chave Pix. Confira os campos.'); }
     }
     setBusy(ev.submitter, false);
-    if (error) return showNotice(aviso, 'error', error.code === '23505' ? 'Este endereço de perfil já está em uso.' : 'Não foi possível salvar o perfil.');
+    if (error) return showNotice(aviso, 'error', error.code === '23505' ? 'Este endereço de perfil já está em uso.' : rpcMessage(error, 'Não foi possível salvar o perfil.'));
     $('#ver').href = `/profissional?u=${encodeURIComponent(slug)}`;
     showNotice(aviso, 'info', 'Perfil salvo.');
   });
 
   const list = $('#itens');
+  const { cfg } = await getClient();
   async function loadItems() {
-    const { data } = await sb.from('portfolio_items').select('id, title, description, link_url, visibility, origin').eq('user_id', uid).order('created_at', { ascending: false }).limit(200);
-    list.innerHTML = (data ?? []).map((i) => `<li class="card text-sm">
-      <div class="flex items-start justify-between gap-3"><div><strong>${esc(i.title)}</strong>
-        ${i.origin === 'bico_br' ? '<span class="chip-sol ml-1">Feito no Bico BR</span>' : '<span class="chip ml-1">Trabalho externo</span>'}
-        ${i.visibility === 'private' ? '<span class="chip ml-1">Só eu</span>' : ''}</div>
-        <button class="linkish text-xs" type="button" data-del="${esc(i.id)}">Excluir</button></div>
-      ${i.description ? `<p class="mt-1 whitespace-pre-line text-tinta-700">${esc(i.description)}</p>` : ''}
-      ${i.link_url ? `<p class="mt-1 break-all text-xs text-tinta-500">${esc(i.link_url)}</p>` : ''}</li>`).join('') || '<li class="text-sm text-tinta-500">Nenhum trabalho no portfólio ainda.</li>';
+    const { data } = await sb.from('portfolio_items').select(`${POST_SELECT}, visibility`).eq('user_id', uid).order('created_at', { ascending: false }).limit(200);
+    list.innerHTML = (data ?? []).map((i) => renderPost(i, { base: cfg.supabaseUrl }).replace('</li>', `<p class="flex items-center justify-between px-5 pb-4 text-xs text-tinta-500"><span>${i.visibility === 'private' ? 'Só eu vejo' : 'Público'}</span><button class="linkish" type="button" data-del="${esc(i.id)}">Excluir</button></p></li>`)).join('')
+      || '<li class="text-sm text-tinta-500">Nenhuma publicação ainda.</li>';
   }
   list.addEventListener('click', async (ev) => {
     const el = ev.target.closest('[data-del]');
-    if (!el || !confirm('Excluir este trabalho do portfólio?')) return;
+    if (!el || !confirm('Excluir esta publicação?')) return;
     await sb.from('portfolio_items').delete().eq('id', el.dataset.del).eq('user_id', uid);
     loadItems();
   });
   $('#novo-item').addEventListener('submit', async (ev) => {
     ev.preventDefault();
-    const link = $('#pl').value.trim();
     if ($('#pt').value.trim().length < 2) return showNotice(aviso, 'error', 'Informe o título do trabalho.');
-    if (link && !/^https?:\/\//i.test(link)) return showNotice(aviso, 'error', 'O link precisa começar com http:// ou https://');
-    const { error } = await sb.from('portfolio_items').insert({ user_id: uid, title: $('#pt').value.trim(), description: $('#pd').value.trim() || null, link_url: link || null, visibility: $('#pv').value });
-    if (error) return showNotice(aviso, 'error', 'Não foi possível adicionar o trabalho.');
+    const file = $('#pi').files[0];
+    const media = [];
+    setBusy(ev.submitter, true, 'Publicando…');
+    if (file) {
+      const kind = await imageKind(file);
+      if (!kind) { setBusy(ev.submitter, false); return showNotice(aviso, 'error', 'Imagem recusada: envie um PNG, JPG ou WebP de verdade.'); }
+      if (file.size > 5 * 1024 * 1024) { setBusy(ev.submitter, false); return showNotice(aviso, 'error', 'A imagem passa de 5 MB.'); }
+      const path = `${uid}/${crypto.randomUUID()}.${kind.ext}`;
+      const up = await sb.storage.from('portfolio-public').upload(path, await file.arrayBuffer(), { contentType: kind.mime, upsert: false });
+      if (up.error) { setBusy(ev.submitter, false); return showNotice(aviso, 'error', 'Não foi possível enviar a imagem.'); }
+      media.push({ path });
+    }
+    const { error } = await sb.from('portfolio_items').insert({ user_id: uid, title: $('#pt').value.trim(), description: $('#pd').value.trim() || null, media, visibility: $('#pv').value });
+    setBusy(ev.submitter, false);
+    if (error) return showNotice(aviso, 'error', rpcMessage(error, 'Não foi possível publicar.'));
+    aviso.hidden = true;
     ev.target.reset();
     loadItems();
   });

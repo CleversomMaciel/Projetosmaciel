@@ -147,7 +147,7 @@ export async function mountChrome() {
         <div><p class="text-lg font-extrabold tracking-tightest text-white">Bico<span class="text-mata-400"> BR</span></p>
           <p class="mt-3 max-w-xs text-sm">Seu próximo bico começa aqui. Trabalho remoto para empresas e profissionais de todo o Brasil.</p></div>
         <nav aria-label="Para profissionais" class="text-sm"><p class="font-bold text-white">Profissionais</p>
-          <ul class="mt-3 space-y-2"><li><a class="hover:text-white" href="/projetos">Projetos freelance</a></li><li><a class="hover:text-white" href="/projetos?tipo=quick">Bico Rápido</a></li><li><a class="hover:text-white" href="/vagas">Vagas remotas</a></li></ul></nav>
+          <ul class="mt-3 space-y-2"><li><a class="hover:text-white" href="/projetos">Projetos freelance</a></li><li><a class="hover:text-white" href="/projetos?tipo=quick">Bico Rápido</a></li><li><a class="hover:text-white" href="/vagas">Vagas remotas</a></li><li><a class="hover:text-white" href="/vitrine">Vitrine de trabalhos</a></li></ul></nav>
         <nav aria-label="Para empresas" class="text-sm"><p class="font-bold text-white">Empresas</p>
           <ul class="mt-3 space-y-2"><li><a class="hover:text-white" href="/publicar-projeto">Publicar projeto</a></li><li><a class="hover:text-white" href="/publicar-vaga">Publicar vaga</a></li><li><a class="hover:text-white" href="/profissionais">Buscar profissionais</a></li><li><a class="hover:text-white" href="/anuncie">Anuncie no Bico BR</a></li></ul></nav>
         <nav aria-label="Institucional" class="text-sm"><p class="font-bold text-white">Bico BR</p>
@@ -166,6 +166,7 @@ export async function mountChrome() {
         <a class="nav-link" href="/projetos?tipo=quick"${current('/projetos', true)}>Bico Rápido</a>
         <a class="nav-link" href="/vagas"${current('/vagas')}>Vagas remotas</a>
         <a class="nav-link" href="/profissionais"${current('/profissionais')}>Profissionais</a>
+        <a class="nav-link" href="/vitrine"${current('/vitrine')}>Vitrine</a>
       </nav>
       <div class="flex items-center gap-1.5">
         ${session
@@ -212,3 +213,26 @@ export function goToCheckout(url) {
 export function rpcMessage(error, fallback = 'Não foi possível concluir. Tente novamente.') {
   return ['P0001', 'P0002', '42501'].includes(error?.code) && error.message ? error.message : fallback;
 }
+
+/** "Costuma responder em cerca de 2 horas" a partir dos totais medidos no chat. */
+export function responseLabel(count, seconds) {
+  if (!count || count < 1) return null;
+  const avg = seconds / count;
+  if (avg < 3600) return `Costuma responder em cerca de ${Math.max(5, Math.round(avg / 300) * 5)} minutos`;
+  if (avg < 86400) { const h = Math.round(avg / 3600); return `Costuma responder em cerca de ${h} hora${h === 1 ? '' : 's'}`; }
+  const d = Math.round(avg / 86400); return `Costuma responder em cerca de ${d} dia${d === 1 ? '' : 's'}`;
+}
+
+/** Tipo REAL de uma imagem pelos primeiros bytes (extensão e tipo declarado podem mentir). */
+export async function imageKind(file) {
+  const b = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+  const is = (sig, at = 0) => sig.every((v, i) => b[at + i] === v);
+  if (is([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) return { ext: 'png', mime: 'image/png' };
+  if (is([0xff, 0xd8, 0xff])) return { ext: 'jpg', mime: 'image/jpeg' };
+  if (is([0x52, 0x49, 0x46, 0x46]) && is([0x57, 0x45, 0x42, 0x50], 8)) return { ext: 'webp', mime: 'image/webp' };
+  return null;
+}
+
+/** Aviso amigável antes de enviar: o servidor é quem decide, isto só poupa uma tentativa. */
+const CONTACT_HINT = /(whats|zap\b|wpp|telegram|insta\b|instagram|facebook|discord|@[a-z0-9_.]{3,}|\b\d[\d ().-]{8,}\d\b|[\w.+-]+@[\w-]+\.[a-z]{2,})/i;
+export const looksLikeContact = (text) => CONTACT_HINT.test(String(text ?? ''));

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vitrine de trabalhos — Bico BR</title>
+  <meta name="description" content="Veja trabalhos publicados por profissionais remotos e solicite um serviço a partir da publicação.">
+  <link rel="canonical" href="{{PUBLIC_URL}}/vitrine">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Bico BR">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:title" content="Vitrine de trabalhos — Bico BR">
+  <meta property="og:description" content="Veja trabalhos publicados por profissionais remotos e solicite um serviço a partir da publicação.">
+  <meta property="og:url" content="{{PUBLIC_URL}}/vitrine">
+  <meta name="twitter:card" content="summary">
+  <meta name="theme-color" content="#0d7a4b">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/app.css">
+</head>
+<body class="flex min-h-screen flex-col">
+  <a href="#conteudo" class="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-white focus:px-3 focus:py-2">Pular para o conteúdo</a>
+  <header id="site-header" class="sticky top-0 z-40 border-b border-tinta/10 bg-areia/95 backdrop-blur">
+    <div class="wrap flex items-center justify-between py-3">
+      <a href="/" class="text-lg font-extrabold tracking-tight">Bico<span class="text-mata-600"> BR</span></a>
+      <a class="btn-primary" href="/cadastro">Criar conta</a>
+    </div>
+  </header>
+  <main id="conteudo" class="flex-1">
+    <section class="wrap py-8 lg:py-12">
+      <p class="kicker">Vitrine</p>
+      <h1 class="mt-1 text-3xl font-extrabold sm:text-4xl">Trabalhos publicados</h1>
+      <p class="mt-2 max-w-2xl text-sm text-tinta-700">Profissionais mostram o que já fizeram. Curtiu? Abra o perfil e solicite o serviço: a conversa acontece aqui dentro.</p>
+      <p id="aviso" class="mt-4" hidden></p>
+      <ul id="lista" class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" aria-live="polite"></ul>
+      <div class="mt-6 text-center"><button id="mais" class="btn-ghost" type="button" hidden>Carregar mais</button></div>
+    </section>
+  </main>
+  <footer id="site-footer" class="border-t border-tinta/10 bg-white"></footer>
+  <script src="/vendor/supabase.js" defer></script>
+  <script type="module" src="/js/vitrine.js"></script>
+</body>
+</html>

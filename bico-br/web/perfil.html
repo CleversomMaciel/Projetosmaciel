@@ -37,17 +37,18 @@
         <div class="flex flex-wrap items-center gap-3"><button class="btn-primary" type="submit">Salvar perfil</button><a id="ver" class="linkish text-sm" href="#">Ver como os outros veem</a></div>
       </form>
       <div id="portfolio" class="mt-8" hidden>
-        <h2 class="text-xl font-bold tracking-tight">Portfólio</h2>
+        <h2 class="text-xl font-bold tracking-tight">Minhas publicações</h2>
+        <p class="mt-1 text-sm text-tinta-700">Mostre seus trabalhos. As publicações públicas aparecem no seu perfil e na <a class="linkish" href="/vitrine">vitrine</a>, onde empresas podem solicitar o seu serviço.</p>
         <form id="novo-item" class="card mt-4 space-y-4" novalidate>
           <div><label class="label" for="pt">Título do trabalho</label><input class="input" id="pt" maxlength="140" required></div>
           <div><label class="label" for="pd">Descrição e resultados</label><textarea class="input" id="pd" rows="3" maxlength="5000"></textarea></div>
           <div class="grid gap-4 sm:grid-cols-2">
-            <div><label class="label" for="pl">Link <span class="font-normal text-tinta-500">(opcional)</span></label><input class="input" id="pl" type="url" placeholder="https://"></div>
+            <div><label class="label" for="pi">Imagem <span class="font-normal text-tinta-500">(PNG, JPG ou WebP, até 5 MB)</span></label><input class="input" id="pi" type="file" accept="image/png,image/jpeg,image/webp"></div>
             <div><label class="label" for="pv">Visibilidade</label><select class="input" id="pv"><option value="public">Público</option><option value="private">Só eu</option></select></div>
           </div>
-          <button class="btn-ghost" type="submit">Adicionar ao portfólio</button>
+          <button class="btn-ghost" type="submit">Publicar</button>
         </form>
-        <ul id="itens" class="mt-4 grid gap-3"></ul>
+        <ul id="itens" class="mt-4 grid gap-5 sm:grid-cols-2"></ul>
       </div>
     </section>
   </main>

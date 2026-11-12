@@ -1,5 +1,6 @@
-import { $, api, esc, getClient, getProfile, mountChrome, requireSession, setBusy, showNotice } from './core.js';
+import { $, api, esc, getClient, getProfile, mountChrome, requireSession, rpcMessage, setBusy, showNotice } from './core.js';
 import { bindCep } from './endereco.js';
+import { mountSkillPicker, saveSkills } from './habilidades.js';
 
 mountChrome();
 const aviso = $('#aviso');
@@ -115,28 +116,22 @@ async function recordConsents(sb, userId, docTypes, version) {
   form.hidden = false;
   $('[data-termos]', form).innerHTML = termsBlock('termos_freelancer');
   $('[data-versao]', form).textContent = version;
-  const address = bindCep('f-');
+  const picker = await mountSkillPicker($('#ob-habilidades'), { max: 30 });
 
   form.addEventListener('submit', async (ev) => {
     ev.preventDefault();
-    const problem = (!$('#headline').value.trim() && 'Informe seu título profissional.') || address.validate()
+    const problem = (!$('#headline').value.trim() && 'Informe seu título profissional.')
       || (!$('[data-aceite]', form).checked && 'É necessário aceitar os termos para continuar.');
     if (problem) return showNotice(aviso, 'error', problem);
     const btn = ev.submitter;
     setBusy(btn, true, 'Salvando…');
     try {
-      const a = address.read();
       const uid = session.user.id;
       await recordConsents(sb, uid, ['termos_freelancer', 'privacidade'], version);
-      const steps = await Promise.all([
-        sb.from('freelancer_profiles').update({ headline: $('#headline').value.trim(), bio: $('#bio').value.trim() || null, is_public: $('#perfil-publico').checked }).eq('user_id', uid),
-        sb.from('profile_private').update({
-          cep: a.cep.replace(/\D/g, ''), street: a.street, number: a.number || null, complement: a.complement || null,
-          district: a.district || null, city: a.city, uf: a.uf, ibge_code: a.ibgeCode, address_confirmed_at: new Date().toISOString(),
-        }).eq('user_id', uid),
-      ]);
-      if (steps.some((s) => s.error)) throw new Error('Não foi possível salvar. Confira os campos e tente de novo.');
-      const { error } = await sb.from('profiles').update({ city: a.city, uf: a.uf, onboarded_at: new Date().toISOString() }).eq('id', uid);
+      const r = await sb.from('freelancer_profiles').update({ headline: $('#headline').value.trim(), bio: $('#bio').value.trim() || null, is_public: $('#perfil-publico').checked }).eq('user_id', uid);
+      if (r.error) throw new Error(rpcMessage(r.error, 'Não foi possível salvar. Confira os campos e tente de novo.'));
+      await saveSkills('freelancer_skills', 'user_id', uid, picker.get());
+      const { error } = await sb.from('profiles').update({ onboarded_at: new Date().toISOString() }).eq('id', uid);
       if (error) throw new Error('Não foi possível concluir o cadastro.');
       location.replace('/painel');
     } catch (err) {

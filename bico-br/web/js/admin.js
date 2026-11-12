@@ -108,6 +108,29 @@ async function ensureMfa(sb) {
   }
 
   if (can('moderation')) {
+    const KIND = { contato_email: 'e-mail', contato_telefone: 'telefone', contato_link: 'link de rede/mensageiro', contato_rede: 'rede social/mensageiro', contato_fora: 'convite para tratar por fora', ofensa: 'linguagem ofensiva' };
+    const [{ data: flags }, { data: suspended }] = await Promise.all([
+      sb.from('moderation_flags').select('id, user_id, kind, excerpt, created_at').is('reviewed_at', null).order('created_at', { ascending: false }).limit(100),
+      sb.from('profiles').select('id, display_name, suspended_until, suspension_reason').gt('suspended_until', new Date().toISOString()).limit(100),
+    ]);
+    const byUser = new Map();
+    for (const fl of flags ?? []) byUser.set(fl.user_id, [...(byUser.get(fl.user_id) ?? []), fl]);
+    const names = new Map((suspended ?? []).map((u) => [u.id, u]));
+    if (byUser.size) {
+      const { data: people } = await sb.from('profiles').select('id, display_name, suspended_until').in('id', [...byUser.keys()]);
+      for (const u of people ?? []) names.set(u.id, { ...names.get(u.id), ...u });
+    }
+    const userIds = new Set([...byUser.keys(), ...(suspended ?? []).map((u) => u.id)]);
+    html += section('conduta', 'Conduta: contato por fora e ofensas', [...userIds].map((id) => {
+      const u = names.get(id) ?? {}; const list = byUser.get(id) ?? [];
+      const isSuspended = u.suspended_until && new Date(u.suspended_until) > new Date();
+      return `<form class="space-y-2 border-t border-tinta/10 pt-3" data-conduct="${esc(id)}" novalidate>
+        <p><strong>${esc(u.display_name || 'Usuário')}</strong> ${isSuspended ? `<span class="chip-sol">Suspenso até ${fmtDateTime(u.suspended_until)}</span>` : '<span class="chip-neutral">Ativo</span>'} · ${list.length} ocorrência(s) sem revisão</p>
+        <ul class="space-y-1 text-xs">${list.slice(0, 8).map((fl) => `<li class="rounded-lg bg-areia px-2 py-1"><strong>${esc(KIND[fl.kind] ?? fl.kind)}</strong> · ${fmtDateTime(fl.created_at)} — ${esc(fl.excerpt)}</li>`).join('')}</ul>
+        <div class="flex flex-wrap items-end gap-2"><span class="min-w-0 flex-1"><label class="sr-only" for="cj-${esc(id)}">Justificativa</label><input class="input" id="cj-${esc(id)}" maxlength="300" placeholder="Justificativa da decisão" required></span>
+          <button class="btn-ghost" type="submit" data-days="0">${isSuspended ? 'Retirar suspensão' : 'Arquivar ocorrências'}</button>
+          <button class="btn-ghost" type="submit" data-days="30">Suspender 30 dias</button></div></form>`;
+    }).join('') || '<p class="text-tinta-500">Nenhuma ocorrência aguardando revisão.</p>');
     const { data: reports } = await sb.from('reports').select('id, target_type, target_id, reason, details, created_at').in('status', ['open', 'in_review']).order('created_at').limit(50);
     html += section('denuncias', 'Denúncias', (reports ?? []).map((r) => `<div class="border-t border-tinta/10 pt-3"><p><strong>${esc(r.reason)}</strong> · ${esc(r.target_type)} ${esc(r.target_id)} · ${fmtDateTime(r.created_at)}</p>
       <p class="text-tinta-700">${esc(r.details)}</p><div class="mt-2 flex gap-2"><button class="btn-ghost" type="button" data-report="${esc(r.id)}" data-status="actioned">Medida tomada</button><button class="btn-ghost" type="button" data-report="${esc(r.id)}" data-status="dismissed">Improcedente</button></div></div>`).join('') || '<p class="text-tinta-500">Nenhuma denúncia em aberto.</p>');
@@ -166,6 +189,11 @@ async function ensureMfa(sb) {
       const active = $('input[type=checkbox]', f).checked;
       if (active && !price) return showNotice(aviso, 'error', 'Plano ativo precisa de preço.');
       return done((await sb.from('plans').update({ price_cents: price, is_active: active }).eq('id', f.dataset.plan)).error);
+    }
+    if (f.dataset.conduct) {
+      const reason = $('input', f).value.trim();
+      if (reason.length < 10) return showNotice(aviso, 'error', 'Escreva a justificativa da decisão (mínimo de 10 caracteres).');
+      return done((await sb.rpc('set_user_suspension', { p_user: f.dataset.conduct, p_days: Number(ev.submitter.dataset.days), p_reason: reason })).error);
     }
     if (f.dataset.payout) {
       const ref = $('input', f).value.trim();

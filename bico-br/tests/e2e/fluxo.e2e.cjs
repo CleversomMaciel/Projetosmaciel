@@ -45,14 +45,20 @@ async function signup(page, who, tipo) {
 }
 async function onboardFreelancer(page, headline) {
   await page.waitForSelector('#form-freelancer:not([hidden])');
+  assert((await page.locator('#form-freelancer input[autocomplete="postal-code"]').count()) === 0, 'cadastro do profissional não pede endereço');
   await page.fill('#headline', headline);
-  await page.fill('#f-cep', '01001000');
-  await page.waitForFunction(() => document.querySelector('#f-street').value.length > 0);
-  await page.fill('#f-number', '10');
-  await page.check('#f-confirma-endereco');
+  await page.waitForSelector('#ob-habilidades [data-skill]');
   await page.check('#form-freelancer [data-aceite]');
   await page.click('#form-freelancer button[type=submit]');
   await page.waitForURL('**/painel');
+}
+// arte de exemplo gerada no próprio teste
+async function makeArt(browser, w, h, html) {
+  const p = await (await browser.newContext({ viewport: { width: w, height: h } })).newPage();
+  await p.setContent(`<body style="margin:0;display:grid;place-items:center;height:100vh;font-family:sans-serif;color:#fff;text-align:center;${html[0]}">${html[1]}</body>`);
+  const buf = await p.screenshot({ type: 'png' });
+  await p.context().close();
+  return buf;
 }
 
 (async () => {
@@ -115,6 +121,10 @@ async function onboardFreelancer(page, headline) {
     await f.page.fill('#habilidades input', 'sql');
     await f.page.click('#habilidades [data-skill]:has-text("SQL")');
     await f.page.fill('#pix', 'fran@pix.example');
+    await f.page.fill('#bio', 'Me chama no whatsapp 11 98765-4321 que respondo rápido');
+    await f.page.click('#form button[type=submit]');
+    await see(f.page, 'Texto recusado');
+    await f.page.fill('#bio', 'Transformo planilhas em painéis claros para a diretoria.');
     await f.page.click('#form button[type=submit]');
     await see(f.page, 'Perfil salvo');
     await f.page.reload();
@@ -159,11 +169,30 @@ async function onboardFreelancer(page, headline) {
     await c.page.click('[data-chat]');
     await c.page.waitForURL('**/mensagens?c=*');
     await see(c.page, 'Posso começar na segunda');
-    await c.page.fill('#texto', 'Perfeito, vou aceitar a proposta.');
+    // arquivo disfarçado (executável renomeado para .xlsx) é recusado antes de subir
+    await c.page.setInputFiles('#arquivo', { name: 'planilha.xlsx', mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', buffer: Buffer.from('MZ\x90\x00executavel disfarcado') });
+    await see(c.page, 'não é um tipo de arquivo aceito');
+    // planilha de verdade (assinatura ZIP do .xlsx) segue pelo chat
+    await c.page.setInputFiles('#arquivo', { name: 'base de vendas.xlsx', mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', buffer: Buffer.concat([Buffer.from([0x50, 0x4b, 0x03, 0x04]), Buffer.alloc(2048, 7)]) });
+    await c.page.fill('#texto', 'Perfeito, vou aceitar a proposta. Segue a base para você começar.');
     await c.page.click('#enviar button');
     await c.page.waitForFunction(() => document.querySelectorAll('#thread [data-id]').length === 2);
-    assert(!(await pwned(c.page)), 'XSS do chat não executa para a empresa');
+    await see(c.page, 'base de vendas.xlsx');
+    // tentativa de levar para fora: a mensagem não é entregue
+    await c.page.fill('#texto', 'Me chama no whatsapp 11 98765-4321 que é mais rápido');
+    await c.page.click('#enviar button');
+    await see(c.page, 'Mensagem não enviada');
     await shot(c.page, '04-mensagens');
+    await f.page.reload();
+    await f.page.waitForSelector('#thread [data-file]');
+    assert(!(await f.page.content()).includes('98765'), 'a outra parte nunca recebe o contato bloqueado');
+    assert((await f.page.locator('#thread [data-id]').count()) === 2, 'mensagem bloqueada não aparece para o destinatário');
+    const [download] = await Promise.all([f.page.waitForEvent('download'), f.page.click('#thread [data-file]')]);
+    assert((await download.suggestedFilename()).endsWith('.xlsx'), 'profissional baixa a planilha pelo chat');
+    await f.page.fill('#texto', 'Recebi a planilha, obrigado!');
+    await f.page.click('#enviar button');
+    await f.page.waitForFunction(() => document.querySelectorAll('#thread [data-id]').length === 3);
+    assert(!(await pwned(c.page)), 'XSS do chat não executa para a empresa');
     await c.page.goto(projectUrl);
     await c.page.click('[data-accept]');
     await c.page.waitForURL('**/contrato?id=*');
@@ -280,9 +309,15 @@ async function onboardFreelancer(page, headline) {
     await f.page.check('#publico');
     await f.page.click('#form button[type=submit]');
     await see(f.page, 'Perfil salvo');
-    await f.page.fill('#pt', 'Painel financeiro para varejo'); await f.page.fill('#pd', 'Reduziu o fechamento mensal de 5 para 2 dias.');
+    const art = await makeArt(browser, 1200, 750, ['background:linear-gradient(135deg,#0b8a56,#062c1e)', '<div><div style="font-size:30px;opacity:.8">PAINEL FINANCEIRO</div><div style="font-size:120px;font-weight:800">R$ 4,2 mi</div><div style="font-size:34px">receita no trimestre · +18%</div></div>']);
+    await f.page.fill('#pt', 'Painel financeiro para varejo'); await f.page.fill('#pd', 'meu insta é @fran_dados');
     await f.page.click('#novo-item button');
-    await see(f.page, 'Trabalho externo');
+    await see(f.page, 'Texto recusado');
+    await f.page.fill('#pd', 'Reduziu o fechamento mensal de 5 para 2 dias.');
+    await f.page.setInputFiles('#pi', { name: 'painel.png', mimeType: 'image/png', buffer: art });
+    await f.page.click('#novo-item button');
+    await f.page.waitForSelector('#itens [data-post] img');
+    await see(f.page, 'Trabalho informado pelo profissional');
     const anon = await newUser(browser);
     const res = await anon.page.goto(`${APP_URL}/profissional?u=${slug}`);
     const html = await res.text();
@@ -290,8 +325,11 @@ async function onboardFreelancer(page, headline) {
     assert(!html.includes('<script>window.__pwned'), 'XSS escapado no HTML do servidor');
     if (XSS) assert(html.includes('&lt;script&gt;window.__pwned'), 'a carga de ataque chegou ao servidor e foi neutralizada');
     await see(anon.page, 'Painel financeiro para varejo');
-    await see(anon.page, 'Nota 5.0');
-    await see(anon.page, '1 projeto(s) concluído(s)');
+    await see(anon.page, '5.0 de 5 (1)');
+    await see(anon.page, '1 concluído');
+    await see(anon.page, '≈ 5 minutos'); // tempo de resposta medido no chat
+    assert(await anon.page.locator('#posts img').evaluate((img) => img.complete && img.naturalWidth === 1200), 'imagem da publicação carrega no perfil público');
+    assert(await anon.page.locator('#posts [data-like]').isDisabled(), 'visitante sem login não curte');
     assert(!(await pwned(anon.page)), 'XSS não executa no perfil público');
     await shot(anon.page, '08-perfil-publico');
     await anon.ctx.close();
@@ -345,6 +383,22 @@ async function onboardFreelancer(page, headline) {
     await see(c.page, 'Nenhum profissional público com essa habilidade');
   });
 
+  await step('vitrine: empresa curte a publicação e solicita serviço a partir dela', async () => {
+    await c.page.goto(`${APP_URL}/vitrine`);
+    await c.page.waitForSelector('#lista [data-post] img');
+    await see(c.page, 'Painel financeiro para varejo');
+    await c.page.click('#lista [data-like]');
+    await c.page.waitForFunction(() => document.querySelector('#lista [data-likes]').textContent === '1');
+    await shot(c.page, '18-vitrine');
+    await c.page.reload();
+    await c.page.waitForSelector('#lista [data-like][aria-pressed="true"]');
+    await c.page.click('#lista a:has-text("Solicitar serviço")');
+    await c.page.waitForSelector('#form-convite');
+    await shot(c.page, '19-perfil-profissional');
+    await c.page.click('#form-convite button');
+    await c.page.waitForURL('**/mensagens?c=*');
+  });
+
   await step('canal de denúncia e pedido LGPD pelo suporte; termos publicados', async () => {
     const pid = new URL(projectUrl).searchParams.get('id');
     await f.page.goto(`${APP_URL}/suporte?denunciar=project:${pid}`);
@@ -357,7 +411,7 @@ async function onboardFreelancer(page, headline) {
     await f.page.click('#form-dados button[type=submit]');
     await see(f.page, 'Pedido registrado');
     const anon = await newUser(browser);
-    await anon.page.goto(`${APP_URL}/termos`); await see(anon.page, 'não renova automaticamente');
+    await anon.page.goto(`${APP_URL}/termos`); await see(anon.page, 'não renova automaticamente'); await see(anon.page, 'Regras de conduta');
     await anon.page.goto(`${APP_URL}/privacidade`); await see(anon.page, 'Lei Geral de Proteção de Dados');
     await anon.ctx.close();
   });
@@ -396,6 +450,11 @@ async function onboardFreelancer(page, headline) {
         aprovarPagamento: await send('POST', 'rpc/process_payment_update', { p_payment_id: contractId, p_provider_payment_id: 'x', p_provider_status: 'approved', p_status_detail: null, p_amount_cents: 1 }),
         aprovarEntregaAlheia: await send('POST', 'rpc/approve_delivery', { p_contract_id: contractId }),
         metricas: await send('POST', 'rpc/admin_metrics', { p_days: 30 }),
+        lerOcorrencias: await get('moderation_flags?select=id'),
+        tirarSuspensao: await send('PATCH', `profiles?id=eq.${session.user.id}`, { suspended_until: null, response_count: 999 }),
+        suspenderOutro: await send('POST', 'rpc/set_user_suspension', { p_user: contractId, p_days: 30, p_reason: 'porque eu quero suspender' }),
+        anexoAlheio: await fetch(`${gw}/storage/v1/object/sign/chat-attachments/${contractId}/x/arquivo.xlsx`, { method: 'POST', headers: { apikey: anon, authorization: `Bearer ${session.access_token}`, 'content-type': 'application/json' }, body: '{"expiresIn":300}' }).then((r) => r.status),
+        enviarParaConversaAlheia: await fetch(`${gw}/storage/v1/object/chat-attachments/${contractId}/${session.user.id}/abcdef12.png`, { method: 'POST', headers: { apikey: anon, authorization: `Bearer ${session.access_token}`, 'content-type': 'image/png' }, body: new Uint8Array([137, 80, 78, 71]) }).then((r) => r.status),
         validarEntrega: await send('PATCH', `contract_deliverables?contract_id=eq.${contractId}`, { status: 'accepted' }),
         liberarCredito: await send('PATCH', `payouts?contract_id=eq.${contractId}`, { status: 'paid' }),
         marcarRepasse: await send('POST', 'rpc/mark_payout_paid', { p_payout_id: contractId, p_reference: 'PIX-FALSO' }),
@@ -419,6 +478,11 @@ async function onboardFreelancer(page, headline) {
     assert([401, 403, 404].includes(out.aprovarPagamento.status), `não aprova pagamento (${out.aprovarPagamento.status})`);
     assert(out.aprovarEntregaAlheia.status >= 400, 'não aprova entrega de contrato alheio');
     assert(out.metricas.status >= 400, 'não lê indicadores administrativos');
+    assert(out.lerOcorrencias.body.length === 0, 'não lê ocorrências de moderação');
+    assert([401, 403].includes(out.tirarSuspensao.status), `não altera suspensão nem tempo de resposta (${out.tirarSuspensao.status})`);
+    assert(out.suspenderOutro.status >= 400, 'não suspende outras pessoas');
+    assert(out.anexoAlheio >= 400, 'não gera link de anexo de conversa alheia');
+    assert(out.enviarParaConversaAlheia === 403, `não envia arquivo para conversa alheia (${out.enviarParaConversaAlheia})`);
     assert([401, 403].includes(out.validarEntrega.status), `não valida entrega pela API (${out.validarEntrega.status})`);
     assert([401, 403].includes(out.liberarCredito.status), `não altera crédito pela API (${out.liberarCredito.status})`);
     assert(out.marcarRepasse.status >= 400, 'não registra repasse');
@@ -453,6 +517,15 @@ async function onboardFreelancer(page, headline) {
     // denúncia do profissional chegou à moderação, com o texto neutralizado
     await see(a.page, 'pagamento_por_fora');
     assert(!(await pwned(a.page)), 'XSS da denúncia não executa na administração');
+
+    // tentativa de contato por fora feita pela empresa chegou à moderação com o trecho original
+    await a.page.waitForSelector('#conduta [data-conduct]');
+    await see(a.page, 'Carla Contratante');
+    await see(a.page, 'Me chama no whatsapp');
+    await shot(a.page, '20-admin-conduta');
+    await a.page.fill('#conduta input', 'Primeira ocorrência: usuária orientada sobre as regras.');
+    await a.page.click('#conduta button[data-days="0"]');
+    await see(a.page, 'Nenhuma ocorrência aguardando revisão');
 
     // decisão da reclamação: razão ao profissional -> crédito liberado
     await a.page.fill('#disputas textarea', 'O filtro por região consta na página 2, conforme o escopo e a entrega registrada.');
@@ -512,7 +585,7 @@ async function onboardFreelancer(page, headline) {
 
   await step('celular: páginas principais sem rolagem horizontal', async () => {
     const m = await newUser(browser, { ...devices['iPhone 13'] });
-    for (const path of ['/', '/projetos', '/vagas', `/profissional?u=${slug}`]) {
+    for (const path of ['/', '/projetos', '/vagas', '/vitrine', '/profissionais', '/termos', `/profissional?u=${slug}`]) {
       await m.page.goto(APP_URL + path, { waitUntil: 'networkidle' });
       const overflow = await m.page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
       assert(overflow <= 1, `${path} com rolagem horizontal de ${overflow}px`);

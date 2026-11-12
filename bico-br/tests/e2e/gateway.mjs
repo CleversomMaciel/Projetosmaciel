@@ -85,23 +85,52 @@ http.createServer(async (req, res) => {
     }
     if (path === '/auth/v1/logout') { res.writeHead(204, CORS); return res.end(); }
 
-    // ---------------- Storage (somente bucket "ads", imitando as políticas reais: escrita só de admin com 2º fator)
+    // ---------------- Storage de TESTE: imita as políticas reais de cada bucket
     let sm;
-    if ((sm = path.match(/^\/storage\/v1\/object\/ads\/(.+)$/)) && req.method === 'POST') {
-      const claims = verifyJwt((req.headers.authorization || '').replace(/^Bearer /, ''));
-      const u = claims?.sub ? await rpc('e2e_user', { p_id: claims.sub }) : null;
-      if (!u?.admin || claims.aal !== 'aal2') return send(res, 403, { statusCode: '403', error: 'Unauthorized', message: 'new row violates row-level security policy' }, CORS);
+    const IMG = ['image/png', 'image/jpeg', 'image/webp'];
+    const DOCS = [...IMG, 'application/pdf', 'text/plain', 'text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'];
+    const bearer = (req.headers.authorization || '').replace(/^Bearer /, '');
+    const isParticipant = async (conv, uid) => {
+      const r = await fetch(`${PGRST_URL}/conversation_participants?conversation_id=eq.${conv}&user_id=eq.${uid}&select=user_id`, { headers: { authorization: `Bearer ${bearer}` } });
+      return r.ok && (await r.json()).length === 1;
+    };
+    if ((sm = path.match(/^\/storage\/v1\/object\/(ads|portfolio-public|chat-attachments)\/(.+)$/)) && req.method === 'POST') {
+      const [, bucket, key] = sm;
+      const claims = verifyJwt(bearer);
+      const deny = () => send(res, 403, { statusCode: '403', error: 'Unauthorized', message: 'new row violates row-level security policy' }, CORS);
+      if (!claims?.sub) return deny();
       const type = req.headers['content-type'] || '';
-      if (!['image/png', 'image/jpeg', 'image/webp'].includes(type)) return send(res, 415, { statusCode: '415', error: 'invalid_mime_type', message: 'mime type not supported' }, CORS);
+      if (bucket === 'ads') {
+        const u = await rpc('e2e_user', { p_id: claims.sub });
+        if (!u?.admin || claims.aal !== 'aal2') return deny();
+      } else if (bucket === 'portfolio-public') {
+        if (key.split('/')[0] !== claims.sub) return deny();
+      } else if (key.split('/')[1] !== claims.sub || !(await isParticipant(key.split('/')[0], claims.sub))) return deny();
+      if (!(bucket === 'chat-attachments' ? DOCS : IMG).includes(type)) return send(res, 415, { statusCode: '415', error: 'invalid_mime_type', message: 'mime type not supported' }, CORS);
       const body = await readBody(req);
-      if (body.length > 2097152) return send(res, 413, { statusCode: '413', error: 'Payload too large' }, CORS);
-      files.set(sm[1], { type, body });
-      return send(res, 200, { Key: `ads/${sm[1]}`, Id: crypto.randomUUID() }, CORS);
+      if (body.length > (bucket === 'chat-attachments' ? 20971520 : 5242880)) return send(res, 413, { statusCode: '413', error: 'Payload too large' }, CORS);
+      files.set(`${bucket}/${key}`, { type, body });
+      return send(res, 200, { Key: `${bucket}/${key}`, Id: crypto.randomUUID() }, CORS);
     }
-    if ((sm = path.match(/^\/storage\/v1\/object\/public\/ads\/(.+)$/))) {
-      const f = files.get(sm[1]);
+    if ((sm = path.match(/^\/storage\/v1\/object\/public\/(ads|portfolio-public)\/(.+)$/))) {
+      const f = files.get(`${sm[1]}/${sm[2]}`);
       if (!f) return send(res, 404, { message: 'not found' }, CORS);
       res.writeHead(200, { 'content-type': f.type, 'x-content-type-options': 'nosniff', ...CORS });
+      return res.end(f.body);
+    }
+    // anexos do chat: privados; link temporário só para participantes da conversa
+    if ((sm = path.match(/^\/storage\/v1\/object\/sign\/chat-attachments\/(.+)$/)) && req.method === 'POST') {
+      const claims = verifyJwt(bearer);
+      if (!claims?.sub || !(await isParticipant(sm[1].split('/')[0], claims.sub)) || !files.has(`chat-attachments/${sm[1]}`)) return send(res, 400, { statusCode: '404', error: 'not_found', message: 'Object not found' }, CORS);
+      const token = signJwt({ url: `chat-attachments/${sm[1]}`, exp: Math.floor(Date.now() / 1000) + 300 });
+      return send(res, 200, { signedURL: `/object/sign/chat-attachments/${sm[1]}?token=${token}` }, CORS);
+    }
+    if ((sm = path.match(/^\/storage\/v1\/object\/sign\/chat-attachments\/(.+)$/)) && req.method === 'GET') {
+      const claims = verifyJwt(url.searchParams.get('token'));
+      const f = claims?.url === `chat-attachments/${sm[1]}` ? files.get(claims.url) : null;
+      if (!f) return send(res, 400, { message: 'invalid token' }, CORS);
+      res.writeHead(200, { 'content-type': f.type, 'content-disposition': 'attachment', 'x-content-type-options': 'nosniff', ...CORS });
       return res.end(f.body);
     }
 

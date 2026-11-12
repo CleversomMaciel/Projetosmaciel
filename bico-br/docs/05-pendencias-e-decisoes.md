@@ -12,6 +12,10 @@ Critério de desempate em todas: a opção mais segura e de menor risco regulat�
 | D4 | **Plano único: R$ 25,00 por 30 dias, com propostas e projetos ilimitados.** Primeiro projeto continua gratuito | Definido pela direção. Manter o primeiro bico grátis é o que traz profissionais antes de a plataforma ter volume | tela de administração → Planos |
 | D11 | Quem solicita serviço publica projetos e vagas **sem limite e sem custo** (há só um teto antiabuso de 30 por dia) | Definido pela direção: demanda é o que atrai profissionais | gatilho `projects_cap` |
 | D12 | Entrega **obrigatoriamente dentro da plataforma, item a item**; a empresa valida ou pede ajuste por item; sem resposta em 7 dias, validação automática | É o registro que libera o crédito e que vale em reclamação. O prazo protege o profissional de empresa que some | `platform_settings.auto_approve_days` |
+| D14 | **Proibido divulgar telefone, e-mail, redes sociais ou aplicativos de mensagem**, e linguagem ofensiva, em qualquer campo. Texto público é recusado na gravação; no chat a mensagem não é entregue. Três ocorrências em 24 h ou cinco em 30 dias suspendem a conta por 7 dias; a moderação revisa e pode retirar | Definido pela direção: protege a taxa de serviço e o ambiente. O filtro é por padrões — pode errar e pode ser driblado, por isso há revisão humana | migration 0018; tela de administração → Conduta |
+| D15 | **Arquivos do projeto circulam pelo chat** (imagens, PDF, planilhas, documentos, até 20 MB), guardados em área privada e baixados por link temporário só por quem participa da conversa | Definido pela direção | bucket `chat-attachments` |
+| D16 | **Cadastro do profissional só com e-mail, nome, título e habilidades.** Endereço e CPF não são pedidos. Chave Pix é opcional e só para receber. Empresa informa CNPJ (dado de negócio) | Definido pela direção: menos dado sensível, menos risco | tela de cadastro |
+| D17 | Perfil estilo rede profissional: publicações com imagem, curtidas, avaliações, **tempo de resposta medido no chat**, e botão “Solicitar serviço” que convida para um projeto e abre a conversa | Definido pela direção | páginas `/vitrine` e `/profissional` |
 | D13 | Reclamação pelo contrato até 30 dias após a conclusão; congela o crédito ainda não repassado; decisão com justificativa escrita libera ao profissional ou devolve à empresa | Canal de reclamação pedido pela direção | função `open_dispute` / `resolve_dispute` |
 | D5 | Propostas ilimitadas até a conclusão e aprovação do primeiro projeto; depois exigem plano | Modelo aprovado | função `submit_proposal` |
 | D6 | Teto antiabuso de 50 propostas por dia | Protege empresas de spam; não é limite comercial | `platform_settings.proposal_abuse_daily_limit` |
@@ -45,7 +49,7 @@ Critério de desempate em todas: a opção mais segura e de menor risco regulat�
 
 ## Segurança: o que ainda falta antes de abrir ao público
 
-1. **Homologação em Supabase real e teste de invasão independente.** Regras do banco (175 verificações) e fluxo de telas (23 passos, com tentativas de invasão) passam na simulação local; falta repetir no Supabase real.
+1. **Homologação em Supabase real e teste de invasão independente.** Regras do banco (234 verificações) e fluxo de telas (24 passos, com tentativas de invasão) passam na simulação local; falta repetir no Supabase real.
 2. **CAPTCHA no cadastro e no login** (o Supabase Auth integra Turnstile/hCaptcha) e política de senha forte no painel do Supabase.
 3. **Rate limit compartilhado** (Redis) quando houver mais de uma instância do backend.
 4. **Verificação de arquivos enviados** (tipo real e antivírus) antes de habilitar upload de portfólio e anexos.
@@ -57,6 +61,9 @@ Critério de desempate em todas: a opção mais segura e de menor risco regulat�
 
 | Item | Situação |
 |---|---|
+| Antivírus nos arquivos do chat | Não há. Os tipos são restritos e o conteúdo é conferido, mas um PDF ou planilha pode carregar código malicioso. Avaliar verificação antes de abrir ao público |
+| Comentários nas publicações | Não feito de propósito nesta etapa: é mais uma superfície de moderação. Há curtidas e “Solicitar serviço” |
+| Links profissionais no perfil | Desativados: conflitam com a proibição de divulgar redes sociais |
 | Split do Mercado Pago e repasse automático | Não iniciado; depende de parecer jurídico e de conta de marketplace |
 | Aviso ao profissional quando surge projeto com as habilidades dele | Não iniciado; hoje ele vê o selo “combina com você” e o filtro |
 | E-mails transacionais (Brevo) | Não iniciado; notificações existem só dentro da plataforma |
@@ -77,14 +84,14 @@ Critério de desempate em todas: a opção mais segura e de menor risco regulat�
 
 Postgres real + PostgREST (o mesmo motor de API de dados do Supabase) + servidor real + navegador. O login,
 o ViaCEP, a BrasilAPI e o Mercado Pago são simulados por um gateway de teste; o webhook é assinado de verdade.
-23 passos: cadastro de empresa com CNPJ/CEP → projeto → cadastro de profissional → busca → proposta → chat →
+24 passos: cadastro de empresa com CNPJ/CEP → projeto → cadastro de profissional → busca → proposta → chat →
 aceite → confirmação → pagamento da taxa → entrega → aprovação → saldo → avaliação → compra do Pro →
 perfil público → vaga e candidatura → 15 tentativas de invasão pela API → administração → celular.
 Os textos carregam uma carga de ataque (XSS) e o teste confirma que ela nunca executa.
 
 ## Não verificado
 
-- **Supabase real**: Auth (confirmação de e-mail, redefinição de senha, cadastro do segundo fator), Storage e tempo real do chat. Na simulação o chat funciona pela consulta periódica.
+- **Supabase real**: Auth (confirmação de e-mail, redefinição de senha, cadastro do segundo fator), Storage (anexos do chat, imagens de publicações e de anúncios — na simulação as permissões são imitadas pelo programa de teste) e tempo real do chat. Na simulação o chat funciona pela consulta periódica.
 - Respostas reais de BrasilAPI, ViaCEP, Mercado Pago e Serpro.
 - Migration de Storage e agendamentos com pg_cron.
 - Carga.
