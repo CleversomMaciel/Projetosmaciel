@@ -20,9 +20,9 @@ const METRIC_LABELS = {
   projetos_publicados: 'Projetos publicados', vagas_publicadas: 'Vagas publicadas', propostas_enviadas: 'Propostas enviadas',
   contratos_iniciados: 'Contratos iniciados', contratos_concluidos: 'Contratos concluídos', assinantes_ativos: 'Assinantes Pro ativos',
   disputas_abertas: 'Disputas abertas', disputas_no_periodo: 'Disputas no período', reembolsos_pendentes: 'Reembolsos pendentes',
-  denuncias_abertas: 'Denúncias abertas', saldos_sem_confirmacao: 'Saldos sem confirmação há 7+ dias',
+  denuncias_abertas: 'Denúncias abertas',
 };
-const MONEY = { gmv_centavos: 'GMV (valor contratado — não é receita)', ticket_medio_centavos: 'Ticket médio', receita_taxa_servico_centavos: 'Receita: taxa de serviço', receita_assinaturas_centavos: 'Receita: assinaturas', estornos_centavos: 'Estornos e contestações' };
+const MONEY = { gmv_centavos: 'GMV (valor contratado — não é receita)', ticket_medio_centavos: 'Ticket médio', receita_taxa_servico_centavos: 'Receita: taxa de serviço', receita_assinaturas_centavos: 'Receita: assinaturas', receita_anuncios_centavos: 'Receita: anúncios', estornos_centavos: 'Estornos e contestações', creditos_retidos_centavos: 'Créditos retidos (de terceiros — não é receita)', repasses_pendentes_centavos: 'Repasses a fazer aos profissionais' };
 
 /** Administração só abre com segundo fator verificado (aal2). */
 async function ensureMfa(sb) {
@@ -77,8 +77,19 @@ async function ensureMfa(sb) {
         ${Object.entries(MONEY).map(([k, l]) => tile(l, brlExact(m[k]))).join('')}
         ${tile('Conversão projeto → contrato', m.taxa_conversao_projeto_contrato == null ? '—' : `${(m.taxa_conversao_projeto_contrato * 100).toFixed(1)}%`)}
         ${Object.entries(METRIC_LABELS).map(([k, l]) => tile(l, m[k])).join('')}</dl>
-        <p class="text-xs text-tinta-500">Receita é só o que a plataforma recebeu (taxa de serviço e assinaturas). CAC, LTV e margem dependem de dados de marketing e custos que ainda não são registrados aqui.</p>`);
+        <p class="text-xs text-tinta-500">Receita é só a taxa de serviço de projetos pagos, as assinaturas e os anúncios. O valor dos profissionais que passa pela plataforma não é receita. CAC, LTV e margem dependem de dados de marketing e custos que ainda não são registrados aqui.</p>`);
     }
+    const { data: payouts } = await sb.from('payouts').select('id, amount_cents, released_at, freelancer_id, contract_id').eq('status', 'released').order('released_at').limit(50);
+    const pix = new Map();
+    if ((payouts ?? []).length) {
+      const { data: keys } = await sb.from('profile_private').select('user_id, full_name, pix_key').in('user_id', payouts.map((x) => x.freelancer_id));
+      for (const k of keys ?? []) pix.set(k.user_id, k);
+    }
+    html += section('repasses', 'Repasses aos profissionais', (payouts ?? []).map((x) => `<form class="flex flex-wrap items-end gap-3 border-t border-tinta/10 pt-3" data-payout="${esc(x.id)}" novalidate>
+      <span class="min-w-0 flex-1"><strong>${brlExact(x.amount_cents)}</strong> · liberado em ${fmtDateTime(x.released_at)}
+        <span class="block text-xs text-tinta-500">Chave Pix: ${pix.get(x.freelancer_id)?.pix_key ? `<code>${esc(pix.get(x.freelancer_id).pix_key)}</code>` : '<strong class="text-red-700">não cadastrada — peça ao profissional</strong>'}</span></span>
+      <span><label class="sr-only" for="ref-${esc(x.id)}">Comprovante</label><input class="input w-56" id="ref-${esc(x.id)}" maxlength="200" placeholder="ID/comprovante da transferência" required></span>
+      <button class="btn-ghost" type="submit">Registrar repasse</button></form>`).join('') || '<p class="text-tinta-500">Nenhum repasse pendente.</p>');
     const { data: plans } = await sb.from('plans').select('id, code, name, price_cents, proposals_per_cycle, is_active').order('sort_order');
     html += section('planos', 'Planos', (plans ?? []).map((p) => `<form class="flex flex-wrap items-end gap-2" data-plan="${esc(p.id)}" novalidate>
       <span class="w-40 font-medium">${esc(p.name)}<span class="block text-xs font-normal text-tinta-500">${p.proposals_per_cycle} propostas</span></span>
@@ -92,7 +103,7 @@ async function ensureMfa(sb) {
     html += section('disputas', 'Disputas em aberto', (disputes ?? []).map((d) => `<form class="space-y-2 border-t border-tinta/10 pt-3" data-dispute="${esc(d.id)}" novalidate>
       <p><strong>${esc(d.protocol)}</strong> · ${esc(d.reason)} · ${fmtDateTime(d.created_at)}</p><p class="text-tinta-700">${esc(d.description)}</p>
       <label class="sr-only" for="res-${esc(d.id)}">Justificativa</label><textarea class="input" id="res-${esc(d.id)}" rows="2" minlength="20" maxlength="3000" placeholder="Justificativa da decisão (as partes verão este texto)" required></textarea>
-      <div class="flex flex-wrap gap-2"><label class="sr-only" for="out-${esc(d.id)}">Desfecho</label><select class="input w-auto" id="out-${esc(d.id)}"><option value="resume">Retomar o contrato</option><option value="complete">Concluir o contrato</option><option value="cancel">Cancelar o contrato</option></select>
+      <div class="flex flex-wrap gap-2"><label class="sr-only" for="out-${esc(d.id)}">Desfecho</label><select class="input w-auto" id="out-${esc(d.id)}"><option value="complete">Dar razão ao profissional: concluir e liberar o crédito</option><option value="cancel">Dar razão à empresa: cancelar e devolver o valor</option><option value="resume">Retomar o contrato de onde parou</option></select>
       <button class="btn-ghost" type="submit">Registrar decisão</button></div></form>`).join('') || '<p class="text-tinta-500">Nenhuma disputa em aberto.</p>');
   }
 
@@ -155,6 +166,12 @@ async function ensureMfa(sb) {
       const active = $('input[type=checkbox]', f).checked;
       if (active && !price) return showNotice(aviso, 'error', 'Plano ativo precisa de preço.');
       return done((await sb.from('plans').update({ price_cents: price, is_active: active }).eq('id', f.dataset.plan)).error);
+    }
+    if (f.dataset.payout) {
+      const ref = $('input', f).value.trim();
+      if (ref.length < 4) return showNotice(aviso, 'error', 'Informe o identificador ou comprovante da transferência.');
+      if (!confirm('Confirmar que a transferência ao profissional foi feita? O registro é definitivo e auditado.')) return;
+      return done((await sb.rpc('mark_payout_paid', { p_payout_id: f.dataset.payout, p_reference: ref })).error);
     }
     if (f.dataset.dispute) {
       const text = $('textarea', f).value.trim();

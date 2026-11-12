@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Profissionais remotos por habilidade — Bico BR</title>
+  <meta name="description" content="Encontre profissionais remotos pelas habilidades que você precisa e convide para o seu projeto.">
+  <link rel="canonical" href="{{PUBLIC_URL}}/profissionais">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Bico BR">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:title" content="Profissionais remotos por habilidade — Bico BR">
+  <meta property="og:description" content="Encontre profissionais remotos pelas habilidades que você precisa e convide para o seu projeto.">
+  <meta property="og:url" content="{{PUBLIC_URL}}/profissionais">
+  <meta name="twitter:card" content="summary">
+  <meta name="theme-color" content="#0d7a4b">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/app.css">
+</head>
+<body class="flex min-h-screen flex-col">
+  <a href="#conteudo" class="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-white focus:px-3 focus:py-2">Pular para o conteúdo</a>
+  <header id="site-header" class="sticky top-0 z-40 border-b border-tinta/10 bg-areia/95 backdrop-blur">
+    <div class="wrap flex items-center justify-between py-3">
+      <a href="/" class="text-lg font-extrabold tracking-tight">Bico<span class="text-mata-600"> BR</span></a>
+      <a class="btn-primary" href="/cadastro">Criar conta</a>
+    </div>
+  </header>
+  <main id="conteudo" class="flex-1">
+    <section class="wrap py-8 lg:py-12">
+      <p class="kicker">Encontre por habilidade</p>
+      <h1 class="mt-1 text-3xl font-extrabold sm:text-4xl">Profissionais</h1>
+      <p class="mt-2 max-w-2xl text-sm text-tinta-700">Busque pela habilidade que você precisa, veja o perfil e convide para o seu projeto. A conversa abre na hora.</p>
+      <form id="filtros" class="card mt-6 grid gap-3 p-3 md:grid-cols-[1fr_auto] md:items-center md:rounded-full md:p-2" role="search">
+        <div><label class="sr-only" for="habilidade">Habilidade</label><select class="input md:rounded-full md:border-0 md:shadow-none" id="habilidade"><option value="">Todas as habilidades</option></select></div>
+        <button class="btn-primary" type="submit">Buscar</button>
+      </form>
+      <p id="aviso" class="mt-4" hidden></p>
+      <ul id="lista" class="mt-6 grid gap-4 lg:grid-cols-2" aria-live="polite"></ul>
+      <div class="mt-6 text-center"><button id="mais" class="btn-ghost" type="button" hidden>Carregar mais</button></div>
+    </section>
+  </main>
+  <footer id="site-footer" class="border-t border-tinta/10 bg-white"></footer>
+  <script src="/vendor/supabase.js" defer></script>
+  <script type="module" src="/js/profissionais.js"></script>
+</body>
+</html>

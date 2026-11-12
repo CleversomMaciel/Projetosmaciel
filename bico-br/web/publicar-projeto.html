@@ -21,6 +21,7 @@
   <main id="conteudo" class="flex-1">
     <section class="wrap max-w-3xl py-10">
       <h1 class="text-2xl font-bold tracking-tight">Publicar projeto</h1>
+      <p class="mt-2 text-sm text-tinta-700">Publicar é gratuito e sem limite. Diga o que precisa, quanto pode pagar e em quanto tempo. A taxa de serviço de 10% só é cobrada quando você fecha com um profissional.</p>
       <p id="aviso" class="mt-4" hidden></p>
       <form id="form" class="mt-6 space-y-6" novalidate hidden>
         <div class="card space-y-4">
@@ -39,7 +40,7 @@
           </fieldset>
           <div><label class="label" for="title">Título</label><input class="input" id="title" minlength="8" maxlength="140" required placeholder="Ex.: Dashboard de vendas em Power BI"></div>
           <div><label class="label" for="description">Descrição</label><textarea class="input" id="description" rows="6" minlength="30" maxlength="10000" required placeholder="O que precisa ser feito, contexto, o que você já tem pronto."></textarea></div>
-          <div><label class="label" for="deliverables">Entregáveis <span class="font-normal text-tinta-500">(opcional)</span></label><textarea class="input" id="deliverables" rows="3" maxlength="5000" placeholder="Ex.: arquivo .pbix, documentação, 1 reunião de repasse"></textarea></div>
+          <div><label class="label" for="deliverables">O que deve ser entregue <span class="font-normal text-tinta-500">(um item por linha)</span></label><textarea class="input" id="deliverables" rows="3" maxlength="5000" placeholder="Arquivo .pbix do dashboard&#10;Documentação de uso&#10;Reunião de repasse de 1 hora"></textarea><p class="hint">Cada linha vira um item que o profissional entrega dentro da plataforma e você confere antes de liberar o pagamento.</p></div>
           <div class="grid gap-4 sm:grid-cols-2">
             <div><label class="label" for="category">Área</label><select class="input" id="category" required><option value="">Selecione</option></select></div>
             <div><label class="label" for="subcategory">Especialidade <span class="font-normal text-tinta-500">(opcional)</span></label><select class="input" id="subcategory"><option value="">—</option></select></div>
@@ -47,15 +48,16 @@
         </div>
         <div class="card space-y-4">
           <div class="grid gap-4 sm:grid-cols-3">
-            <div id="campo-min"><label class="label" for="min" id="label-min">Orçamento mínimo (R$)</label><input class="input" id="min" inputmode="decimal" placeholder="1.000"></div>
-            <div id="campo-max"><label class="label" for="max">Orçamento máximo (R$)</label><input class="input" id="max" inputmode="decimal" placeholder="2.500"></div>
-            <div><label class="label" for="deadline">Prazo (dias)</label><input class="input" id="deadline" type="number" min="1" max="730" inputmode="numeric"></div>
+            <div id="campo-min"><label class="label" for="min" id="label-min">Quanto posso pagar — mínimo (R$)</label><input class="input" id="min" inputmode="decimal" placeholder="1.000"></div>
+            <div id="campo-max"><label class="label" for="max">Quanto posso pagar — máximo (R$)</label><input class="input" id="max" inputmode="decimal" placeholder="2.500"></div>
+            <div><label class="label" for="deadline">Preciso em (dias)</label><input class="input" id="deadline" type="number" min="1" max="730" inputmode="numeric"></div>
           </div>
           <div class="grid gap-4 sm:grid-cols-2">
             <div><label class="label" for="level">Nível de experiência</label><select class="input" id="level"><option value="">Indiferente</option><option value="junior">Júnior</option><option value="pleno">Pleno</option><option value="senior">Sênior</option><option value="especialista">Especialista</option></select></div>
             <div><label class="label" for="wanted">Profissionais desejados</label><input class="input" id="wanted" type="number" min="1" max="50" value="1"></div>
           </div>
         </div>
+        <div class="card space-y-2"><p class="label">Habilidades que o profissional precisa ter</p><p class="hint">Quem tem essas habilidades no perfil vê o seu projeto em destaque.</p><div id="habilidades"></div></div>
         <div class="flex flex-wrap gap-3">
           <button class="btn-primary" type="submit" data-status="open">Publicar agora</button>
           <button class="btn-ghost" type="submit" data-status="draft">Salvar rascunho</button>

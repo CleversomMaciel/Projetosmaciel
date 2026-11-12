@@ -33,7 +33,8 @@ export function seoRoutes({ store, config, logger }) {
       if (!cache.body || cache.expiresAt < Date.now()) {
         const base = config.publicUrl;
         const urls = [
-          { loc: `${base}/` }, { loc: `${base}/projetos` }, { loc: `${base}/vagas` },
+          { loc: `${base}/` }, { loc: `${base}/projetos` }, { loc: `${base}/vagas` }, { loc: `${base}/profissionais` },
+          { loc: `${base}/termos` }, { loc: `${base}/privacidade` }, { loc: `${base}/anuncie` },
         ];
         if (store?.sitemapEntries) {
           const e = await store.sitemapEntries();

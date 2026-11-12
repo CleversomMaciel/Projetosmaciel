@@ -74,6 +74,14 @@ insert into public.company_private (company_id, cnpj, legal_name)
 values ('00000000-0000-0000-0000-0000000000c1', '12ABC34501DE35', 'EMPRESA C LTDA');
 select t.ok(true, 'company_private aceita CNPJ alfanumérico');
 
+-- ------------------------------------------------------------ plano único (0017)
+select t.ok((select (price_cents, proposals_per_cycle is null) = (2500::bigint, true) from public.plans where code = 'pro'),
+            'plano Pro: R$ 25,00 com propostas ilimitadas');
+select t.ok((select count(*) from public.plans where is_active) = 1, 'há um único plano à venda');
+-- os testes abaixo exercitam o mecanismo de cota, que continua existindo para planos que venham a ter limite
+update public.plans set price_cents = 2990, proposals_per_cycle = 10 where code = 'pro';
+update public.plans set is_active = true where code in ('pro_plus', 'premium');
+
 -- ------------------------------------------------------------ escalada de privilégio
 select t.login('f');
 select t.fails($$update public.profiles set account_type = 'company' where id = t.id('f')$$,
@@ -175,8 +183,8 @@ reset role;
 -- ------------------------------------------------------------ contrato + pagamento por webhook
 select t.login('c');
 select id as contract_id from public.accept_proposal(:'prop_f') \gset
-select t.ok((select (status, deposit_cents, balance_cents) = ('awaiting_freelancer', 15000::bigint, 135000::bigint)
-               from public.contracts where id = :'contract_id'), 'contrato criado com entrada de 10%');
+select t.ok((select (status, deposit_cents, balance_cents) = ('awaiting_freelancer', 15000::bigint, 150000::bigint)
+               from public.contracts where id = :'contract_id'), 'contrato: taxa de 10% por cima; profissional recebe 100% do valor proposto');
 select t.fails(format($$select public.confirm_contract(%L)$$, :'contract_id'), 'não encontrado',
                'empresa não confirma no lugar do freelancer');
 reset role;
@@ -194,29 +202,41 @@ select t.fails(format($$select public.deliver_contract(%L, 'entrega antes do pag
 reset role;
 
 select id as payment_id from public.payments where contract_id = :'contract_id' \gset
-select t.ok(public.process_payment_update(:'payment_id', 'MP-1', 'approved', 'accredited', 14999) = 'amount_mismatch',
+select t.ok(public.process_payment_update(:'payment_id', 'MP-1', 'approved', 'accredited', 164999) = 'amount_mismatch',
             'valor divergente não aprova pagamento');
 select t.ok((select status from public.contracts where id = :'contract_id') = 'awaiting_deposit',
             'contrato não inicia com valor divergente');
-select t.ok(public.process_payment_update(:'payment_id', 'MP-1', 'pending', 'pending_waiting_transfer', 15000) = 'pending',
+select t.ok(public.process_payment_update(:'payment_id', 'MP-1', 'pending', 'pending_waiting_transfer', 165000) = 'pending',
             'pagamento pendente não inicia contrato');
-select t.ok(public.process_payment_update(:'payment_id', 'MP-1', 'approved', 'accredited', 15000) = 'approved',
+select t.ok(public.process_payment_update(:'payment_id', 'MP-1', 'approved', 'accredited', 165000) = 'approved',
             'pagamento aprovado');
 select t.ok((select (status, is_first_bico) = ('active', true) from public.contracts where id = :'contract_id'),
             'contrato ativo e marcado como primeiro bico');
 select t.ok((select state from public.freelancer_billing where user_id = t.id('f')) = 'FIRST_PROJECT_ACTIVE',
             'assinatura -> FIRST_PROJECT_ACTIVE');
-select t.ok(public.process_payment_update(:'payment_id', 'MP-1', 'approved', 'accredited', 15000) = 'approved',
+select t.ok((select (status, amount_cents) = ('held', 150000::bigint) from public.payouts where contract_id = :'contract_id'),
+            'pagamento confirmado: crédito do profissional nasce retido, no valor integral da proposta');
+select t.ok(public.process_payment_update(:'payment_id', 'MP-1', 'approved', 'accredited', 165000) = 'approved',
             'webhook repetido é idempotente');
 select t.ok((select count(*) from public.subscription_events where user_id = t.id('f')) = 1,
             'webhook repetido não duplica transição');
-select t.ok(public.process_payment_update(:'payment_id', 'MP-1', 'pending', null, 15000) = 'ignored_regression',
+select t.ok(public.process_payment_update(:'payment_id', 'MP-1', 'pending', null, 165000) = 'ignored_regression',
             'pagamento aprovado não regride para pendente');
 select t.ok((select status from public.projects where id = '00000000-0000-0000-0000-00000000aaa1') = 'in_progress',
             'projeto sai de aberto quando a vaga é preenchida');
 
 select t.login('f');
-select public.deliver_contract(:'contract_id', 'Dashboard publicado, segue o link.');
+select t.fails(format($$select public.deliver_contract(%L, 'Entrega parcial sem os itens.', '[{"id": 999999, "note": "x"}]')$$, :'contract_id'),
+               'ITEMS_MISSING', 'entrega precisa cobrir todos os itens do contrato');
+select t.fails(format($$update public.contract_deliverables set status = 'accepted' where contract_id = %L$$, :'contract_id'),
+               'permission denied', 'profissional não valida a própria entrega');
+select t.fails(format($$update public.payouts set status = 'released' where contract_id = %L$$, :'contract_id'),
+               'permission denied', 'profissional não libera o próprio crédito');
+select public.deliver_contract(:'contract_id', 'Dashboard publicado, segue o link.',
+  (select jsonb_agg(jsonb_build_object('id', id, 'note', 'Arquivo final', 'url', 'https://exemplo.dev/entrega')) from public.contract_deliverables where contract_id = :'contract_id'));
+select t.ok((select count(*) from public.contract_deliverables where contract_id = :'contract_id' and status = 'delivered' and delivery_url is not null) = 1,
+            'entrega fica mapeada item a item dentro da plataforma');
+select t.ok((select status from public.payouts where contract_id = :'contract_id') = 'held', 'entregar não libera o crédito: falta a validação');
 select t.fails(format($$select public.approve_delivery(%L)$$, :'contract_id'), 'não encontrado',
                'freelancer não aprova a própria entrega');
 reset role;
@@ -224,6 +244,8 @@ select t.login('c');
 select public.approve_delivery(:'contract_id');
 reset role;
 select t.ok((select status from public.contracts where id = :'contract_id') = 'completed', 'contrato concluído');
+select t.ok((select status from public.payouts where contract_id = :'contract_id') = 'released', 'entrega validada libera o crédito do profissional');
+select t.ok((select count(*) from public.contract_deliverables where contract_id = :'contract_id' and status = 'accepted') = 1, 'itens ficam marcados como aceitos');
 select t.ok((select completed_projects from public.freelancer_profiles where user_id = t.id('f')) = 1,
             'contador de projetos concluídos');
 select t.ok((select state from public.freelancer_billing where user_id = t.id('f')) = 'FIRST_PROJECT_COMPLETED',
@@ -365,22 +387,11 @@ select t.fails($$update public.freelancer_profiles set links = (select jsonb_agg
 select t.fails(format($$insert into public.messages (conversation_id, sender_id, body) values (%L, t.id('f'), repeat('x', 5000))$$, :'conv_id'),
                'violates check', 'mensagem acima do limite é recusada');
 reset role;
+select t.ok((select status from public.payouts where contract_id = :'contract_id') = 'blocked', 'reclamação aberta congela o crédito ainda não repassado');
 select t.login('g');
-select t.fails(format($$select public.declare_balance_paid(%L)$$, :'contract_id'), 'não encontrado', 'terceiro não declara saldo');
+select t.ok((select count(*) from public.payouts) = 0, 'terceiro não vê créditos alheios');
+select t.ok((select count(*) from public.contract_deliverables) = 0, 'terceiro não vê entregas alheias');
 reset role;
-select t.login('f');
-select t.fails(format($$select public.declare_balance_paid(%L)$$, :'contract_id'), 'não encontrado', 'profissional não declara pagamento no lugar da empresa');
-reset role;
-select t.login('c');
-select public.declare_balance_paid(:'contract_id');
-select t.fails(format($$select public.declare_balance_paid(%L)$$, :'contract_id'), 'uma vez', 'saldo é declarado uma única vez');
-select t.fails(format($$select public.confirm_balance_received(%L)$$, :'contract_id'), 'não encontrado', 'empresa não confirma recebimento pelo profissional');
-reset role;
-select t.login('f');
-select public.confirm_balance_received(:'contract_id');
-reset role;
-select t.ok((select balance_declared_paid_at is not null and balance_confirmed_at is not null from public.contracts where id = :'contract_id'),
-            'saldo declarado e confirmado ficam registrados');
 
 -- compra do Pro: sem cobrança em dobro e com desistência
 select t.login('f');
@@ -410,6 +421,26 @@ select t.fails(format($$select public.resolve_dispute(%L, 'curta', 'resume')$$, 
 select public.resolve_dispute(:'dispute_id', 'Comprovante de pagamento do saldo apresentado pela empresa.', 'resume');
 reset role;
 select t.ok((select status from public.disputes where id = :'dispute_id') = 'resolved', 'disputa resolvida');
+select t.ok((select status from public.payouts where contract_id = :'contract_id') = 'released', 'decisão favorável volta a liberar o crédito');
+select id as payout_id from public.payouts where contract_id = :'contract_id' \gset
+select t.login('a', 'aal2');
+select t.fails(format($$select public.mark_payout_paid(%L, 'PIX-123456')$$, :'payout_id'), 'Acesso negado', 'suporte não registra repasse');
+reset role;
+select t.login('f');
+select t.fails(format($$select public.mark_payout_paid(%L, 'PIX-123456')$$, :'payout_id'), 'Acesso negado', 'profissional não marca o próprio repasse como pago');
+update public.profile_private set pix_key = 'fran@pix.example' where user_id = t.id('f');
+reset role;
+select t.login('d', 'aal2');
+select t.ok((select pix_key from public.profile_private where user_id = t.id('f')) = 'fran@pix.example', 'financeiro vê a chave Pix para o repasse');
+select t.fails(format($$select public.mark_payout_paid(%L, '')$$, :'payout_id'), 'comprovante', 'repasse exige comprovante');
+select public.mark_payout_paid(:'payout_id', 'PIX-E2E-000123');
+select t.fails(format($$select public.mark_payout_paid(%L, 'PIX-OUTRO')$$, :'payout_id'), 'crédito liberado', 'repasse não é registrado duas vezes');
+reset role;
+select t.ok((select (status, payment_reference) = ('paid', 'PIX-E2E-000123') from public.payouts where id = :'payout_id'), 'repasse registrado com comprovante');
+select t.ok((select count(*) from public.audit_logs where entity_type = 'payouts') >= 4, 'toda mudança no crédito é auditada');
+select t.login('g');
+select t.ok((select count(*) from public.profile_private where pix_key is not null) = 0, 'chave Pix de terceiros é invisível');
+reset role;
 select t.ok((select count(*) from public.audit_logs where entity_type = 'disputes' and action = 'update') >= 1, 'decisão da disputa fica na auditoria');
 select t.login('d', 'aal2');
 select t.ok((public.admin_metrics(30) ->> 'contratos_concluidos')::int = 1, 'financeiro com MFA lê indicadores');
@@ -452,7 +483,7 @@ select id as pay_2 from public.payments where contract_id = :'contract_2' \gset
 select t.login('c');
 select public.cancel_contract(:'contract_2', 'Desisti do serviço');
 reset role;
-select t.ok(public.process_payment_update(:'pay_2', 'MP-11', 'approved', 'accredited', 1500) = 'approved_needs_refund',
+select t.ok(public.process_payment_update(:'pay_2', 'MP-11', 'approved', 'accredited', 16500) = 'approved_needs_refund',
             'taxa paga para contrato cancelado gera reembolso automático');
 select t.ok((select status from public.contracts where id = :'contract_2') = 'cancelled', 'contrato cancelado não é reativado por pagamento tardio');
 select t.ok((select count(*) from public.refunds where origin = 'system' and status = 'requested') = 2, 'reembolsos automáticos ficam na fila do financeiro');
@@ -465,9 +496,15 @@ reset role;
 select t.login('c');
 select t.ok((select count(*) from public.refunds) = 0, 'empresa não vê reembolsos automáticos de terceiros nem os do sistema');
 reset role;
+-- empresa some após a entrega: aprovação automática libera o crédito
+update public.projects set status = 'open' where id = '00000000-0000-0000-0000-00000000aaa2';
+update public.proposals set status = 'sent' where id = :'prop_g2';
+delete from public.contracts where id = :'contract_2' and false;
+select t.ok(public.auto_approve_deliveries() = 0, 'nada a aprovar automaticamente antes do prazo');
 select t.ok(public.purge_expired_cache() >= 0, 'limpeza agendada executa');
 select t.login('f');
 select t.fails($$select public.purge_expired_cache()$$, 'permission denied', 'usuário não executa a limpeza');
+select t.fails($$select public.auto_approve_deliveries()$$, 'permission denied', 'usuário não dispara a aprovação automática');
 reset role;
 
 -- ------------------------------------------------------------ 0014: anúncios

@@ -7,12 +7,12 @@ import { fileURLToPath } from 'node:url';
 
 const COMUM = {
   takeRate: 0.10,            // receita da plataforma sobre o valor contratado (hipótese: a entrada de 10%)
-  processedShare: 0.10,      // parcela do GMV que passa pelo meio de pagamento da plataforma (só a entrada)
+  processedShare: 1.10,      // a empresa paga valor + taxa pela plataforma: 110% do GMV passa pelo meio de pagamento
   paymentFee: 0.035,         // tarifa média do meio de pagamento sobre o volume processado (estimativa)
   taxRate: 0.145,            // tributos sobre receita (estimativa; depende do regime — validar com contador)
   lossRate: 0.02,            // fraudes, estornos e reembolsos sobre a receita
   supportPerContract: 6,     // R$ de atendimento por contrato
-  proPrice: 39,              // R$ / mês — preço médio HIPOTÉTICO (o preço real é definido pelo admin)
+  proPrice: 25,              // R$ / mês — assinatura única definida pela direção
   proMonthlyChurn: 0.15,
   enterprisePrice: 299,      // R$ / mês — plano empresarial hipotético
   subscriptionPaymentFee: 0.04,

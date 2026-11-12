@@ -1,4 +1,5 @@
 import { $, esc, getClient, mountChrome, requireSession, setBusy, showNotice } from './core.js';
+import { mountSkillPicker, saveSkills } from './habilidades.js';
 
 mountChrome();
 const aviso = $('#aviso');
@@ -13,6 +14,12 @@ const aviso = $('#aviso');
   $('#headline').value = fp.headline ?? ''; $('#bio').value = fp.bio ?? ''; $('#availability').value = fp.availability ?? '';
   $('#tools').value = (fp.tools ?? []).join(', '); $('#slug').value = fp.slug; $('#publico').checked = fp.is_public;
   $('#ver').href = `/profissional?u=${encodeURIComponent(fp.slug)}`;
+  const [{ data: mySkills }, { data: priv }] = await Promise.all([
+    sb.from('freelancer_skills').select('skill_id').eq('user_id', uid),
+    sb.from('profile_private').select('pix_key').eq('user_id', uid).maybeSingle(),
+  ]);
+  $('#pix').value = priv?.pix_key ?? '';
+  const picker = await mountSkillPicker($('#habilidades'), { max: 30, selected: (mySkills ?? []).map((r) => r.skill_id) });
 
   $('#form').addEventListener('submit', async (ev) => {
     ev.preventDefault();
@@ -24,6 +31,14 @@ const aviso = $('#aviso');
       headline: $('#headline').value.trim() || null, bio: $('#bio').value.trim() || null,
       availability: $('#availability').value || null, tools, slug, is_public: $('#publico').checked,
     }).eq('user_id', uid);
+    const pix = $('#pix').value.trim();
+    if (!error) {
+      try {
+        await saveSkills('freelancer_skills', 'user_id', uid, picker.get());
+        const r = await sb.from('profile_private').update({ pix_key: pix || null }).eq('user_id', uid);
+        if (r.error) throw r.error;
+      } catch { setBusy(ev.submitter, false); return showNotice(aviso, 'error', 'Perfil salvo, mas não foi possível gravar habilidades ou a chave Pix. Confira os campos.'); }
+    }
     setBusy(ev.submitter, false);
     if (error) return showNotice(aviso, 'error', error.code === '23505' ? 'Este endereço de perfil já está em uso.' : 'Não foi possível salvar o perfil.');
     $('#ver').href = `/profissional?u=${encodeURIComponent(slug)}`;

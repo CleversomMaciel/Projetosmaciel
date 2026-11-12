@@ -7,14 +7,14 @@ const blocos = $('#blocos');
 const BILLING = {
   FREE_UNLIMITED: ['Propostas ilimitadas', 'Você pode enviar propostas sem limite até fechar e concluir o seu primeiro projeto.'],
   FIRST_PROJECT_ACTIVE: ['Primeiro bico em andamento', 'Seu primeiro projeto está em execução, sem assinatura antecipada.'],
-  FIRST_PROJECT_COMPLETED: ['Primeiro bico concluído', 'Para enviar novas propostas, escolha um plano Bico BR Pro. Nada é cobrado sem o seu aceite.'],
+  FIRST_PROJECT_COMPLETED: ['Primeiro bico concluído', 'Para continuar enviando propostas, assine o Bico BR Pro: valor fixo por mês, projetos ilimitados. Nada é cobrado sem o seu aceite.'],
   PRO_PENDING_ACTIVATION: ['Plano aguardando pagamento', 'Assim que o pagamento for confirmado, seu plano é ativado.'],
   PRO_ACTIVE: ['Bico BR Pro ativo', ''],
   PRO_CANCELLED: ['Plano cancelado', 'Você mantém os benefícios até o fim do ciclo já pago. Contratos em andamento não são afetados.'],
   PRO_EXPIRED: ['Plano expirado', 'Seus contratos em andamento continuam normalmente. Para enviar novas propostas, renove o plano.'],
 };
 const CONTRACT = {
-  awaiting_freelancer: 'Aguardando confirmação do profissional', awaiting_deposit: 'Aguardando pagamento da taxa de serviço',
+  awaiting_freelancer: 'Aguardando confirmação do profissional', awaiting_deposit: 'Aguardando pagamento da empresa',
   active: 'Em execução', delivered: 'Entregue — aguardando aprovação', completed: 'Concluído', cancelled: 'Cancelado', disputed: 'Em análise na Central de Confiança',
 };
 const PROJECT = { draft: 'Rascunho', open: 'Aberto', in_progress: 'Em andamento', completed: 'Concluído', closed: 'Fechado', cancelled: 'Cancelado' };
@@ -31,9 +31,9 @@ const empty = (t) => `<p class="text-tinta-500">${t}</p>`;
   $('#saudacao').textContent = `Olá, ${profile.display_name || 'bem-vindo(a)'}`;
   const isCompany = profile.account_type === 'company';
   $('#acoes').innerHTML = (isCompany
-    ? '<a class="btn-primary" href="/publicar-projeto">Publicar projeto</a><a class="btn-ghost" href="/publicar-vaga">Publicar vaga</a>'
+    ? '<a class="btn-primary" href="/publicar-projeto">Publicar projeto</a><a class="btn-ghost" href="/publicar-vaga">Publicar vaga</a><a class="btn-ghost" href="/profissionais">Buscar profissionais</a>'
     : '<a class="btn-primary" href="/projetos">Buscar projetos</a><a class="btn-ghost" href="/perfil">Meu perfil</a>')
-    + '<a class="btn-ghost" href="/mensagens">Mensagens</a>';
+    + '<a class="btn-ghost" href="/mensagens">Mensagens</a><a class="btn-ghost" href="/suporte">Ajuda e reclamações</a>';
   $('#acoes').className = 'flex flex-wrap gap-2';
 
   const { data: contracts } = await sb.from('contracts')
@@ -51,18 +51,21 @@ const empty = (t) => `<p class="text-tinta-500">${t}</p>`;
       <p><a class="linkish" href="/projeto?id=${p.id}">${esc(p.title)}</a><span class="ml-2 text-tinta-500">${esc(PROJECT[p.status] ?? p.status)} · ${p.proposals_count} proposta(s)</span></p>`).join('') || empty('Você ainda não publicou projetos.'))
       + card('Contratos', contractsHtml);
   } else {
-    const [{ data: billing }, { data: proposals }] = await Promise.all([
+    const PAYOUT = { held: 'Retido até a entrega ser validada', blocked: 'Em análise (reclamação aberta)', released: 'Liberado — repasse em andamento', paid: 'Repassado', refunded: 'Devolvido à empresa' };
+    const [{ data: billing }, { data: proposals }, { data: payouts }] = await Promise.all([
       sb.from('freelancer_billing').select('state, proposals_used, cycle_end, plans(name, proposals_per_cycle)').maybeSingle(),
       sb.from('proposals').select('id, amount_cents, status, projects(id, title)').eq('freelancer_id', profile.id).order('created_at', { ascending: false }).limit(20),
+      sb.from('payouts').select('contract_id, amount_cents, status').eq('freelancer_id', profile.id).order('created_at', { ascending: false }).limit(20),
     ]);
     const [title, text] = BILLING[billing?.state] ?? ['—', ''];
     const quota = billing?.state === 'PRO_ACTIVE' && billing.plans
-      ? `${esc(billing.plans.name)}: ${billing.proposals_used} de ${billing.plans.proposals_per_cycle} propostas usadas · renova em ${new Date(billing.cycle_end).toLocaleDateString('pt-BR')}` : text;
+      ? `${esc(billing.plans.name)}: ${billing.plans.proposals_per_cycle ? `${billing.proposals_used} de ${billing.plans.proposals_per_cycle} propostas usadas` : 'propostas e projetos ilimitados'} · válido até ${new Date(billing.cycle_end).toLocaleDateString('pt-BR')}` : text;
     const planCta = ['FIRST_PROJECT_COMPLETED', 'PRO_EXPIRED', 'PRO_PENDING_ACTIVATION', 'PRO_CANCELLED', 'PRO_ACTIVE'].includes(billing?.state)
       ? '<p><a class="btn-ghost" href="/plano">Ver planos</a></p>' : '';
     blocos.innerHTML = card('Meu plano', `<p class="chip">${esc(title)}</p><p>${quota}</p>${planCta}`)
       + card('Minhas propostas', (proposals ?? []).map((p) => `
         <p><a class="linkish" href="/projeto?id=${p.projects?.id}">${esc(p.projects?.title)}</a><span class="ml-2 text-tinta-500">${brl(p.amount_cents)} · ${esc(PROPOSAL[p.status] ?? p.status)}</span></p>`).join('') || empty('Você ainda não enviou propostas.'))
+      + card('Meus créditos', (payouts ?? []).map((p) => `<p><a class="linkish" href="/contrato?id=${p.contract_id}">${brl(p.amount_cents)}</a><span class="ml-2 text-tinta-500">${esc(PAYOUT[p.status] ?? p.status)}</span></p>`).join('') || empty('Seus créditos aparecem aqui quando um contrato é pago pela empresa.'))
       + card('Contratos', contractsHtml);
   }
 

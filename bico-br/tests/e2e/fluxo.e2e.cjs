@@ -89,7 +89,9 @@ async function onboardFreelancer(page, headline) {
     await c.page.waitForSelector('#form:not([hidden])');
     await c.page.fill('#title', `Dashboard de vendas em Power BI ${XSS}`.slice(0, 140));
     await c.page.fill('#description', `Preciso de um dashboard com metas e filtros por região. ${XSS}`);
-    await c.page.fill('#deliverables', 'Arquivo .pbix e uma reunião de repasse.');
+    await c.page.fill('#deliverables', 'Arquivo .pbix do dashboard\nReunião de repasse de 1 hora');
+    await c.page.fill('#habilidades input', 'power');
+    await c.page.click('#habilidades [data-skill]:has-text("Power BI")');
     await c.page.selectOption('#category', { index: 2 });
     await c.page.fill('#min', '1.500'); await c.page.fill('#max', '2.500'); await c.page.fill('#deadline', '10');
     await c.page.click('button[data-status="open"]');
@@ -105,10 +107,30 @@ async function onboardFreelancer(page, headline) {
     await see(f.page, 'Propostas ilimitadas');
   });
 
+  await step('profissional: cadastra habilidades e chave Pix no perfil', async () => {
+    await f.page.goto(`${APP_URL}/perfil`);
+    await f.page.waitForSelector('#habilidades [data-skill]');
+    await f.page.fill('#habilidades input', 'power');
+    await f.page.click('#habilidades [data-skill]:has-text("Power BI")');
+    await f.page.fill('#habilidades input', 'sql');
+    await f.page.click('#habilidades [data-skill]:has-text("SQL")');
+    await f.page.fill('#pix', 'fran@pix.example');
+    await f.page.click('#form button[type=submit]');
+    await see(f.page, 'Perfil salvo');
+    await f.page.reload();
+    await f.page.waitForSelector('#habilidades [data-skill][aria-pressed="true"]');
+    assert((await f.page.locator('#habilidades [data-skill][aria-pressed="true"]').count()) === 2, 'habilidades ficam salvas');
+    assert((await f.page.inputValue('#pix')) === 'fran@pix.example', 'chave Pix fica salva');
+  });
+
   await step('profissional: encontra o projeto na busca e envia proposta', async () => {
     await f.page.goto(`${APP_URL}/projetos?q=dashboard`);
     await f.page.waitForSelector('#lista .xcard');
     assert(!(await pwned(f.page)), 'XSS não executa na listagem');
+    await see(f.page, 'Combina com 1 habilidade sua');
+    await f.page.check('#para-mim');
+    await f.page.waitForSelector('#lista .xcard');
+    assert((await f.page.locator('#lista .xcard').count()) === 1, 'filtro por minhas habilidades mantém o projeto que combina');
     assert(await f.page.locator('#lista .xcard-panel').first().evaluate((el) => el.hasAttribute('inert')), 'card fechado fica fora da navegação por teclado');
     await f.page.click('#lista .xcard-head');
     await f.page.waitForSelector('#lista .xcard[data-open] [name=valor]');
@@ -147,54 +169,97 @@ async function onboardFreelancer(page, headline) {
     await c.page.waitForURL('**/contrato?id=*');
     contractUrl = c.page.url();
     await see(c.page, 'Aguardando confirmação do profissional');
-    await see(c.page, 'R$ 200,00'); // taxa de serviço = 10% de R$ 2.000
-    await see(c.page, 'R$ 1.800,00');
+    await see(c.page, 'R$ 200,00'); // taxa de serviço = 10% por cima
+    await see(c.page, 'R$ 2.200,00'); // total pago pela empresa
+    assert((await c.page.locator('#itens [data-item]').count()) === 2, 'cada linha de entregável virou um item do contrato');
   });
 
   await step('profissional: confirma o contrato pelo painel', async () => {
     await f.page.goto(`${APP_URL}/painel`);
     await f.page.click('a[href^="/contrato?id="]');
     await f.page.click('[data-action="confirm_contract"]');
-    await see(f.page, 'Aguardando a empresa pagar a taxa de serviço');
+    await see(f.page, 'Aguardando o pagamento da empresa');
   });
 
-  await step('empresa: paga a taxa de serviço (checkout -> webhook assinado -> contrato ativo)', async () => {
+  await step('empresa: paga o total (checkout -> webhook assinado -> contrato ativo, crédito retido)', async () => {
     await c.page.goto(contractUrl);
     await c.page.click('[data-action="pay"]');
     await c.page.waitForURL('**/contrato?id=*');
     await see(c.page, 'Em execução');
-    await see(c.page, 'Taxa de serviço confirmada');
+    await see(c.page, 'Pagamento confirmado');
+    await see(c.page, 'Crédito retido: R$ 2.000,00');
   });
 
-  await step('profissional: registra entrega; empresa aprova, declara saldo e avalia', async () => {
+  await step('entrega dentro do app: item a item; empresa pede ajuste em um item', async () => {
     await f.page.goto(contractUrl);
     await see(f.page, 'Primeiro bico');
-    await f.page.fill('#n-deliver_contract', 'Dashboard publicado, link e arquivo enviados por mensagem.');
+    await see(f.page, 'Crédito retido');
+    // tentar entregar sem preencher os itens é barrado
+    await f.page.fill('#n-deliver_contract', 'Dashboard publicado e reunião realizada.');
+    await f.page.click('[data-form="deliver_contract"] button');
+    await see(f.page, 'Descreva o que foi feito em cada item');
+    const notes = f.page.locator('#itens [data-note]'); const urls = f.page.locator('#itens [data-url]');
+    await notes.nth(0).fill('Arquivo final com as 4 páginas do dashboard.'); await urls.nth(0).fill('https://exemplo.dev/dashboard.pbix');
+    await notes.nth(1).fill(`Reunião feita em 12/11 com a equipe. ${XSS}`);
     await f.page.click('[data-form="deliver_contract"] button');
     await see(f.page, 'Entrega enviada');
+    await see(f.page, 'Crédito retido'); // entregar não libera: falta a validação
+
+    await c.page.goto(contractUrl);
+    assert(!(await pwned(c.page)), 'XSS da entrega não executa para a empresa');
+    await see(c.page, 'https://exemplo.dev/dashboard.pbix');
+    await c.page.locator('[data-change]').nth(1).check();
+    await c.page.fill('#n-request_changes', 'Faltou enviar a gravação da reunião de repasse.');
+    await c.page.click('[data-form="request_changes"] button');
+    await see(c.page, 'Em execução');
+    await see(c.page, 'Ajuste pedido');
+
+    await f.page.goto(contractUrl);
+    await see(f.page, 'Faltou enviar a gravação');
+    assert((await f.page.locator('#itens [data-note]').count()) === 1, 'só o item com ajuste volta para o profissional');
+    await f.page.locator('#itens [data-note]').fill('Gravação da reunião anexada.'); await f.page.locator('#itens [data-url]').fill('https://exemplo.dev/gravacao');
+    await f.page.fill('#n-deliver_contract', 'Ajuste feito: gravação da reunião incluída.');
+    await f.page.click('[data-form="deliver_contract"] button');
+    await see(f.page, 'Entrega enviada');
+  });
+
+  await step('empresa valida a entrega: contrato concluído e crédito liberado', async () => {
     await c.page.goto(contractUrl);
     await c.page.click('[data-action="approve_delivery"]');
     await see(c.page, 'Concluído');
-    await c.page.click('[data-action="declare_balance_paid"]');
-    await see(c.page, 'Aguardando o profissional confirmar o recebimento');
+    await see(c.page, 'Crédito liberado: R$ 2.000,00');
     await c.page.fill('#comentario', 'Entrega excelente, no prazo.');
     await c.page.click('[data-form="review"] button');
     await see(c.page, 'Você avaliou com nota 5');
     await shot(c.page, '05-contrato-concluido');
-  });
-
-  await step('profissional: confirma saldo; painel oferece o Pro; nova proposta exige plano', async () => {
-    await f.page.goto(contractUrl);
-    await f.page.click('[data-action="confirm_balance_received"]');
-    await see(f.page, 'recebimento confirmado');
     await f.page.goto(`${APP_URL}/painel`);
     await see(f.page, 'Primeiro bico concluído');
+    await see(f.page, 'Liberado — repasse em andamento');
     await shot(f.page, '06-painel-profissional');
+  });
+
+  await step('reclamação após a conclusão: abre pelo suporte e congela o crédito', async () => {
+    await c.page.goto(`${APP_URL}/suporte`);
+    await c.page.click('#contratos a:has-text("Abrir reclamação")');
+    await c.page.waitForSelector('#reclamar[open]');
+    await c.page.selectOption('#motivo', 'entrega_fora_do_escopo');
+    await c.page.fill('#n-open_dispute', 'Uma das páginas do dashboard veio sem o filtro por região.');
+    await c.page.click('[data-form="open_dispute"] button');
+    await see(c.page, 'Reclamação BICO-');
+    await see(c.page, 'Crédito em análise');
+    await shot(c.page, '15-reclamacao');
+    await f.page.goto(contractUrl);
+    await see(f.page, 'Crédito em análise');
+    await f.page.fill('#n-dispute_entry', 'O filtro por região está na página 2, como combinado no escopo.');
+    await f.page.click('[data-form="dispute_entry"] button');
+    await see(f.page, 'O filtro por região está na página 2');
   });
 
   await step('profissional: compra o plano Pro com aceite expresso (pagamento único)', async () => {
     await f.page.goto(`${APP_URL}/plano`);
-    await see(f.page, 'R$ 29,90');
+    await see(f.page, 'R$ 25,00');
+    await see(f.page, 'ilimitados');
+    assert((await f.page.locator('[data-plan]').count()) === 1, 'há um único plano');
     await f.page.click('[data-plan="pro"]');
     await f.page.click('#compra button[type=submit]'); // sem marcar o aceite
     await see(f.page, 'Marque a autorização');
@@ -203,14 +268,14 @@ async function onboardFreelancer(page, headline) {
     await f.page.click('#compra button[type=submit]');
     await f.page.waitForURL('**/plano');
     await see(f.page, 'ativo até');
-    await see(f.page, '0 de 10 propostas');
+    await see(f.page, 'propostas e projetos ilimitados');
   });
 
   await step('profissional: perfil público e portfólio; visitante anônimo enxerga', async () => {
     await f.page.goto(`${APP_URL}/perfil`);
     await f.page.waitForSelector('#form:not([hidden])');
     slug = `fran-dados-${stamp}`;
-    await f.page.fill('#slug', slug); await f.page.fill('#tools', 'Power BI, SQL, Excel');
+    await f.page.fill('#slug', slug); await f.page.fill('#tools', 'Power BI, SQL, Excel'); await f.page.fill('#headline', 'Analista de dados · Power BI e SQL');
     await f.page.fill('#bio', `Transformo planilhas em painéis. ${XSS}`);
     await f.page.check('#publico');
     await f.page.click('#form button[type=submit]');
@@ -254,6 +319,49 @@ async function onboardFreelancer(page, headline) {
     await see(f.page, 'Candidatura enviada');
   });
 
+  await step('busca de profissionais por habilidade: empresa convida e a conversa abre na hora', async () => {
+    await c.page.goto(`${APP_URL}/publicar-projeto`);
+    await c.page.waitForSelector('#form:not([hidden])');
+    await c.page.check('input[name="kind"][value="quick"]');
+    await c.page.fill('#title', 'Ajustar consulta SQL lenta');
+    await c.page.fill('#description', 'Uma consulta de relatório demora 40 segundos e precisa ser otimizada.');
+    await c.page.selectOption('#category', { index: 1 });
+    await c.page.fill('#min', '300'); await c.page.fill('#deadline', '3');
+    await c.page.click('button[data-status="open"]');
+    await c.page.waitForURL('**/projeto?id=*');
+    await c.page.goto(`${APP_URL}/profissionais`);
+    await c.page.selectOption('#habilidade', { label: 'SQL' });
+    await c.page.waitForSelector('#lista [data-invite]');
+    await see(c.page, 'Fran Freela');
+    await shot(c.page, '16-profissionais');
+    await c.page.selectOption('#lista [data-invite] select', { label: 'Ajustar consulta SQL lenta' });
+    await c.page.click('#lista [data-invite] button');
+    await c.page.waitForURL('**/mensagens?c=*');
+    await c.page.fill('#texto', 'Vi seu perfil e acho que você resolve isso rápido. Topa?');
+    await c.page.click('#enviar button');
+    await c.page.waitForSelector('#thread [data-id]');
+    await c.page.goto(`${APP_URL}/profissionais`);
+    await c.page.selectOption('#habilidade', { label: 'Locução' });
+    await see(c.page, 'Nenhum profissional público com essa habilidade');
+  });
+
+  await step('canal de denúncia e pedido LGPD pelo suporte; termos publicados', async () => {
+    const pid = new URL(projectUrl).searchParams.get('id');
+    await f.page.goto(`${APP_URL}/suporte?denunciar=project:${pid}`);
+    assert((await f.page.inputValue('#alvo-id')) === pid, 'denúncia iniciada a partir do card já vem identificada');
+    await f.page.selectOption('#motivo', 'pagamento_por_fora');
+    await f.page.fill('#detalhes', `Pediram para combinar o pagamento por fora da plataforma. ${XSS}`);
+    await f.page.click('#form-denuncia button[type=submit]');
+    await see(f.page, 'Denúncia recebida');
+    await f.page.selectOption('#dsr-tipo', 'acesso');
+    await f.page.click('#form-dados button[type=submit]');
+    await see(f.page, 'Pedido registrado');
+    const anon = await newUser(browser);
+    await anon.page.goto(`${APP_URL}/termos`); await see(anon.page, 'não renova automaticamente');
+    await anon.page.goto(`${APP_URL}/privacidade`); await see(anon.page, 'Lei Geral de Proteção de Dados');
+    await anon.ctx.close();
+  });
+
   await step('anúncios: profissional pede para anunciar pelo site', async () => {
     await f.page.goto(`${APP_URL}/anuncie`);
     await f.page.fill('#empresa', 'Acme Cursos'); await f.page.fill('#contato', 'comercial@acme.example');
@@ -288,6 +396,11 @@ async function onboardFreelancer(page, headline) {
         aprovarPagamento: await send('POST', 'rpc/process_payment_update', { p_payment_id: contractId, p_provider_payment_id: 'x', p_provider_status: 'approved', p_status_detail: null, p_amount_cents: 1 }),
         aprovarEntregaAlheia: await send('POST', 'rpc/approve_delivery', { p_contract_id: contractId }),
         metricas: await send('POST', 'rpc/admin_metrics', { p_days: 30 }),
+        validarEntrega: await send('PATCH', `contract_deliverables?contract_id=eq.${contractId}`, { status: 'accepted' }),
+        liberarCredito: await send('PATCH', `payouts?contract_id=eq.${contractId}`, { status: 'paid' }),
+        marcarRepasse: await send('POST', 'rpc/mark_payout_paid', { p_payout_id: contractId, p_reference: 'PIX-FALSO' }),
+        verCreditos: await get('payouts?select=id'),
+        verPix: await get('profile_private?select=pix_key&pix_key=not.is.null'),
         enviarAnuncio: await fetch(`${gw}/storage/v1/object/ads/2026/invasor.png`, { method: 'POST', headers: { apikey: anon, authorization: `Bearer ${session.access_token}`, 'content-type': 'image/png' }, body: new Uint8Array([137, 80, 78, 71]) }).then((r) => r.status),
         checkoutAlheio: await fetch(`/api/payments/${contractId}/checkout`, { method: 'POST', headers: { authorization: `Bearer ${session.access_token}`, 'content-type': 'application/json' }, body: '{}' }).then((r) => r.status),
       };
@@ -306,6 +419,11 @@ async function onboardFreelancer(page, headline) {
     assert([401, 403, 404].includes(out.aprovarPagamento.status), `não aprova pagamento (${out.aprovarPagamento.status})`);
     assert(out.aprovarEntregaAlheia.status >= 400, 'não aprova entrega de contrato alheio');
     assert(out.metricas.status >= 400, 'não lê indicadores administrativos');
+    assert([401, 403].includes(out.validarEntrega.status), `não valida entrega pela API (${out.validarEntrega.status})`);
+    assert([401, 403].includes(out.liberarCredito.status), `não altera crédito pela API (${out.liberarCredito.status})`);
+    assert(out.marcarRepasse.status >= 400, 'não registra repasse');
+    assert(out.verCreditos.body.length === 0, 'não vê créditos alheios');
+    assert(out.verPix.body.length === 0, 'não vê chave Pix de ninguém');
     assert(out.enviarAnuncio === 403, `não envia imagem de anúncio (${out.enviarAnuncio})`);
     assert(out.checkoutAlheio === 404, `não inicia checkout alheio (${out.checkoutAlheio})`);
     await i.page.goto(contractUrl);
@@ -329,7 +447,28 @@ async function onboardFreelancer(page, headline) {
     const text = await a.page.locator('#indicadores').innerText();
     assert(/GMV[^\n]*\n\s*R\$\s?2\.000,00/.test(text), `GMV de R$ 2.000 (${text.slice(0, 200)})`);
     assert(/taxa de serviço\s*\n\s*R\$\s?200,00/.test(text), 'receita de taxa de serviço R$ 200');
-    assert(/assinaturas\s*\n\s*R\$\s?29,90/.test(text), 'receita de assinaturas R$ 29,90');
+    assert(/assinaturas\s*\n\s*R\$\s?25,00/.test(text), 'receita de assinaturas R$ 25,00');
+    assert(/Créditos retidos[^\n]*\n\s*R\$\s?2\.000,00/.test(text), 'crédito em reclamação aparece como retido, não como receita');
+
+    // denúncia do profissional chegou à moderação, com o texto neutralizado
+    await see(a.page, 'pagamento_por_fora');
+    assert(!(await pwned(a.page)), 'XSS da denúncia não executa na administração');
+
+    // decisão da reclamação: razão ao profissional -> crédito liberado
+    await a.page.fill('#disputas textarea', 'O filtro por região consta na página 2, conforme o escopo e a entrega registrada.');
+    await a.page.selectOption('#disputas select', 'complete');
+    await a.page.click('#disputas button[type=submit]');
+    await a.page.waitForSelector('#repasses [data-payout]');
+    await see(a.page, 'fran@pix.example');
+    await shot(a.page, '17-admin-repasses');
+    await a.page.click('#repasses button[type=submit]'); // sem comprovante
+    await see(a.page, 'Informe o identificador');
+    await a.page.fill('#repasses input', 'PIX-E2E-000123');
+    await a.page.click('#repasses button[type=submit]');
+    await see(a.page, 'Nenhum repasse pendente');
+    await f.page.goto(contractUrl);
+    await see(f.page, 'Crédito repassado: R$ 2.000,00');
+    await see(f.page, 'Reclamação BICO-');
     await a.page.waitForSelector('#planos'); await a.page.waitForSelector('#categorias');
     await see(a.page, 'Empresas pedindo para anunciar');
     // arte do anunciante: gerada aqui mesmo, só para o teste

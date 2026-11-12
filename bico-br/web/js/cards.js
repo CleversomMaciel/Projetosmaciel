@@ -20,13 +20,19 @@ const avatar = (name) => {
 const salary = (j) => (j.salary_min_cents || j.salary_max_cents
   ? [j.salary_min_cents, j.salary_max_cents].filter(Boolean).map(brl).join(' – ') : 'A combinar');
 
-export const PROJECT_SELECT = 'id, kind, status, title, description, deliverables, budget_type, budget_min_cents, budget_max_cents, deadline_days, experience_level, professionals_wanted, published_at, proposals_count, category_id, categories(name, slug), companies(display_name, city, uf, rating_avg, rating_count, cnpj_masked, registry_status, owner_id)';
+export const PROJECT_SELECT = 'id, kind, status, title, description, deliverables, budget_type, budget_min_cents, budget_max_cents, deadline_days, experience_level, professionals_wanted, published_at, proposals_count, category_id, categories(name, slug), project_skills(skill_id, skills(name)), companies(display_name, city, uf, rating_avg, rating_count, cnpj_masked, registry_status, owner_id)';
 export const JOB_SELECT = 'id, title, description, requirements, benefits, workload, contract_type, experience_level, salary_min_cents, salary_max_cents, application_deadline, selection_process, apply_mode, apply_url, published_at, category_id, categories(name), companies(display_name, city, uf, owner_id)';
 
 /** Quem está vendo: perfil + o que já enviou para os itens exibidos. */
 export async function getViewer() {
   const profile = await getProfile();
-  return { profile, proposals: new Map(), applications: new Map() };
+  const viewer = { profile, proposals: new Map(), applications: new Map(), skills: new Set() };
+  if (profile?.account_type === 'freelancer') {
+    const { sb } = await getClient();
+    const { data } = await sb.from('freelancer_skills').select('skill_id').eq('user_id', profile.id);
+    for (const r of data ?? []) viewer.skills.add(r.skill_id);
+  }
+  return viewer;
 }
 export async function loadViewerState(viewer, kind, ids) {
   if (!viewer.profile || !ids.length) return;
@@ -68,6 +74,9 @@ function projectAction(p, viewer) {
 export function renderProject(p, viewer) {
   const c = p.companies ?? {};
   const place = [c.city, c.uf].filter(Boolean).join(' · ');
+  const skills = p.project_skills ?? [];
+  const matched = skills.filter((k) => viewer.skills.has(k.skill_id)).length;
+  const skillChips = skills.map((k) => `<span class="${viewer.skills.has(k.skill_id) ? 'chip' : 'chip-neutral'}">${viewer.skills.has(k.skill_id) ? icon('check', 'icon h-3.5 w-3.5') : ''}${esc(k.skills?.name)}</span>`).join('');
   return `<li class="xcard" data-card="${esc(p.id)}" data-kind="project">
     <button class="xcard-head" type="button" aria-expanded="false" aria-controls="x-${esc(p.id)}">
       ${avatar(c.display_name)}
@@ -76,6 +85,7 @@ export function renderProject(p, viewer) {
           ${p.kind === 'quick' ? `<span class="chip-sol">${icon('bolt', 'icon h-3.5 w-3.5')} Bico Rápido</span>` : ''}
           <span class="chip">${esc(p.categories?.name)}</span>
           ${p.experience_level ? `<span class="chip-neutral">${esc(LEVEL[p.experience_level])}</span>` : ''}
+          ${matched ? `<span class="chip-sol">${icon('star', 'icon h-3.5 w-3.5')} Combina com ${matched} habilidade${matched === 1 ? '' : 's'} sua${matched === 1 ? '' : 's'}</span>` : ''}
         </span>
         <span class="mt-2 block text-lg font-bold leading-snug">${esc(p.title)}</span>
         <span class="mt-1 block text-sm text-tinta-500">${esc(c.display_name)}${place ? ` · ${esc(place)}` : ''} · ${esc(timeAgo(p.published_at))}</span>
@@ -89,7 +99,8 @@ export function renderProject(p, viewer) {
     </button>
     <div class="xcard-panel" id="x-${esc(p.id)}" inert><div><div class="xcard-body space-y-5">
       <div><h3 class="text-sm font-bold">Sobre o projeto</h3><p class="mt-1.5 whitespace-pre-line text-sm leading-relaxed text-tinta-700">${esc(p.description)}</p></div>
-      ${p.deliverables ? `<div><h3 class="text-sm font-bold">Entregáveis</h3><p class="mt-1.5 whitespace-pre-line text-sm leading-relaxed text-tinta-700">${esc(p.deliverables)}</p></div>` : ''}
+      ${skillChips ? `<div><h3 class="text-sm font-bold">Habilidades pedidas</h3><p class="mt-2 flex flex-wrap gap-1.5">${skillChips}</p></div>` : ''}
+      ${p.deliverables ? `<div><h3 class="text-sm font-bold">O que deve ser entregue</h3><p class="mt-1.5 whitespace-pre-line text-sm leading-relaxed text-tinta-700">${esc(p.deliverables)}</p></div>` : ''}
       <dl class="meta-grid">
         <div><dt>Orçamento</dt><dd>${esc(budgetLabel(p))}</dd></div>
         <div><dt>Prazo</dt><dd>${p.deadline_days ? `${p.deadline_days} dias` : 'A combinar'}</dd></div>
@@ -100,6 +111,7 @@ export function renderProject(p, viewer) {
         <span class="inline-flex items-center gap-1">${icon('star', 'icon h-4 w-4')} ${c.rating_count ? `${Number(c.rating_avg).toFixed(1)} (${c.rating_count} avaliações)` : 'Empresa ainda sem avaliações'}</span>
         ${c.cnpj_masked ? `<span class="inline-flex items-center gap-1">${icon('shield', 'icon h-4 w-4')} CNPJ ${esc(c.cnpj_masked)}${c.registry_status ? ` · situação ${esc(c.registry_status.toLowerCase())}` : ''}</span>` : ''}
         <a class="linkish" href="/projeto?id=${esc(p.id)}">Abrir página do projeto</a>
+        <a class="hover:text-tinta" href="/suporte?denunciar=project:${esc(p.id)}">Denunciar</a>
       </p>
       <div class="rounded-2xl bg-white p-4 ring-1 ring-tinta/[.06] sm:p-5" data-action-zone>${projectAction(p, viewer)}</div>
     </div></div></div>
@@ -154,7 +166,7 @@ export function renderJob(j, viewer) {
         <div><dt>Jornada</dt><dd>${esc(j.workload || 'A combinar')}</dd></div>
         <div><dt>Inscrições até</dt><dd>${j.application_deadline ? new Date(`${j.application_deadline}T12:00:00`).toLocaleDateString('pt-BR') : 'Em aberto'}</dd></div>
       </dl>
-      <p class="text-xs text-tinta-500">Vaga de emprego: o processo seletivo e a contratação são da própria empresa e não passam pelo fluxo de proposta e pagamento dos projetos.</p>
+      <p class="text-xs text-tinta-500">Vaga de emprego: o processo seletivo e a contratação são da própria empresa e não passam pelo fluxo de proposta e pagamento dos projetos. <a class="hover:text-tinta underline" href="/suporte?denunciar=job:${esc(j.id)}">Denunciar</a></p>
       <div class="rounded-2xl bg-white p-4 ring-1 ring-tinta/[.06] sm:p-5" data-action-zone>${jobAction(j, viewer)}</div>
     </div></div></div>
   </li>`;

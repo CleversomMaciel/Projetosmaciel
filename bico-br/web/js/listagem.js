@@ -21,7 +21,7 @@ export function createFeed({ table, kind, select, applyFilters, renderItem, view
     const { sb } = await getClient();
     if (!sb) { loading = false; return; }
     if (reset) { cursor = null; page = 0; list.innerHTML = skeletons(); }
-    let query = sb.from(table).select(select).eq('status', 'open')
+    let query = sb.from(table).select(typeof select === 'function' ? select() : select).eq('status', 'open')
       .order('published_at', { ascending: false }).order('id', { ascending: false }).limit(PAGE + 1);
     query = applyFilters(query);
     if (cursor) query = query.or(`published_at.lt.${quote(cursor.at)},and(published_at.eq.${quote(cursor.at)},id.lt.${cursor.id})`);

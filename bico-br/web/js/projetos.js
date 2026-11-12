@@ -10,10 +10,13 @@ $('#tipo').value = ['project', 'quick'].includes(params.get('tipo')) ? params.ge
 (async () => {
   if (!(await warnIfUnconfigured($('#aviso')))) return;
   const [categories, viewer] = await Promise.all([fillCategories($('#categoria'), params.get('categoria')), getViewer()]);
+  if (viewer.skills.size) $('#so-meus').hidden = false;
   const state = () => ({ q: $('#q').value.trim(), cat: categories.find((c) => c.slug === $('#categoria').value), tipo: $('#tipo').value });
 
   const feed = createFeed({
-    table: 'projects', kind: 'project', select: PROJECT_SELECT, viewer, renderItem: renderProject,
+    table: 'projects', kind: 'project', viewer, renderItem: renderProject,
+    // com o filtro ligado, o banco só devolve projetos que pedem ao menos uma habilidade do profissional
+    select: () => ($('#para-mim').checked ? PROJECT_SELECT.replace('project_skills(', 'project_skills!inner(') : PROJECT_SELECT),
     empty: ['Nenhum projeto aberto com esses filtros', 'Tente outra área ou remova a palavra-chave.'],
     adCategory: () => state().cat?.id ?? null,
     applyFilters(query) {
@@ -21,6 +24,7 @@ $('#tipo').value = ['project', 'quick'].includes(params.get('tipo')) ? params.ge
       let q = query.eq('is_public', true);
       if (s.cat) q = q.eq('category_id', s.cat.id);
       if (s.tipo) q = q.eq('kind', s.tipo);
+      if ($('#para-mim').checked) q = q.in('project_skills.skill_id', [...viewer.skills]);
       if (s.q) q = q.textSearch('search', s.q, { config: 'portuguese', type: 'websearch' });
       return q;
     },
@@ -44,6 +48,6 @@ $('#tipo').value = ['project', 'quick'].includes(params.get('tipo')) ? params.ge
     history.replaceState(null, '', `${location.pathname}${next.size ? `?${next}` : ''}`);
     refresh();
   });
-  for (const id of ['#categoria', '#tipo']) $(id).addEventListener('change', () => $('#filtros').requestSubmit());
+  for (const id of ['#categoria', '#tipo', '#para-mim']) $(id).addEventListener('change', () => $('#filtros').requestSubmit());
   refresh();
 })();

@@ -31,7 +31,7 @@ const aviso = $('#aviso');
       location.reload();
     });
   } else if (active) {
-    estado.innerHTML = `<p class="notice-info">Plano ${esc(billing.plans?.name)} ativo até ${fmtDate(billing.cycle_end)} — ${billing.proposals_used} de ${billing.plans?.proposals_per_cycle} propostas usadas. Ele não renova sozinho.</p>`;
+    estado.innerHTML = `<p class="notice-info">Plano ${esc(billing.plans?.name)} ativo até ${fmtDate(billing.cycle_end)} — ${billing.plans?.proposals_per_cycle ? `${billing.proposals_used} de ${billing.plans.proposals_per_cycle} propostas usadas` : 'propostas e projetos ilimitados'}. Ele não renova sozinho.</p>`;
   } else if (!canBuy) {
     estado.innerHTML = '<p class="notice-info">Você ainda envia propostas sem limite. Os planos ficam disponíveis depois que o seu primeiro projeto for concluído e aprovado.</p>';
   }
@@ -41,7 +41,8 @@ const aviso = $('#aviso');
       <h2 class="font-semibold">${esc(p.name)}</h2>
       <p class="mt-2 text-3xl font-extrabold tracking-tight">${brlExact(p.price_cents)}</p>
       <p class="text-xs text-tinta-500">pagamento único · vale ${p.cycle_days} dias</p>
-      <p class="mt-3 text-sm">${p.proposals_per_cycle} propostas no período</p>
+      <p class="mt-3 text-sm">${p.proposals_per_cycle ? `${p.proposals_per_cycle} propostas no período` : 'Propostas e projetos ilimitados no período'}</p>
+      <p class="mt-1 text-sm text-tinta-500">Você recebe 100% do valor que propôs.</p>
       ${canBuy ? `<button class="btn-ghost mt-4" type="button" data-plan="${esc(p.code)}">Escolher</button>` : ''}
     </div>`).join('') || '<p class="text-sm text-tinta-500">Nenhum plano disponível no momento.</p>';
 
@@ -50,7 +51,7 @@ const aviso = $('#aviso');
     const el = ev.target.closest('[data-plan]');
     if (!el) return;
     chosen = plans.find((p) => p.code === el.dataset.plan);
-    $('#resumo').textContent = `${chosen.name}: ${brlExact(chosen.price_cents)} em pagamento único, ${chosen.proposals_per_cycle} propostas, válido por ${chosen.cycle_days} dias a partir da confirmação do pagamento. Sem renovação automática.`;
+    $('#resumo').textContent = `${chosen.name}: ${brlExact(chosen.price_cents)} em pagamento único, ${chosen.proposals_per_cycle ? `${chosen.proposals_per_cycle} propostas` : 'propostas e projetos ilimitados'}, válido por ${chosen.cycle_days} dias a partir da confirmação do pagamento. Sem renovação automática.`;
     $('#aceite').checked = false;
     $('#compra').hidden = false;
     $('#compra').scrollIntoView({ behavior: 'smooth', block: 'center' });

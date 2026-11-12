@@ -7,10 +7,10 @@ const aviso = $('#aviso');
 function termsBlock(docType) {
   return `
     <h2 class="font-semibold">Termos e privacidade</h2>
-    <p class="notice-warn">Os documentos definitivos estão em revisão jurídica. Esta é a versão preliminar de teste: <span data-versao></span>.</p>
+    <p class="text-xs text-tinta-500">Versão dos documentos: <span data-versao></span> (preliminar, em revisão jurídica).</p>
     <label class="flex items-start gap-3 text-sm">
       <input class="mt-1 accent-mata-600" type="checkbox" data-aceite="${docType}" required>
-      <span>Li e aceito os Termos de Uso e a Política de Privacidade do Bico BR.</span>
+      <span>Li e aceito os <a class="linkish" href="/termos" target="_blank" rel="noopener">Termos de Uso</a> e a <a class="linkish" href="/privacidade" target="_blank" rel="noopener">Política de Privacidade</a> do Bico BR.</span>
     </label>`;
 }
 

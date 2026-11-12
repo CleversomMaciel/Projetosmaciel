@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ajuda e reclamações — Bico BR</title>
+  <meta name="description" content="Abra uma reclamação sobre um contrato, denuncie um conteúdo ou faça um pedido sobre os seus dados.">
+  <link rel="canonical" href="{{PUBLIC_URL}}/suporte">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Bico BR">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:title" content="Ajuda e reclamações — Bico BR">
+  <meta property="og:description" content="Abra uma reclamação sobre um contrato, denuncie um conteúdo ou faça um pedido sobre os seus dados.">
+  <meta property="og:url" content="{{PUBLIC_URL}}/suporte">
+  <meta name="twitter:card" content="summary">
+  <meta name="theme-color" content="#0d7a4b">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/app.css">
+</head>
+<body class="flex min-h-screen flex-col">
+  <a href="#conteudo" class="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-white focus:px-3 focus:py-2">Pular para o conteúdo</a>
+  <header id="site-header" class="sticky top-0 z-40 border-b border-tinta/10 bg-areia/95 backdrop-blur">
+    <div class="wrap flex items-center justify-between py-3">
+      <a href="/" class="text-lg font-extrabold tracking-tight">Bico<span class="text-mata-600"> BR</span></a>
+      <a class="btn-primary" href="/cadastro">Criar conta</a>
+    </div>
+  </header>
+  <main id="conteudo" class="flex-1">
+    <section class="wrap max-w-4xl py-12">
+      <p class="kicker">Suporte</p>
+      <h1 class="mt-1 text-4xl font-extrabold">Ajuda e reclamações</h1>
+      <p class="mt-3 max-w-2xl text-tinta-700">Tudo é tratado por aqui, com protocolo e registro. Escolha o que precisa.</p>
+      <p id="aviso" class="mt-6" hidden></p>
+      <div class="mt-8 grid gap-6 lg:grid-cols-2">
+        <section class="card lg:col-span-2" aria-labelledby="t-recl">
+          <h2 id="t-recl" class="text-xl font-extrabold">Reclamar de um projeto contratado</h2>
+          <p class="mt-1 text-sm text-tinta-700">O projeto não foi entregue, veio diferente do combinado ou houve problema com o pagamento? Abra a reclamação pelo contrato, até 30 dias depois da conclusão. O crédito ainda não repassado fica congelado até a decisão.</p>
+          <ul id="contratos" class="mt-4 space-y-2 text-sm"><li class="text-tinta-500">Entre na sua conta para ver seus contratos.</li></ul>
+        </section>
+        <form id="form-denuncia" class="card space-y-4" novalidate aria-labelledby="t-den">
+          <h2 id="t-den" class="text-xl font-extrabold">Denunciar</h2>
+          <p class="text-sm text-tinta-700">Perfil falso, golpe, pedido de pagamento por fora, conteúdo impróprio. A denúncia é sigilosa.</p>
+          <div><label class="label" for="alvo-tipo">O que você quer denunciar</label><select class="input" id="alvo-tipo"><option value="project">Um projeto</option><option value="job">Uma vaga</option><option value="user">Uma pessoa ou empresa</option><option value="message">Uma mensagem</option><option value="review">Uma avaliação</option></select></div>
+          <div><label class="label" for="alvo-id">Link ou identificação</label><input class="input" id="alvo-id" maxlength="80" required placeholder="Cole o link da página"></div>
+          <div><label class="label" for="motivo">Motivo</label><select class="input" id="motivo"><option value="fraude">Fraude ou golpe</option><option value="pagamento_por_fora">Pedido de pagamento por fora</option><option value="dados_falsos">Dados falsos</option><option value="spam">Spam</option><option value="assedio">Assédio</option><option value="conteudo_improprio">Conteúdo impróprio</option><option value="outro">Outro</option></select></div>
+          <div><label class="label" for="detalhes">O que aconteceu</label><textarea class="input" id="detalhes" rows="3" maxlength="3000" required></textarea></div>
+          <button class="btn-primary" type="submit">Enviar denúncia</button>
+        </form>
+        <form id="form-dados" class="card space-y-4" novalidate aria-labelledby="t-dados">
+          <h2 id="t-dados" class="text-xl font-extrabold">Meus dados pessoais</h2>
+          <p class="text-sm text-tinta-700">Pedidos previstos na LGPD. Respondemos em até 15 dias.</p>
+          <div><label class="label" for="dsr-tipo">Pedido</label><select class="input" id="dsr-tipo"><option value="acesso">Quero uma cópia dos meus dados</option><option value="correcao">Quero corrigir um dado</option><option value="eliminacao">Quero excluir minha conta e meus dados</option><option value="portabilidade">Quero levar meus dados para outro serviço</option><option value="revogacao_consentimento">Quero retirar um consentimento</option><option value="informacao">Quero saber com quem meus dados são compartilhados</option></select></div>
+          <div><label class="label" for="dsr-detalhes">Detalhes <span class="font-normal text-tinta-500">(opcional)</span></label><textarea class="input" id="dsr-detalhes" rows="3" maxlength="3000"></textarea></div>
+          <button class="btn-ghost" type="submit">Enviar pedido</button>
+          <ul id="meus-pedidos" class="space-y-1 text-xs text-tinta-500"></ul>
+        </form>
+      </div>
+    </section>
+  </main>
+  <footer id="site-footer" class="border-t border-tinta/10 bg-white"></footer>
+  <script src="/vendor/supabase.js" defer></script>
+  <script type="module" src="/js/suporte.js"></script>
+</body>
+</html>

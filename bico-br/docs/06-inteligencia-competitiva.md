@@ -34,8 +34,10 @@
 
 | Dor observada (hipótese) | Resposta do Bico BR | Situação |
 |---|---|---|
-| Dinheiro do profissional retido pela plataforma (conta banida, ciclo de saque, estorno) | A plataforma não guarda o dinheiro do profissional: o saldo é pago direto pela empresa. Não existe saldo a reter | Implementado (decisão D2) |
-| Comissão de 15–20% descontada do profissional | O profissional recebe 100% do saldo; a taxa de serviço de 10% é paga pela empresa | Implementado (decisão D1) |
+| Dinheiro do profissional retido sem prazo nem explicação (conta banida, ciclo de saque) | O crédito fica retido só até a entrega ser validada; se a empresa não responde em 7 dias, a validação é automática. Todo bloqueio tem protocolo e justificativa | Implementado (D2, D12). Repasse ainda manual |
+| Comissão de 15–20% descontada do profissional | O profissional recebe 100% do que propôs; a taxa de 10% é paga por quem contrata | Implementado (D1) |
+| Planos com cota de conexões/propostas | Um plano só, R$ 25, propostas e projetos ilimitados | Implementado (D4) |
+| Difícil achar trabalho compatível | Habilidades cadastradas no perfil; projetos que combinam vêm marcados e há filtro “só o que combina comigo”; empresas buscam profissionais por habilidade e convidam | Implementado |
 | Pagar para tentar (moedas, conexões) sem garantia de contato real | Propostas ilimitadas e gratuitas até concluir o primeiro projeto; plano só depois de um resultado concreto | Implementado |
 | Créditos consumidos em contatos inválidos | Não há crédito por contato. Projetos pertencem a empresas com cadastro e CNPJ consultado | Implementado |
 | Cobrança recorrente inesperada, dificuldade de cancelar | Plano é pagamento único por 30 dias, sem renovação automática; o aceite registra o preço exibido | Implementado (decisão D3) |
@@ -46,10 +48,9 @@
 
 ## Riscos do nosso próprio modelo
 
-A pesquisa também mostra por que os concorrentes retêm o dinheiro: é o que protege o profissional contra o calote.
-No Bico BR o profissional entrega antes de receber o saldo. Mitigações existentes: registro do contrato, disputa com protocolo,
-e o indicador "saldos sem confirmação há 7+ dias" no painel administrativo. Mitigações a construir:
-exibir no perfil da empresa a taxa de saldos confirmados, e suspender a publicação de novos projetos por empresas com saldo em disputa.
+Ao reter o valor do profissional, o Bico BR passa a ter o mesmo ponto sensível dos concorrentes: dinheiro de terceiros sob sua guarda.
+O que nos diferencia precisa ser cumprido à risca — prazo curto e automático de liberação, justificativa escrita em toda decisão e repasse rápido.
+Um repasse que atrase vira exatamente a reclamação que hoje aparece contra os outros.
 
 ## Próximos passos da pesquisa
 

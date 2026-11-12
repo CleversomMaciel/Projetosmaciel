@@ -1,4 +1,5 @@
 import { $, getClient, mountChrome, parseBrlToCents, requireSession, setBusy, showNotice } from './core.js';
+import { mountSkillPicker, saveSkills } from './habilidades.js';
 
 mountChrome();
 const aviso = $('#aviso');
@@ -18,10 +19,11 @@ const aviso = $('#aviso');
     $('#subcategory').replaceChildren(new Option('—', ''), ...subs.sort((a, b) => a.sort_order - b.sort_order).map((s) => new Option(s.name, s.id)));
   });
 
+  const picker = await mountSkillPicker($('#habilidades'), { max: 12 });
   const syncKind = () => {
     const quick = $('input[name="kind"]:checked').value === 'quick';
     $('#campo-max').hidden = quick;
-    $('#label-min').textContent = quick ? 'Preço fechado (R$)' : 'Orçamento mínimo (R$)';
+    $('#label-min').textContent = quick ? 'Quanto pago — preço fechado (R$)' : 'Quanto posso pagar — mínimo (R$)';
     $('#deadline').max = quick ? 15 : 730;
   };
   form.addEventListener('change', (ev) => { if (ev.target.name === 'kind') syncKind(); });
@@ -52,6 +54,7 @@ const aviso = $('#aviso');
       status: ev.submitter.dataset.status === 'draft' ? 'draft' : 'open',
     }).select('id').single();
     if (error) { setBusy(ev.submitter, false); return showNotice(aviso, 'error', 'Não foi possível salvar o projeto. Confira os campos.'); }
+    try { await saveSkills('project_skills', 'project_id', data.id, picker.get()); } catch { /* projeto já publicado; habilidades podem ser ajustadas depois */ }
     location.href = ev.submitter.dataset.status === 'draft' ? '/painel' : `/projeto?id=${data.id}`;
   });
 })();

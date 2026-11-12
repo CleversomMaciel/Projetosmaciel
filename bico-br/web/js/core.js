@@ -149,9 +149,9 @@ export async function mountChrome() {
         <nav aria-label="Para profissionais" class="text-sm"><p class="font-bold text-white">Profissionais</p>
           <ul class="mt-3 space-y-2"><li><a class="hover:text-white" href="/projetos">Projetos freelance</a></li><li><a class="hover:text-white" href="/projetos?tipo=quick">Bico Rápido</a></li><li><a class="hover:text-white" href="/vagas">Vagas remotas</a></li></ul></nav>
         <nav aria-label="Para empresas" class="text-sm"><p class="font-bold text-white">Empresas</p>
-          <ul class="mt-3 space-y-2"><li><a class="hover:text-white" href="/publicar-projeto">Publicar projeto</a></li><li><a class="hover:text-white" href="/publicar-vaga">Publicar vaga</a></li><li><a class="hover:text-white" href="/anuncie">Anuncie no Bico BR</a></li></ul></nav>
+          <ul class="mt-3 space-y-2"><li><a class="hover:text-white" href="/publicar-projeto">Publicar projeto</a></li><li><a class="hover:text-white" href="/publicar-vaga">Publicar vaga</a></li><li><a class="hover:text-white" href="/profissionais">Buscar profissionais</a></li><li><a class="hover:text-white" href="/anuncie">Anuncie no Bico BR</a></li></ul></nav>
         <nav aria-label="Institucional" class="text-sm"><p class="font-bold text-white">Bico BR</p>
-          <ul class="mt-3 space-y-2"><li><a class="hover:text-white" href="/confianca">Central de Confiança</a></li><li><a class="hover:text-white" href="/cadastro">Criar conta</a></li></ul></nav>
+          <ul class="mt-3 space-y-2"><li><a class="hover:text-white" href="/confianca">Central de Confiança</a></li><li><a class="hover:text-white" href="/suporte">Ajuda e reclamações</a></li><li><a class="hover:text-white" href="/termos">Termos de Uso</a></li><li><a class="hover:text-white" href="/privacidade">Privacidade</a></li></ul></nav>
       </div>
       <div class="border-t border-white/10"><p class="wrap py-5 text-xs">© ${new Date().getFullYear()} Bico BR. Anúncios são sempre identificados como “Patrocinado”.</p></div>`;
   }
@@ -165,6 +165,7 @@ export async function mountChrome() {
         <a class="nav-link" href="/projetos"${current('/projetos', false)}>Projetos</a>
         <a class="nav-link" href="/projetos?tipo=quick"${current('/projetos', true)}>Bico Rápido</a>
         <a class="nav-link" href="/vagas"${current('/vagas')}>Vagas remotas</a>
+        <a class="nav-link" href="/profissionais"${current('/profissionais')}>Profissionais</a>
       </nav>
       <div class="flex items-center gap-1.5">
         ${session

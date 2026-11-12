@@ -6,10 +6,13 @@ Critério de desempate em todas: a opção mais segura e de menor risco regulat�
 
 | # | Decisão | Por quê | Onde mudar |
 |---|---|---|---|
-| D1 | A entrada de 10% **é a taxa de serviço da plataforma**, paga pela empresa ao fechar o contrato | Receita simples de explicar e de tributar | `platform_settings.deposit_rate` |
-| D2 | O saldo (90%) é pago pela empresa **diretamente ao profissional**. A plataforma registra a declaração de pagamento e a confirmação de recebimento, mas não recebe, não guarda e não repassa esse dinheiro | Guardar e repassar dinheiro de terceiros pode enquadrar a empresa como arranjo de pagamento e exige split no Mercado Pago. Sem custódia não há esse risco | `platform_settings.payment_model` + nova migration |
-| D3 | Planos Pro são **pagamento único por 30 dias, sem renovação automática** | Elimina cobrança surpresa por construção: sem nova compra e novo aceite, não há cobrança | função `request_pro` |
-| D4 | Preços de lançamento: Pro R$ 29,90 (10 propostas), Pro Plus R$ 59,90 (30), Premium R$ 99,90 (60) | Ponto de partida; devem ser testados | tela de administração → Planos |
+| D1 | Taxa de serviço de **10% cobrada de quem contrata, por cima** do valor do profissional. O profissional recebe 100% do que propôs. A taxa só é receita em projeto concluído | Definido pela direção. Cobrar assinatura e ainda descontar comissão do profissional é a principal queixa contra concorrentes | `platform_settings.deposit_rate` |
+| D2 | **A empresa paga o total no início; o valor do profissional fica retido e é liberado quando a entrega é validada dentro da plataforma.** O repasse é feito pelo financeiro via Pix e registrado com comprovante | Definido pela direção: protege o profissional do calote. **Exige parecer jurídico e o split do Mercado Pago antes de operar com dinheiro real** (ver abaixo) | migration 0016 |
+| D3 | Assinatura do profissional é **pagamento único por 30 dias, sem renovação automática** | Elimina cobrança surpresa por construção | função `request_pro` |
+| D4 | **Plano único: R$ 25,00 por 30 dias, com propostas e projetos ilimitados.** Primeiro projeto continua gratuito | Definido pela direção. Manter o primeiro bico grátis é o que traz profissionais antes de a plataforma ter volume | tela de administração → Planos |
+| D11 | Quem solicita serviço publica projetos e vagas **sem limite e sem custo** (há só um teto antiabuso de 30 por dia) | Definido pela direção: demanda é o que atrai profissionais | gatilho `projects_cap` |
+| D12 | Entrega **obrigatoriamente dentro da plataforma, item a item**; a empresa valida ou pede ajuste por item; sem resposta em 7 dias, validação automática | É o registro que libera o crédito e que vale em reclamação. O prazo protege o profissional de empresa que some | `platform_settings.auto_approve_days` |
+| D13 | Reclamação pelo contrato até 30 dias após a conclusão; congela o crédito ainda não repassado; decisão com justificativa escrita libera ao profissional ou devolve à empresa | Canal de reclamação pedido pela direção | função `open_dispute` / `resolve_dispute` |
 | D5 | Propostas ilimitadas até a conclusão e aprovação do primeiro projeto; depois exigem plano | Modelo aprovado | função `submit_proposal` |
 | D6 | Teto antiabuso de 50 propostas por dia | Protege empresas de spam; não é limite comercial | `platform_settings.proposal_abuse_daily_limit` |
 | D7 | Contratante pessoa física desligado | Depende de política comercial e jurídica | `ALLOW_PF_CONTRACTORS` |
@@ -17,9 +20,11 @@ Critério de desempate em todas: a opção mais segura e de menor risco regulat�
 | D10 | Anúncios: a empresa procura o Bico BR, contrata o espaço e envia a **imagem** (banner). Um administrador sobe a arte, define link e período e coloca no ar. Espaços próprios (início, feed, lateral), preço fixo por período, sempre com o selo “Patrocinado”; sem rede de anúncios de terceiros; nunca em contrato, chat ou pagamento. Só PNG, JPG e WebP até 2 MB (SVG recusado), com o tipo real do arquivo conferido | Receita extra sem abrir a página a scripts de terceiros. Exibições e cliques são informativos, porque contadores públicos podem ser inflados | tela de administração → Anúncios de empresas |
 | D9 | Primeiro bico cancelado por decisão de disputa não consome o benefício do primeiro projeto gratuito | Justo com o profissional | função `resolve_dispute` |
 
-**Consequência de D2 que precisa estar clara para a direção:** o profissional entrega antes de receber o saldo.
-A proteção é registro + disputa + reputação da empresa, não retenção de valores. É a troca feita para não operar custódia.
-Se no futuro a decisão for intermediar 100% do valor, isso exige o modelo de split do Mercado Pago, parecer jurídico e nova migration.
+**Riscos de D2 que precisam ser resolvidos antes de dinheiro real:**
+
+1. **Regulatório.** Receber dinheiro de uma parte, guardar e repassar a outra é atividade de instituição de pagamento. O caminho usual é o split do Mercado Pago, em que quem guarda o valor é o Mercado Pago (instituição autorizada) e a plataforma só comanda a liberação. Hoje o sistema registra o crédito e o financeiro repassa por Pix — serve para homologação, não para produção. **Parecer jurídico obrigatório.**
+2. **Tarifa de pagamento.** Com 110% do valor passando pela plataforma, uma tarifa de 3,5% consome cerca de 38% da taxa de serviço. Priorizar Pix (tarifa bem menor) no checkout muda a conta. Ver `03-modelo-financeiro.md`.
+3. **Operação.** Repasse manual não escala e depende de o profissional ter chave Pix cadastrada. A tela de repasses avisa quando falta.
 
 ## Segurança: o que foi feito
 
@@ -40,7 +45,7 @@ Se no futuro a decisão for intermediar 100% do valor, isso exige o modelo de sp
 
 ## Segurança: o que ainda falta antes de abrir ao público
 
-1. **Homologação em Supabase real e teste de invasão independente.** Regras do banco (156 verificações) e fluxo de telas (19 passos, com tentativas de invasão) passam na simulação local; falta repetir no Supabase real.
+1. **Homologação em Supabase real e teste de invasão independente.** Regras do banco (175 verificações) e fluxo de telas (23 passos, com tentativas de invasão) passam na simulação local; falta repetir no Supabase real.
 2. **CAPTCHA no cadastro e no login** (o Supabase Auth integra Turnstile/hCaptcha) e política de senha forte no painel do Supabase.
 3. **Rate limit compartilhado** (Redis) quando houver mais de uma instância do backend.
 4. **Verificação de arquivos enviados** (tipo real e antivírus) antes de habilitar upload de portfólio e anexos.
@@ -52,6 +57,8 @@ Se no futuro a decisão for intermediar 100% do valor, isso exige o modelo de sp
 
 | Item | Situação |
 |---|---|
+| Split do Mercado Pago e repasse automático | Não iniciado; depende de parecer jurídico e de conta de marketplace |
+| Aviso ao profissional quando surge projeto com as habilidades dele | Não iniciado; hoje ele vê o selo “combina com você” e o filtro |
 | E-mails transacionais (Brevo) | Não iniciado; notificações existem só dentro da plataforma |
 | Upload de arquivos (avatar, portfólio, anexos do chat, evidências de disputa) | Buckets e políticas escritos, não validados; telas usam apenas texto e links |
 | Perfil público da empresa | Banco pronto; sem tela |
@@ -70,7 +77,7 @@ Se no futuro a decisão for intermediar 100% do valor, isso exige o modelo de sp
 
 Postgres real + PostgREST (o mesmo motor de API de dados do Supabase) + servidor real + navegador. O login,
 o ViaCEP, a BrasilAPI e o Mercado Pago são simulados por um gateway de teste; o webhook é assinado de verdade.
-19 passos: cadastro de empresa com CNPJ/CEP → projeto → cadastro de profissional → busca → proposta → chat →
+23 passos: cadastro de empresa com CNPJ/CEP → projeto → cadastro de profissional → busca → proposta → chat →
 aceite → confirmação → pagamento da taxa → entrega → aprovação → saldo → avaliação → compra do Pro →
 perfil público → vaga e candidatura → 15 tentativas de invasão pela API → administração → celular.
 Os textos carregam uma carga de ataque (XSS) e o teste confirma que ela nunca executa.
@@ -79,7 +86,6 @@ Os textos carregam uma carga de ataque (XSS) e o teste confirma que ela nunca ex
 
 - **Supabase real**: Auth (confirmação de e-mail, redefinição de senha, cadastro do segundo fator), Storage e tempo real do chat. Na simulação o chat funciona pela consulta periódica.
 - Respostas reais de BrasilAPI, ViaCEP, Mercado Pago e Serpro.
-- Telas de disputa e de decisão administrativa de disputa/denúncia (regras testadas no banco; telas não exercitadas no roteiro).
 - Migration de Storage e agendamentos com pg_cron.
 - Carga.
 

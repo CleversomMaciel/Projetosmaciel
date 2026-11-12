@@ -8,11 +8,14 @@ de CAC, conversão, ticket ou retenção do Bico BR.
 
 | | Conservador | Base | Agressivo |
 |---|---|---|---|
-| Receita acumulada em 6 meses | R$ 62 mil | R$ 476 mil | R$ 3,96 milhões |
-| Receita no mês 6 | R$ 20 mil | R$ 167 mil | R$ 1,45 milhão |
-| Capital necessário | R$ 0,75 milhão | R$ 1,5 milhão | R$ 1,9 milhão |
-| % do Cenário A (R$ 5 mi acumulados) | 1% | 10% | 79% |
-| % do Cenário B (R$ 5 mi no mês 6) | 0,4% | 3% | 29% |
+| Receita acumulada em 6 meses | R$ 60 mil | R$ 460 mil | R$ 3,8 milhões |
+| Receita no mês 6 | R$ 19 mil | R$ 160 mil | R$ 1,4 milhão |
+| Capital necessário | R$ 0,8 milhão | R$ 1,7 milhão | R$ 3,1 milhões |
+| % do Cenário A (R$ 5 mi acumulados) | 1% | 9% | 76% |
+| % do Cenário B (R$ 5 mi no mês 6) | 0,4% | 3% | 28% |
+
+Modelo vigente: taxa de 10% paga por quem contrata, assinatura única de R$ 25 para o profissional e 110% do valor
+de cada projeto passando pelo meio de pagamento da plataforma.
 
 **Cenário A — R$ 5 milhões acumulados em seis meses.** Exige cerca de R$ 40 milhões em contratos
 fechados no período, entre 27 mil e 44 mil contratos. Nenhum dos três cenários chega lá. O agressivo
@@ -52,10 +55,10 @@ seguintes, com captação baseada em dados reais.
 1. **Ticket médio.** Dobrar o ticket dobra a receita por contrato; favorece focar em empresas, não em bicos de R$ 100.
 2. **Recorrência.** Cliente que publica todo mês dilui o CAC; é o indicador mais importante a medir.
 3. **Receita que não depende de GMV.** Planos empresariais e destaque de vaga.
-4. **Tarifa de pagamento.** Se a plataforma processar 100% do valor (e não só a entrada), a tarifa do meio de pagamento consome perto de um terço da comissão. Isso pesa na decisão 1 das pendências.
+4. **Tarifa de pagamento.** É a maior alavanca do modelo atual. Como o valor inteiro passa pela plataforma, uma tarifa média de 3,5% consome cerca de 38% da taxa de serviço. Com Pix (tarifa em torno de 1%), cai para perto de 11%. Incentivar Pix no checkout vale mais do que qualquer ajuste de preço.
 
 ## Hipóteses que precisam de validação externa
 
 - Tributos de 14,5% sobre a receita: estimativa. O regime tributário deve ser definido com contador.
 - Tarifa de 3,5% do meio de pagamento: estimativa; conferir a tabela vigente do Mercado Pago.
-- O modelo usa R$ 39 de receita média por assinante; os preços de lançamento definidos são R$ 29,90, R$ 59,90 e R$ 99,90. O plano empresarial (R$ 299) é ilustrativo.
+- Assinatura de R$ 25,00 conforme definido. O plano empresarial (R$ 299) é ilustrativo. A receita de anúncios não está no modelo: ainda não há preço nem volume para estimar.

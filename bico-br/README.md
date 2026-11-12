@@ -41,9 +41,9 @@ em duas etapas; o cadastro do segundo fator é feito no primeiro acesso.
 
 ```bash
 npm test          # backend: validadores, provedores, API, checkout, webhook (37 testes, sem rede)
-npm run test:db   # sobe um Postgres descartável, aplica migrations, roda 156 verificações de RLS
+npm run test:db   # sobe um Postgres descartável, aplica migrations, roda 175 verificações de RLS
                   # e de fluxo, reverte tudo e reaplica (requer binários do PostgreSQL 15+)
-npm run test:e2e  # fluxo completo pelo navegador (19 passos) em ambiente local simulado:
+npm run test:e2e  # fluxo completo pelo navegador (23 passos) em ambiente local simulado:
                   # Postgres + PostgREST + Auth/ViaCEP/BrasilAPI/Mercado Pago de teste
 npm run model     # recalcula o modelo financeiro
 ```
