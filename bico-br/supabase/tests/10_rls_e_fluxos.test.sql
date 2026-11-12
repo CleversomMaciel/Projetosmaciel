@@ -472,11 +472,17 @@ reset role;
 
 -- ------------------------------------------------------------ 0014: anúncios
 select t.login('d', 'aal2');
-insert into public.ad_campaigns (id, advertiser_name, title, body, target_url, placement, ends_at, status, price_cents, internal_note, created_by)
-values ('00000000-0000-0000-0000-00000000ad01', 'Acme Cursos', 'Formação em Power BI', 'Turmas noturnas online.', 'https://acme.example/curso', 'feed_inline', now() + interval '30 days', 'active', 150000, 'Fechado por 30 dias', t.id('d')),
-       ('00000000-0000-0000-0000-00000000ad02', 'Rascunho SA', 'Ainda não aprovado', null, 'https://rascunho.example', 'feed_inline', now() + interval '30 days', 'draft', 1, null, t.id('d'));
-select t.fails($$insert into public.ad_campaigns (advertiser_name, title, target_url, placement, ends_at, created_by)
-                 values ('Golpe', 'Link perigoso', 'javascript:alert(1)', 'sidebar', now() + interval '1 day', t.id('d'))$$,
+insert into public.ad_campaigns (id, advertiser_name, image_path, image_alt, target_url, placement, ends_at, status, price_cents, internal_note, created_by)
+values ('00000000-0000-0000-0000-00000000ad01', 'Acme Cursos', 'acme/banner-power-bi.png', 'Formação em Power BI da Acme Cursos', 'https://acme.example/curso', 'feed_inline', now() + interval '30 days', 'active', 150000, 'Fechado por 30 dias', t.id('d')),
+       ('00000000-0000-0000-0000-00000000ad02', 'Rascunho SA', null, null, 'https://rascunho.example', 'feed_inline', now() + interval '30 days', 'draft', 1, null, t.id('d'));
+select t.fails($$update public.ad_campaigns set status = 'active' where id = '00000000-0000-0000-0000-00000000ad02'$$,
+               'ad_campaigns_live_needs_image', 'campanha não vai ao ar sem imagem');
+select t.fails($$update public.ad_campaigns set image_path = 'acme/banner.svg' where id = '00000000-0000-0000-0000-00000000ad02'$$,
+               'check constraint', 'imagem SVG é recusada (pode carregar script)');
+select t.fails($$update public.ad_campaigns set image_path = '../../etc/passwd.png' where id = '00000000-0000-0000-0000-00000000ad02'$$,
+               'check constraint', 'caminho de imagem fora do padrão é recusado');
+select t.fails($$insert into public.ad_campaigns (advertiser_name, target_url, placement, ends_at, created_by)
+                 values ('Golpe', 'javascript:alert(1)', 'sidebar', now() + interval '1 day', t.id('d'))$$,
                'check constraint', 'anúncio só aceita destino https');
 reset role;
 select t.anon();
@@ -489,8 +495,8 @@ select t.ok((select clicks from public.ad_campaigns where id = '00000000-0000-00
 select t.ok((select clicks from public.ad_campaigns where id = '00000000-0000-0000-0000-00000000ad02') = 0, 'anúncio não aprovado não recebe eventos');
 select t.login('f');
 select t.ok((select count(*) from public.ad_campaigns) = 0, 'usuário comum não lista campanhas (nem preço)');
-select t.fails($$insert into public.ad_campaigns (advertiser_name, title, target_url, placement, ends_at, status, created_by)
-                 values ('Eu mesmo', 'Anúncio grátis', 'https://eu.example', 'home_banner', now() + interval '1 day', 'active', t.id('f'))$$,
+select t.fails($$insert into public.ad_campaigns (advertiser_name, image_path, image_alt, target_url, placement, ends_at, status, created_by)
+                 values ('Eu mesmo', 'eu/banner.png', 'Anúncio grátis', 'https://eu.example', 'home_banner', now() + interval '1 day', 'active', t.id('f'))$$,
                'row-level security', 'usuário comum não publica anúncio por conta própria');
 insert into public.ad_requests (user_id, company_name, contact, placement, message) values (t.id('f'), 'Minha Empresa', 'contato@minha.example', 'sidebar', 'Quero anunciar.');
 reset role;

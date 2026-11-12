@@ -167,26 +167,31 @@ export async function fetchAds(placement, categoryId = null, limit = 2) {
   const { data } = await sb.rpc('live_ads', { p_placement: placement, p_category: categoryId, p_limit: limit });
   return data ?? [];
 }
-/** Anúncio pago: sempre com o rótulo "Patrocinado" e abrindo em nova aba sem repassar dados. */
-export function renderAd(ad, tag = 'li') {
-  if (!/^https:\/\//i.test(ad.target_url ?? '')) return '';
-  return `<${tag}><a class="ad" href="${esc(ad.target_url)}" target="_blank" rel="sponsored noopener noreferrer" data-ad="${esc(ad.id)}">
-    <span class="ad-label">Patrocinado</span>
-    <span class="mt-3 block text-base font-bold leading-snug">${esc(ad.title)}</span>
-    ${ad.body ? `<span class="mt-1 block text-sm text-tinta-700">${esc(ad.body)}</span>` : ''}
-    <span class="mt-3 flex items-center justify-between gap-3 text-sm"><span class="text-tinta-500">${esc(ad.advertiser_name)}</span>
-      <span class="inline-flex items-center gap-1 font-bold text-tinta">${esc(ad.cta_label)} ${icon('arrow', 'icon h-4 w-4')}</span></span></a></${tag}>`;
+const AD_PATH = /^[a-z0-9][a-z0-9/_-]{0,180}\.(png|jpg|jpeg|webp)$/;
+export function adImageUrl(base, path) {
+  return base && AD_PATH.test(path ?? '') ? `${base.replace(/\/$/, '')}/storage/v1/object/public/ads/${path}` : null;
 }
-export const houseAd = (tag = 'li') => `<${tag}><a class="ad-house" href="/anuncie">
-  <span class="chip-neutral">Espaço publicitário</span>
-  <span class="mt-3 block font-bold">Sua empresa aqui</span>
-  <span class="mt-1 block text-tinta-500">Apareça para profissionais e empresas de todo o Brasil.</span>
-  <span class="mt-3 inline-flex items-center gap-1 font-bold text-mata-700">Anuncie no Bico BR ${icon('arrow', 'icon h-4 w-4')}</span></a></${tag}>`;
+/**
+ * Anúncio pago: banner de imagem enviado pelo anunciante. Sempre com o selo "Patrocinado",
+ * abre em nova aba sem repassar dados e só aceita imagem do nosso próprio armazenamento.
+ */
+export function renderAd(ad, base, tag = 'li') {
+  const src = adImageUrl(base, ad.image_path);
+  if (!src || !/^https:\/\//i.test(ad.target_url ?? '')) return '';
+  return `<${tag}><a class="ad ad-${esc(ad.placement)}" href="${esc(ad.target_url)}" target="_blank" rel="sponsored noopener noreferrer" data-ad="${esc(ad.id)}">
+    <img src="${esc(src)}" alt="${esc(ad.image_alt)}" loading="lazy" decoding="async">
+    <span class="ad-label">Patrocinado</span><span class="ad-by">${esc(ad.advertiser_name)}</span></a></${tag}>`;
+}
+export const houseAd = (tag = 'li', placement = 'sidebar') => `<${tag}><a class="ad-house ${placement === 'home_banner' ? 'sm:flex-row sm:items-center sm:justify-between sm:gap-6' : ''}" href="/anuncie">
+  <span><span class="chip-neutral">Espaço publicitário</span>
+  <span class="mt-3 block font-bold">Anuncie sua empresa aqui</span>
+  <span class="mt-1 block text-tinta-500">Sua arte neste espaço, vista por profissionais e empresas de todo o Brasil.</span></span>
+  <span class="mt-3 inline-flex shrink-0 items-center gap-1 font-bold text-mata-700 sm:mt-0">Quero anunciar ${icon('arrow', 'icon h-4 w-4')}</span></a></${tag}>`;
 
 export async function mountAdSlot(el, placement, categoryId = null, limit = 1) {
   if (!el) return;
-  const ads = await fetchAds(placement, categoryId, limit);
-  el.innerHTML = ads.length ? ads.map((a) => renderAd(a, 'div')).join('') : houseAd('div');
+  const [ads, { cfg }] = await Promise.all([fetchAds(placement, categoryId, limit), getClient()]);
+  el.innerHTML = ads.map((a) => renderAd(a, cfg.supabaseUrl, 'div')).join('') || houseAd('div', placement);
   trackAds(el);
 }
 /** Conta exibição (uma vez por anúncio por página) e clique, só em totais — sem identificar o usuário. */

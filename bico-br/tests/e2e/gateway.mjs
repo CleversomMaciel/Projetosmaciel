@@ -43,6 +43,7 @@ function sessionFor(u) {
 }
 
 const mp = { prefs: new Map(), payments: new Map(), seq: 9000 };
+const files = new Map(); // armazenamento de teste (bucket ads)
 
 http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
@@ -83,6 +84,26 @@ http.createServer(async (req, res) => {
       return u ? send(res, 200, sessionFor(u).user, CORS) : send(res, 401, { msg: 'no user' }, CORS);
     }
     if (path === '/auth/v1/logout') { res.writeHead(204, CORS); return res.end(); }
+
+    // ---------------- Storage (somente bucket "ads", imitando as políticas reais: escrita só de admin com 2º fator)
+    let sm;
+    if ((sm = path.match(/^\/storage\/v1\/object\/ads\/(.+)$/)) && req.method === 'POST') {
+      const claims = verifyJwt((req.headers.authorization || '').replace(/^Bearer /, ''));
+      const u = claims?.sub ? await rpc('e2e_user', { p_id: claims.sub }) : null;
+      if (!u?.admin || claims.aal !== 'aal2') return send(res, 403, { statusCode: '403', error: 'Unauthorized', message: 'new row violates row-level security policy' }, CORS);
+      const type = req.headers['content-type'] || '';
+      if (!['image/png', 'image/jpeg', 'image/webp'].includes(type)) return send(res, 415, { statusCode: '415', error: 'invalid_mime_type', message: 'mime type not supported' }, CORS);
+      const body = await readBody(req);
+      if (body.length > 2097152) return send(res, 413, { statusCode: '413', error: 'Payload too large' }, CORS);
+      files.set(sm[1], { type, body });
+      return send(res, 200, { Key: `ads/${sm[1]}`, Id: crypto.randomUUID() }, CORS);
+    }
+    if ((sm = path.match(/^\/storage\/v1\/object\/public\/ads\/(.+)$/))) {
+      const f = files.get(sm[1]);
+      if (!f) return send(res, 404, { message: 'not found' }, CORS);
+      res.writeHead(200, { 'content-type': f.type, 'x-content-type-options': 'nosniff', ...CORS });
+      return res.end(f.body);
+    }
 
     if (path === '/fake/make-admin') { await rpc('e2e_make_admin', { p_email: url.searchParams.get('email'), p_role: url.searchParams.get('role') }); return send(res, 200, { ok: true }); }
     if (path === '/fake/tokens') return send(res, 200, { anon: signJwt({ role: 'anon' }), service: SERVICE });

@@ -94,10 +94,15 @@
   .meta-grid dt { @apply text-[11px] font-semibold uppercase tracking-wider text-tinta-500; }
   .meta-grid dd { @apply mt-0.5 text-sm font-bold; }
 
-  /* ---------- anúncios (sempre rotulados) */
-  .ad { @apply relative block overflow-hidden rounded-3xl border border-sol-400/40 bg-gradient-to-br from-white to-sol-100/60 p-5 transition hover:border-sol-500 hover:shadow-lift; }
-  .ad-label { @apply inline-flex items-center gap-1 rounded-full bg-tinta px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-sol-300; }
-  .ad-house { @apply relative block rounded-3xl border border-dashed border-tinta/20 bg-creme p-5 text-sm transition hover:border-mata-500; }
+  /* ---------- anúncios: banner de imagem do anunciante, sempre rotulado */
+  .ad { @apply relative block overflow-hidden rounded-3xl border border-tinta/10 bg-tinta/[.04] shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-lift; }
+  .ad img { @apply block h-full w-full object-cover; }
+  .ad-home_banner { @apply aspect-[2/1] sm:aspect-[4/1]; }
+  .ad-feed_inline { @apply aspect-[2/1] sm:aspect-[3/1]; }
+  .ad-sidebar { @apply aspect-[3/2] lg:aspect-square; }
+  .ad-label { @apply absolute left-3 top-3 inline-flex items-center rounded-full bg-tinta/85 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-sol-300 backdrop-blur; }
+  .ad-by { @apply absolute bottom-3 right-3 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-tinta backdrop-blur; }
+  .ad-house { @apply relative flex flex-col justify-center rounded-3xl border border-dashed border-tinta/20 bg-creme p-5 text-sm transition hover:border-mata-500; }
 
   /* ---------- carregamento */
   .skeleton { @apply animate-pulse rounded-3xl bg-tinta/[.06]; }

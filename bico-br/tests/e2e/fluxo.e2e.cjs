@@ -288,6 +288,7 @@ async function onboardFreelancer(page, headline) {
         aprovarPagamento: await send('POST', 'rpc/process_payment_update', { p_payment_id: contractId, p_provider_payment_id: 'x', p_provider_status: 'approved', p_status_detail: null, p_amount_cents: 1 }),
         aprovarEntregaAlheia: await send('POST', 'rpc/approve_delivery', { p_contract_id: contractId }),
         metricas: await send('POST', 'rpc/admin_metrics', { p_days: 30 }),
+        enviarAnuncio: await fetch(`${gw}/storage/v1/object/ads/2026/invasor.png`, { method: 'POST', headers: { apikey: anon, authorization: `Bearer ${session.access_token}`, 'content-type': 'image/png' }, body: new Uint8Array([137, 80, 78, 71]) }).then((r) => r.status),
         checkoutAlheio: await fetch(`/api/payments/${contractId}/checkout`, { method: 'POST', headers: { authorization: `Bearer ${session.access_token}`, 'content-type': 'application/json' }, body: '{}' }).then((r) => r.status),
       };
     }, { gw: GW_URL, anon: ANON_KEY, contractUrl });
@@ -305,6 +306,7 @@ async function onboardFreelancer(page, headline) {
     assert([401, 403, 404].includes(out.aprovarPagamento.status), `não aprova pagamento (${out.aprovarPagamento.status})`);
     assert(out.aprovarEntregaAlheia.status >= 400, 'não aprova entrega de contrato alheio');
     assert(out.metricas.status >= 400, 'não lê indicadores administrativos');
+    assert(out.enviarAnuncio === 403, `não envia imagem de anúncio (${out.enviarAnuncio})`);
     assert(out.checkoutAlheio === 404, `não inicia checkout alheio (${out.checkoutAlheio})`);
     await i.page.goto(contractUrl);
     await see(i.page, 'Contrato não encontrado');
@@ -329,25 +331,42 @@ async function onboardFreelancer(page, headline) {
     assert(/taxa de serviço\s*\n\s*R\$\s?200,00/.test(text), 'receita de taxa de serviço R$ 200');
     assert(/assinaturas\s*\n\s*R\$\s?29,90/.test(text), 'receita de assinaturas R$ 29,90');
     await a.page.waitForSelector('#planos'); await a.page.waitForSelector('#categorias');
-    await see(a.page, 'Pedidos de anúncio aguardando contato');
+    await see(a.page, 'Empresas pedindo para anunciar');
+    // arte do anunciante: gerada aqui mesmo, só para o teste
+    const artPage = await (await browser.newContext({ viewport: { width: 800, height: 800 } })).newPage();
+    await artPage.setContent('<body style="margin:0;display:grid;place-items:center;height:100vh;font-family:sans-serif;background:linear-gradient(135deg,#1d3fbb,#7a2fd0);color:#fff;text-align:center"><div><div style="font-size:34px;opacity:.85">ACME CURSOS</div><div style="font-size:84px;font-weight:800;line-height:1.05;margin:18px 0">Power BI<br>do zero</div><div style="display:inline-block;background:#ffd23f;color:#111;font-size:36px;font-weight:800;padding:14px 34px;border-radius:999px">20% OFF</div></div></body>');
+    const art = await artPage.screenshot({ type: 'png' });
+    await artPage.context().close();
+
+    // arquivo disfarçado: SVG com script, renomeado para .png
     await a.page.fill('#ad-anunciante', 'Acme Cursos'); await a.page.selectOption('#ad-local', 'sidebar');
-    await a.page.fill('#ad-titulo', `Formação em Power BI ${XSS}`.slice(0, 70)); await a.page.fill('#ad-texto', 'Turmas noturnas, 100% online.');
+    await a.page.fill('#ad-alt', `Curso de Power BI da Acme com 20% de desconto ${XSS}`.slice(0, 160));
     await a.page.fill('#ad-url', 'https://acme.example/curso'); await a.page.fill('#ad-preco', '1.500');
+    await a.page.setInputFiles('#ad-imagem', { name: 'banner.png', mimeType: 'image/png', buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" onload="window.__pwned=1"><script>window.__pwned=1</script></svg>') });
+    await a.page.click('#novo-anuncio button[type=submit]');
+    await see(a.page, 'Arquivo recusado');
+
+    await a.page.setInputFiles('#ad-imagem', { name: 'banner.png', mimeType: 'image/png', buffer: art });
     await a.page.click('#novo-anuncio button[type=submit]');
     await a.page.waitForSelector('[data-ad-status="active"]');
     const before = await newUser(browser);
     await before.page.goto(`${APP_URL}/projetos`, { waitUntil: 'networkidle' });
-    assert(!(await before.page.content()).includes('Formação em Power BI'), 'rascunho de anúncio não aparece para o público');
+    assert((await before.page.locator('#ad-lateral a.ad').count()) === 0, 'anúncio salvo mas não aprovado não aparece para o público');
     await a.page.click('[data-ad-status="active"]');
     await a.page.waitForSelector('[data-ad-status="paused"]');
+    await a.page.locator('#anuncios').scrollIntoViewIfNeeded();
     await shot(a.page, '09-admin');
     await before.page.reload({ waitUntil: 'networkidle' });
-    await see(before.page, 'Formação em Power BI');
+    const ad = before.page.locator('#ad-lateral a.ad');
+    await ad.waitFor({ state: 'visible' });
+    assert(await ad.locator('img').evaluate((img) => img.complete && img.naturalWidth === 800), 'a imagem do anunciante carrega no espaço');
     await see(before.page, 'Patrocinado');
     assert(!(await pwned(before.page)), 'XSS não executa no anúncio');
-    const rel = await before.page.locator('#ad-lateral a.ad').getAttribute('rel');
+    const rel = await ad.getAttribute('rel');
     assert(/sponsored/.test(rel) && /noopener/.test(rel), 'link de anúncio marcado como patrocinado e isolado');
     await shot(before.page, '13-projetos-com-anuncio');
+    await before.page.goto(APP_URL, { waitUntil: 'networkidle' });
+    await shot(before.page, '14-inicio-com-oportunidades');
     await before.ctx.close();
     await a.ctx.close();
   });

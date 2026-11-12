@@ -1,9 +1,19 @@
+import { adImageUrl } from './cards.js';
 import { $, brlExact, esc, fmtDateTime, getClient, mountChrome, parseBrlToCents, requireSession, rpcMessage, showNotice } from './core.js';
 
 mountChrome();
 const aviso = $('#aviso');
 const paineis = $('#paineis');
 const mfaBox = $('#mfa');
+/** Confere o tipo REAL do arquivo pelos primeiros bytes (a extensão e o tipo declarado podem mentir). */
+async function imageKind(file) {
+  const b = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+  const is = (sig, at = 0) => sig.every((v, i) => b[at + i] === v);
+  if (is([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) return { ext: 'png', mime: 'image/png' };
+  if (is([0xff, 0xd8, 0xff])) return { ext: 'jpg', mime: 'image/jpeg' };
+  if (is([0x52, 0x49, 0x46, 0x46]) && is([0x57, 0x45, 0x42, 0x50], 8)) return { ext: 'webp', mime: 'image/webp' };
+  return null;
+}
 const section = (id, title, body) => `<section class="card" id="${id}"><h2 class="font-semibold">${title}</h2><div class="mt-3 space-y-3 text-sm">${body}</div></section>`;
 const METRIC_LABELS = {
   cadastros_empresas: 'Cadastros de empresas', cadastros_freelancers: 'Cadastros de profissionais', empresas_ativas: 'Empresas ativas',
@@ -95,27 +105,33 @@ async function ensureMfa(sb) {
   if (can('finance', 'content')) {
     const PLACES = { home_banner: 'Destaque na página inicial', feed_inline: 'Card no feed', sidebar: 'Lateral das listagens' };
     const AD_STATUS = { draft: 'Rascunho', active: 'No ar', paused: 'Pausado', ended: 'Encerrado' };
+    const SIZES = { home_banner: '1600 × 400 px', feed_inline: '1200 × 400 px', sidebar: '800 × 800 px' };
     const [{ data: ads }, { data: requests }] = await Promise.all([
-      sb.from('ad_campaigns').select('id, advertiser_name, title, placement, status, starts_at, ends_at, price_cents, impressions, clicks').order('created_at', { ascending: false }).limit(50),
+      sb.from('ad_campaigns').select('id, advertiser_name, image_path, image_alt, target_url, placement, status, starts_at, ends_at, price_cents, impressions, clicks').order('created_at', { ascending: false }).limit(50),
       sb.from('ad_requests').select('id, company_name, contact, placement, message, created_at').eq('status', 'new').order('created_at').limit(50),
     ]);
-    html += section('anuncios', 'Anúncios patrocinados', `
-      ${(requests ?? []).length ? `<div class="notice-info"><p class="font-bold">Pedidos de anúncio aguardando contato</p><ul class="mt-2 space-y-2">${requests.map((r) => `<li><strong>${esc(r.company_name)}</strong> · ${esc(r.contact)} · ${esc(PLACES[r.placement] ?? 'formato a definir')}${r.message ? `<br><span class="text-tinta-700">${esc(r.message)}</span>` : ''} <button class="linkish text-xs" type="button" data-adreq="${esc(r.id)}">Marcar como contatado</button></li>`).join('')}</ul></div>` : ''}
-      <ul class="space-y-2">${(ads ?? []).map((a) => `<li class="flex flex-wrap items-center justify-between gap-3 border-t border-tinta/10 pt-2">
-        <span><strong>${esc(a.title)}</strong> — ${esc(a.advertiser_name)}<span class="block text-xs text-tinta-500">${esc(PLACES[a.placement])} · até ${fmtDateTime(a.ends_at)} · ${a.price_cents != null ? brlExact(a.price_cents) : 'sem valor'} · ${a.impressions} exibições · ${a.clicks} cliques</span></span>
+    const { cfg } = await getClient();
+    const thumb = (a) => { const src = adImageUrl(cfg.supabaseUrl, a.image_path); return src ? `<img class="h-14 w-24 shrink-0 rounded-xl object-cover ring-1 ring-tinta/10" src="${esc(src)}" alt="">` : '<span class="grid h-14 w-24 shrink-0 place-items-center rounded-xl bg-tinta/5 text-xs text-tinta-500">sem imagem</span>'; };
+    html += section('anuncios', 'Anúncios de empresas', `
+      ${(requests ?? []).length ? `<div class="notice-info"><p class="font-bold">Empresas pedindo para anunciar</p><ul class="mt-2 space-y-2">${requests.map((r) => `<li><strong>${esc(r.company_name)}</strong> · ${esc(r.contact)} · ${esc(PLACES[r.placement] ?? 'formato a definir')}${r.message ? `<br><span class="text-tinta-700">${esc(r.message)}</span>` : ''} <button class="linkish text-xs" type="button" data-adreq="${esc(r.id)}">Marcar como contatado</button></li>`).join('')}</ul></div>` : ''}
+      <ul class="space-y-3">${(ads ?? []).map((a) => `<li class="flex flex-wrap items-center gap-3 border-t border-tinta/10 pt-3">
+        ${thumb(a)}
+        <span class="min-w-0 flex-1"><strong>${esc(a.advertiser_name)}</strong><span class="block text-xs text-tinta-500">${esc(PLACES[a.placement])} · até ${fmtDateTime(a.ends_at)} · ${a.price_cents != null ? brlExact(a.price_cents) : 'sem valor'} · ${a.impressions} exibições · ${a.clicks} cliques</span></span>
         <span class="flex items-center gap-2"><span class="chip-neutral">${esc(AD_STATUS[a.status])}</span>
           ${a.status === 'ended' ? '' : `<button class="linkish text-xs" type="button" data-ad-id="${esc(a.id)}" data-ad-status="${a.status === 'active' ? 'paused' : 'active'}">${a.status === 'active' ? 'Pausar' : 'Colocar no ar'}</button>`}</span></li>`).join('') || '<li class="text-tinta-500">Nenhuma campanha cadastrada.</li>'}</ul>
       <form id="novo-anuncio" class="grid gap-3 border-t border-tinta/10 pt-4 sm:grid-cols-2" novalidate>
-        <p class="font-bold sm:col-span-2">Nova campanha</p>
-        <div><label class="label" for="ad-anunciante">Anunciante</label><input class="input" id="ad-anunciante" maxlength="60" required></div>
-        <div><label class="label" for="ad-local">Espaço</label><select class="input" id="ad-local">${Object.entries(PLACES).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select></div>
-        <div class="sm:col-span-2"><label class="label" for="ad-titulo">Título (até 70 caracteres)</label><input class="input" id="ad-titulo" maxlength="70" required></div>
-        <div class="sm:col-span-2"><label class="label" for="ad-texto">Texto (até 160 caracteres)</label><input class="input" id="ad-texto" maxlength="160"></div>
-        <div><label class="label" for="ad-url">Link de destino (https)</label><input class="input" id="ad-url" type="url" placeholder="https://" required></div>
-        <div><label class="label" for="ad-cta">Texto do botão</label><input class="input" id="ad-cta" maxlength="24" value="Saiba mais"></div>
+        <p class="font-bold sm:col-span-2">Novo anúncio</p>
+        <div><label class="label" for="ad-anunciante">Empresa anunciante</label><input class="input" id="ad-anunciante" maxlength="60" required></div>
+        <div><label class="label" for="ad-local">Espaço</label><select class="input" id="ad-local">${Object.entries(PLACES).map(([k, v]) => `<option value="${k}">${v} — ${SIZES[k]}</option>`).join('')}</select></div>
+        <div class="sm:col-span-2"><label class="label" for="ad-imagem">Imagem do anúncio</label>
+          <input class="input" id="ad-imagem" type="file" accept="image/png,image/jpeg,image/webp" required>
+          <p class="hint">PNG, JPG ou WebP, até 2 MB. Use a proporção indicada no espaço escolhido.</p>
+          <img id="ad-previa" class="mt-3 max-h-48 rounded-2xl ring-1 ring-tinta/10" alt="Prévia da imagem escolhida" hidden></div>
+        <div class="sm:col-span-2"><label class="label" for="ad-alt">Descrição da imagem</label><input class="input" id="ad-alt" maxlength="160" required placeholder="Ex.: Curso de Power BI da Acme com 20% de desconto"><p class="hint">Lida por leitores de tela e exibida se a imagem não carregar.</p></div>
+        <div class="sm:col-span-2"><label class="label" for="ad-url">Para onde o anúncio leva (https)</label><input class="input" id="ad-url" type="url" placeholder="https://" required></div>
         <div><label class="label" for="ad-dias">Duração (dias)</label><input class="input" id="ad-dias" type="number" min="1" max="365" value="30"></div>
         <div><label class="label" for="ad-preco">Valor cobrado (R$)</label><input class="input" id="ad-preco" inputmode="decimal"></div>
-        <div class="sm:col-span-2"><button class="btn-ghost" type="submit">Salvar como rascunho</button><span class="ml-3 text-xs text-tinta-500">A campanha só aparece depois de “Colocar no ar”.</span></div>
+        <div class="sm:col-span-2"><button class="btn-ghost" type="submit">Salvar anúncio</button><span class="ml-3 text-xs text-tinta-500">Ele só aparece no site depois de “Colocar no ar”.</span></div>
       </form>`);
   }
 
@@ -149,11 +165,21 @@ async function ensureMfa(sb) {
     if (f.id === 'novo-anuncio') {
       const url = $('#ad-url').value.trim();
       const days = Number.parseInt($('#ad-dias').value, 10) || 30;
+      const file = $('#ad-imagem').files[0];
+      if ($('#ad-anunciante').value.trim().length < 2) return showNotice(aviso, 'error', 'Informe a empresa anunciante.');
+      if (!file) return showNotice(aviso, 'error', 'Escolha a imagem do anúncio.');
+      if ($('#ad-alt').value.trim().length < 4) return showNotice(aviso, 'error', 'Descreva a imagem em poucas palavras.');
       if (!/^https:\/\//i.test(url)) return showNotice(aviso, 'error', 'O link de destino precisa começar com https://');
-      if ($('#ad-titulo').value.trim().length < 4 || $('#ad-anunciante').value.trim().length < 2) return showNotice(aviso, 'error', 'Informe anunciante e título.');
+      const kind = await imageKind(file);
+      if (!kind) return showNotice(aviso, 'error', 'Arquivo recusado: envie uma imagem PNG, JPG ou WebP de verdade (SVG e outros formatos não são aceitos).');
+      if (file.size > 2 * 1024 * 1024) return showNotice(aviso, 'error', 'A imagem passa de 2 MB. Reduza o arquivo e tente de novo.');
+      ev.submitter.disabled = true;
+      const path = `${new Date().getFullYear()}/${crypto.randomUUID()}.${kind.ext}`;
+      const up = await sb.storage.from('ads').upload(path, await file.arrayBuffer(), { contentType: kind.mime, upsert: false, cacheControl: '31536000' });
+      if (up.error) { ev.submitter.disabled = false; return showNotice(aviso, 'error', 'Não foi possível enviar a imagem.'); }
       return done((await sb.from('ad_campaigns').insert({
-        advertiser_name: $('#ad-anunciante').value.trim(), title: $('#ad-titulo').value.trim(), body: $('#ad-texto').value.trim() || null,
-        target_url: url, cta_label: $('#ad-cta').value.trim() || 'Saiba mais', placement: $('#ad-local').value,
+        advertiser_name: $('#ad-anunciante').value.trim(), image_path: path, image_alt: $('#ad-alt').value.trim(),
+        target_url: url, placement: $('#ad-local').value,
         ends_at: new Date(Date.now() + days * 86400000).toISOString(), price_cents: parseBrlToCents($('#ad-preco').value),
         status: 'draft', created_by: session.user.id,
       })).error);
@@ -164,6 +190,12 @@ async function ensureMfa(sb) {
       return done((await sb.from('categories').insert({ name: $('#cn').value.trim(), slug, sort_order: 999 })).error);
     }
     return undefined;
+  });
+  paineis.addEventListener('change', (ev) => {
+    if (ev.target.id !== 'ad-imagem') return;
+    const file = ev.target.files[0]; const img = $('#ad-previa');
+    if (!file) { img.hidden = true; return; }
+    img.src = URL.createObjectURL(file); img.hidden = false;
   });
   paineis.addEventListener('click', async (ev) => {
     const cat = ev.target.closest('[data-cat]');

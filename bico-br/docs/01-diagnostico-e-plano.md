@@ -23,8 +23,8 @@ fácil de escalar horizontalmente; e as regras de dinheiro ficam em um único lu
 
 | Área | Entregue | Como foi verificado |
 |---|---|---|
-| Banco | 14 migrations, 50 tabelas, 101 políticas RLS, reversão de cada migration | Aplicadas, revertidas e reaplicadas em Postgres 16 local |
-| RLS e privilégios | Políticas em todas as tabelas; grants por coluna | 153 verificações automatizadas (escalada de privilégio, isolamento entre usuários, anônimo) |
+| Banco | 15 migrations, 50 tabelas, 101 políticas RLS, reversão de cada migration | Aplicadas, revertidas e reaplicadas em Postgres 16 local |
+| RLS e privilégios | Políticas em todas as tabelas; grants por coluna | 156 verificações automatizadas (escalada de privilégio, isolamento entre usuários, anônimo) |
 | Primeiro Bico Gratuito / Pro | 7 estados, cota por ciclo, consentimento expresso com registro do preço exibido | Testado no banco de ponta a ponta |
 | Contrato | aceite → confirmação → entrada → execução → entrega → aprovação → avaliação; cancelamento; disputa com protocolo | Testado no banco |
 | Pagamento | Webhook com assinatura HMAC, idempotência, conferência de valor, sem regressão de estado | 5 testes de API + testes no banco |
