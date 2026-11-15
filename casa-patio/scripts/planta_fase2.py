@@ -1,4 +1,4 @@
-"""Casa Pátio — planta baixa cotada (Fase 2, estudo preliminar R01).
+"""Casa Pátio — planta baixa cotada (Fase 2, estudo preliminar R02).
 
 Gera PDF (A3, 1:100), SVG editável e PNG em ../plantas/.
 Coordenadas em metros: x = largura (0 a 8), y = profundidade (0 = alinhamento da rua, 25 = fundos).
@@ -28,19 +28,20 @@ WALLS = [
     (0, 5.50, 8.00, 5.70),           # frente da casa
     (0.20, 10.20, 3.75, 10.35),      # fundo do social / ala íntima
     (4.85, 10.20, 7.80, 10.35),      # fundo do social / pátio (vidro)
-    (3.60, 10.35, 3.75, 21.25),      # ala íntima / corredor
-    (4.85, 10.35, 5.00, 21.25),      # corredor / pátio (vidro)
-    (4.85, 21.25, 5.00, 24.80),      # suíte / pátio e spa
+    (3.60, 10.35, 3.75, 21.80),      # ala íntima / corredor
+    (4.85, 10.35, 5.00, 21.80),      # corredor / pátio (vidro)
+    (4.85, 21.80, 5.00, 24.80),      # suíte / pátio e spa
     (0.20, 11.55, 3.60, 11.70),
-    (0.20, 14.30, 3.60, 14.45),
-    (0.20, 15.95, 3.60, 16.10),
-    (0.20, 18.70, 3.60, 18.85),
-    (0.20, 21.25, 4.85, 21.40),      # frente da suíte
+    (0.20, 14.20, 3.60, 14.35),
+    (0.20, 15.85, 3.60, 16.00),
+    (0.20, 18.50, 3.60, 18.65),
+    (0.20, 20.15, 3.60, 20.30),      # banho suíte / closet
+    (0.20, 21.80, 4.85, 21.95),      # frente da suíte
     (2.20, 10.35, 2.35, 11.55),      # lavabo / hall
-    (1.95, 18.85, 2.10, 21.25),      # closet / banho suíte
-    # lavanderia
-    (1.50, 3.15, 1.65, 5.50),
-    (0.20, 3.15, 1.50, 3.30),
+    (2.30, 14.35, 2.45, 15.85),      # banho compartilhado / hall
+    # lavanderia (dentro do bloco social, junto à cozinha)
+    (5.20, 5.70, 5.35, 7.35),
+    (5.35, 7.20, 7.80, 7.35),
 ]
 MUROS = [
     (0, 0, 0.20, 5.50),
@@ -51,38 +52,40 @@ MUROS = [
 ]
 # Aberturas: (x0, y0, x1, y1, tipo, rótulo)
 OPEN = [
-    (4.40, 5.50, 5.30, 5.70, "door", "P1"),
-    (2.30, 5.50, 4.10, 5.70, "win", "J1"),
+    (4.15, 5.50, 5.05, 5.70, "door", "P1"),
+    (1.60, 5.50, 3.40, 5.70, "win", "J1"),
     (5.90, 5.50, 7.30, 5.70, "win", "J2"),
     (5.00, 10.20, 7.80, 10.35, "glass", "V1"),
-    (4.85, 10.35, 5.00, 21.25, "glass", "V2"),
+    (4.85, 10.35, 5.00, 21.80, "glass", "V2"),
     (3.60, 10.35, 3.75, 11.55, "void", ""),
     (2.20, 10.60, 2.35, 11.30, "door", "P3"),
     (3.60, 11.80, 3.75, 12.60, "door", "P2"),
-    (3.60, 13.00, 3.75, 14.20, "win", "J3"),
-    (3.60, 14.80, 3.75, 15.50, "door", "P3"),
-    (3.60, 16.20, 3.75, 17.00, "door", "P2"),
-    (3.60, 17.40, 3.75, 18.60, "win", "J3"),
-    (3.85, 21.25, 4.75, 21.40, "door", "P1"),
-    (0.70, 21.25, 1.40, 21.40, "door", "P3"),
-    (2.50, 21.25, 3.20, 21.40, "door", "P3"),
-    (4.85, 21.45, 5.00, 22.20, "win", "J4"),
+    (3.60, 12.90, 3.75, 14.10, "win", "J3"),
+    (3.60, 14.35, 3.75, 15.85, "void", ""),
+    (2.30, 14.75, 2.45, 15.45, "door", "P3"),
+    (3.60, 16.10, 3.75, 16.90, "door", "P2"),
+    (3.60, 17.20, 3.75, 18.40, "win", "J3"),
+    (1.40, 20.15, 2.10, 20.30, "door", "P3"),
+    (1.40, 21.80, 2.10, 21.95, "door", "P3"),
+    (3.85, 21.80, 4.75, 21.95, "door", "P1"),
     (4.85, 22.60, 5.00, 24.40, "glass", "V3"),
     (5.20, 22.25, 6.00, 22.40, "void", ""),
-    (0.45, 3.15, 1.25, 3.30, "door", "P2"),
+    (5.55, 7.20, 6.35, 7.35, "door", "P2"),
 ]
 # Ambientes: (x centro, y centro, nome, largura, profundidade)
 ROOMS = [
-    (3.9, 8.9, "ESTAR / JANTAR / COZINHA\n(integrados)", 7.60, 4.50),
+    (2.7, 8.3, "ESTAR / JANTAR", 5.00, 4.50),
+    (6.5, 8.9, "COZINHA", 2.60, 2.85),
+    (6.6, 6.45, "LAVANDERIA", 2.45, 1.50),
     (1.2, 10.95, "LAVABO", 2.00, 1.20),
     (2.98, 10.95, "HALL", 1.25, 1.20),
-    (1.9, 13.0, "DEMI-SUÍTE 02", 3.40, 2.60),
-    (1.9, 15.2, "BANHO COMPARTILHADO", 3.40, 1.50),
-    (1.9, 17.4, "DEMI-SUÍTE 01", 3.40, 2.60),
-    (1.08, 20.05, "CLOSET", 1.75, 2.40),
-    (2.85, 20.05, "BANHO\nSUÍTE", 1.50, 2.40),
-    (2.5, 23.1, "SUÍTE MASTER", 4.65, 3.40),
-    (0.85, 4.4, "LAVAND.", 1.30, 2.20),
+    (1.9, 12.95, "DEMI-SUÍTE 02", 3.40, 2.50),
+    (1.25, 15.1, "BANHO COMP.", 2.10, 1.50),
+    (3.03, 15.1, "HALL", 1.15, 1.50),
+    (1.9, 17.25, "DEMI-SUÍTE 01", 3.40, 2.50),
+    (1.9, 19.4, "BANHO SUÍTE", 3.40, 1.50),
+    (1.9, 21.05, "CLOSET", 3.40, 1.50),
+    (2.5, 23.4, "SUÍTE MASTER", 4.65, 2.85),
 ]
 
 
@@ -139,24 +142,22 @@ def draw_plan(ax, etapa):
 
     for cx, cy, name, w, d in ROOMS:
         if name == "HALL":
-            ax.text(cx + 0.1, cy, "HALL\n1,50 m²", fontsize=4.2, ha="center", va="center")
+            ax.text(cx + 0.1, cy, f"HALL\n{br(w * d)} m²", fontsize=4.2, ha="center", va="center")
             continue
         ax.text(cx, cy, f"{name}\n{br(w)} × {br(d)}\n{br(w * d)} m²", fontsize=4.6, ha="center", va="center",
                 linespacing=1.25)
-    ax.text(4.3, 15.8, f"CORREDOR  1,10 × 10,90 = {br(1.10 * 10.90)} m²", fontsize=4.6, rotation=90,
+    ax.text(4.3, 15.8, "CORREDOR  1,10 × 11,45 = 12,60 m²", fontsize=4.6, rotation=90,
             ha="center", va="center")
     ax.text(6.4, 23.6, "SPA\n(descoberto)\n2,80 × 2,40\n6,72 m²", fontsize=4.6, ha="center", va="center")
     # zonas do social
-    ax.plot([5.20, 5.20], [5.70, 10.20], color="#999999", lw=0.4, ls=":")
-    ax.plot([0.20, 5.20], [8.10, 8.10], color="#999999", lw=0.4, ls=":")
-    ax.text(2.7, 6.6, "estar / TV", fontsize=4.4, ha="center", color="#555555")
+    ax.plot([5.20, 5.20], [7.35, 10.20], color="#999999", lw=0.4, ls=":")
+    ax.text(2.7, 6.5, "estar / TV", fontsize=4.4, ha="center", color="#555555")
     ax.text(2.7, 9.75, "jantar", fontsize=4.4, ha="center", color="#555555")
-    ax.text(6.5, 7.2, "cozinha", fontsize=4.4, ha="center", color="#555555")
 
     # veículos (5,00 × 1,90)
-    for x0 in (2.35, 5.45):
+    for x0 in (1.00, 5.50):
         rect(ax, (x0, 0.25, x0 + 1.90, 5.25), fill=False, ec="#777777", lw=0.5, ls="--")
-    ax.text(4.85, 2.6, "passagem", fontsize=4, rotation=90, ha="center", va="center", color="#555555")
+    ax.text(4.2, 2.6, "passagem 2,60", fontsize=4, rotation=90, ha="center", va="center", color="#555555")
 
     if etapa == 1:
         ax.text(4.0, 1.0, "GARAGEM DESCOBERTA\n5,50 m de profundidade — piso drenante", fontsize=4.6,
@@ -181,14 +182,14 @@ def draw_plan(ax, etapa):
         ax.text(6.4, 20.6, "jardim\n2,80 × 3,25", fontsize=4.4, ha="center", va="center")
 
     # cotas
-    ys = [0, 5.50, 5.70, 10.20, 10.35, 11.55, 11.70, 14.30, 14.45, 15.95, 16.10, 18.70, 18.85, 21.25, 21.40,
-          24.80, 25.00]
+    ys = [0, 5.50, 5.70, 10.20, 10.35, 11.55, 11.70, 14.20, 14.35, 15.85, 16.00, 18.50, 18.65, 20.15, 20.30,
+          21.80, 21.95, 24.80, 25.00]
     dim_chain(ax, ys, -0.45, True)
     dim_chain(ax, [0, 25.00], -1.25, True, fs=6)
     xs = [0, 0.20, 3.60, 3.75, 4.85, 5.00, 7.80, 8.00]
     dim_chain(ax, xs, -0.45, False)
     dim_chain(ax, [0, 8.00], -1.05, False, fs=6)
-    ax.text(4.75, 4.9, "largura livre para veículos: 6,15", fontsize=4, ha="center", color="#555555")
+    ax.text(4.2, 4.9, "largura livre 7,60", fontsize=4, ha="center", color="#555555")
     ax.text(4.0, -1.75, "RUA  (testada 8,00 m)", fontsize=5.5, ha="center", va="center")
     ax.set_xlim(-1.9, 9.3)
     ax.set_ylim(-2.0, 26.0)
@@ -229,34 +230,34 @@ def main():
         return y - 0.009
 
     y = table("ÁREAS ÚTEIS (internas, sem paredes)", [
-        ("Estar / jantar / cozinha integrados — 7,60 × 4,50", "34,20 m²", False),
-        ("Suíte master — 4,65 × 3,40", "15,81 m²", False),
-        ("Closet — 1,75 × 2,40", "4,20 m²", False),
-        ("Banho suíte — 1,50 × 2,40", "3,60 m²", False),
-        ("Demi-suíte 01 — 3,40 × 2,60", "8,84 m²", False),
-        ("Demi-suíte 02 — 3,40 × 2,60", "8,84 m²", False),
-        ("Banho compartilhado — 3,40 × 1,50", "5,10 m²", False),
+        ("Estar / jantar integrados — 5,00 × 4,50", "22,50 m²", False),
+        ("Cozinha — 2,60 × 2,85", "7,41 m²", False),
+        ("Lavanderia — 2,45 × 1,50", "3,68 m²", False),
+        ("Suíte master — 4,65 × 2,85", "13,25 m²", False),
+        ("Closet — 3,40 × 1,50", "5,10 m²", False),
+        ("Banho suíte — 3,40 × 1,50", "5,10 m²", False),
+        ("Demi-suíte 01 — 3,40 × 2,50", "8,50 m²", False),
+        ("Demi-suíte 02 — 3,40 × 2,50", "8,50 m²", False),
+        ("Banho compartilhado — 2,10 × 1,50", "3,15 m²", False),
+        ("Hall do banho — 1,15 × 1,50", "1,72 m²", False),
         ("Lavabo — 2,00 × 1,20", "2,40 m²", False),
         ("Hall do lavabo — 1,25 × 1,20", "1,50 m²", False),
-        ("Corredor envidraçado — 1,10 × 10,90", "11,99 m²", False),
-        ("Lavanderia — 1,30 × 2,20", "2,86 m²", False),
-        ("TOTAL ÁREA ÚTIL", "99,34 m²", True),
+        ("Corredor envidraçado — 1,10 × 11,45", "12,60 m²", False),
+        ("TOTAL ÁREA ÚTIL", "95,41 m²", True),
     ], y)
     y = table("QUADRO DE ÁREAS — ETAPA 1", [
         ("Área do terreno", "200,00 m²", False),
-        ("Área construída coberta — casa", "112,05 m²", False),
-        ("Área construída coberta — lavanderia", "3,88 m²", False),
-        ("ÁREA CONSTRUÍDA TOTAL = PROJEÇÃO", "115,93 m²", True),
-        ("Taxa de ocupação", "58,0 %", True),
-        ("Garagem descoberta (inclui passagem)", "40,12 m²", False),
+        ("ÁREA CONSTRUÍDA TOTAL = PROJEÇÃO", "112,05 m²", True),
+        ("Taxa de ocupação", "56,0 %", True),
+        ("Garagem descoberta — 8,00 × 5,50", "44,00 m²", False),
         ("Pátio central descoberto", "33,32 m²", False),
         ("Spa descoberto", "6,72 m²", False),
         ("Muros e divisória do pátio", "3,91 m²", False),
     ], y)
     y = table("QUADRO DE ÁREAS — ETAPA 2 (acréscimos)", [
         ("Área gourmet com pergolado — 2,80 × 5,00", "14,00 m²", False),
-        ("Projeção com gourmet coberto", "129,93 m²  (65,0 %)", True),
-        ("Cobertura da garagem (se autorizada)", "40,12 m²", False),
+        ("Projeção com gourmet coberto", "126,05 m²  (63,0 %)", True),
+        ("Cobertura da garagem (se autorizada)", "44,00 m²", False),
         ("Projeção com gourmet e garagem cobertos", "170,05 m²  (85,0 %)", True),
         ("Jardim remanescente no pátio", "19,32 m²  (9,7 %)", False),
     ], y)
@@ -265,11 +266,10 @@ def main():
         ("P2  Porta de quarto / lavanderia", "0,80 × 2,10", False),
         ("P3  Porta de banheiro, lavabo e closet", "0,70 × 2,10", False),
         ("J1  Janela do estar (frente)", "1,80 × 1,20", False),
-        ("J2  Janela da cozinha (frente)", "1,40 × 1,00", False),
+        ("J2  Janela da lavanderia (frente)", "1,40 × 1,00", False),
         ("J3  Janela de quarto para o corredor", "1,20 × 1,20", False),
-        ("J4  Janela da suíte para o pátio", "0,75 × 1,20", False),
         ("V1  Vidro de correr social / pátio, piso ao teto", "2,80 m de vão", False),
-        ("V2  Vidro de correr corredor / pátio, piso ao teto", "10,90 m de vão", False),
+        ("V2  Vidro de correr corredor / pátio, piso ao teto", "11,45 m de vão", False),
         ("V3  Porta de vidro suíte / spa", "1,80 × 2,10", False),
     ], y)
     notes = (
@@ -284,12 +284,12 @@ def main():
         "    assinatura de profissional habilitado (ART/RRT)."
     )
     tx.text(0, y, notes, fontsize=5.4, va="top", linespacing=1.3)
-    tx.text(0, 0.0, "Doc. CP-ARQ-01   |   Revisão R01 — 15/11/2026   |   Escala 1:100 (folha A3)   |   Unidade: metro",
+    tx.text(0, 0.0, "Doc. CP-ARQ-01   |   Revisão R02 — 15/11/2026   |   Escala 1:100 (folha A3)   |   Unidade: metro",
             fontsize=6.3, va="bottom", fontweight="bold")
 
     for ext in ("pdf", "svg"):
-        fig.savefig(os.path.join(OUT, f"CP-ARQ-01_planta-baixa_R01.{ext}"))
-    fig.savefig(os.path.join(OUT, "CP-ARQ-01_planta-baixa_R01.png"), dpi=200)
+        fig.savefig(os.path.join(OUT, f"CP-ARQ-01_planta-baixa_R02.{ext}"))
+    fig.savefig(os.path.join(OUT, "CP-ARQ-01_planta-baixa_R02.png"), dpi=200)
 
 
 if __name__ == "__main__":
