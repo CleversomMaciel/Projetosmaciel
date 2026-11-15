@@ -19,7 +19,7 @@ from planta_fase2 import br, rect, dim_chain, WALLS, MUROS, OPEN, ROOMS
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "..", "plantas")
 DOCS = os.path.join(HERE, "..", "planilhas")
-REV = "R00"
+REV = "R01"
 DATA = "15/11/2026"
 W, H = 42.0, 29.7  # A3 paisagem, cm
 
@@ -360,6 +360,106 @@ def arq03():
     footer(tx, "CP-ARQ-03")
     save(fig, "CP-ARQ-03_cobertura-cortes-fachada")
 
+
+
+# ----------------------------------------------------------------------------- ARQ-04 fachada com portão basculante
+def arq04():
+    fig = new_sheet()
+    ax = fig.add_axes([1.0 / W, 1.0 / H, 40.0 / W, 27.0 / H])   # 1:50 -> 20 m x 13,5 m
+    ax.set_xlim(-1.0, 19.0)
+    ax.set_ylim(-8.2, 5.3)
+    ax.set_aspect("equal")
+    ax.axis("off")
+    # ---- elevação
+    ax.plot([-0.6, 8.6], [0, 0], color="k", lw=1.0)
+    rect(ax, (0.2, 3.90, 3.6, 4.70), fc="#e9e9e9", ec="#888888", lw=0.5)               # volume do reservatório (fundo)
+    rect(ax, (0, 2.70, 8.0, 3.90), fc="#f1efe9", ec="#888888", lw=0.5)                 # casa ao fundo
+    rect(ax, (0, 3.40, 8.0, 3.90), fc="#e0ddd5", ec="#888888", lw=0.4)
+    for x0, x1 in ((0, 0.30), (1.30, 1.60), (7.70, 8.0)):
+        rect(ax, (x0, 0, x1, 2.70), fc="#6b6b6b", ec="k", lw=0.6)
+    rect(ax, (0, 2.40, 8.0, 2.70), fc="#6b6b6b", ec="k", lw=0.6)                       # viga do pórtico
+    rect(ax, (0.30, 0.03, 1.30, 2.40), fc="#b9895a", ec="k", lw=0.7)                   # portão social
+    rect(ax, (1.60, 0.03, 7.70, 2.40), fc="#3b3b3b", ec="k", lw=0.8)                   # basculante
+    yy = 0.15
+    while yy < 2.40:
+        ax.plot([1.62, 7.68], [yy, yy], color="#8a8a8a", lw=0.35)
+        yy += 0.12
+    ax.plot([4.65, 4.65], [0.03, 2.40], color="#8a8a8a", lw=0.5)
+    ax.annotate("", xy=(4.65, 2.15), xytext=(4.65, 0.5), arrowprops=dict(arrowstyle="->", color="white", lw=1.2))
+    ax.text(4.9, 1.3, "abre para cima", fontsize=6, color="white", va="center")
+    ax.text(0.8, 1.2, "portão\nsocial", fontsize=5.5, ha="center", va="center")
+    ax.text(4.0, 3.12, "casa ao fundo (a 5,50 m do alinhamento)", fontsize=5.5, ha="center", color="#555555")
+    ax.text(1.9, 4.3, "volume do reservatório", fontsize=5.5, ha="center", color="#555555")
+    dim_chain(ax, [0, 0.30, 1.30, 1.60, 7.70, 8.0], -0.35, False, min_label=0.25, fs=5.5)
+    dim_chain(ax, [0, 8.0], -0.85, False, fs=6.5)
+    dim_chain(ax, [0, 2.40, 2.70, 3.90, 4.70], 8.5, True, min_label=0.25, fs=5.5)
+    ax.text(4.0, 4.95, "FACHADA FRONTAL NO ALINHAMENTO DA RUA — escala 1:50", fontsize=9, fontweight="bold", ha="center")
+    # ---- corte lateral do portão
+    ox = 11.5
+    ax.plot([ox - 1.6, ox + 6.6], [0, 0], color="k", lw=1.0)
+    rect(ax, (ox, 0, ox + 0.30, 2.70), fc="#6b6b6b", ec="k", lw=0.6)
+    rect(ax, (ox + 5.50, 0.15, ox + 5.70, 3.90), fc="#3a3a3a", ec="none")              # parede frontal da casa
+    rect(ax, (ox + 5.50, 0, ox + 6.5, 0.15), fc="#bbbbbb", ec="none")
+    ax.plot([ox + 0.15, ox + 0.15], [0.03, 2.40], color="k", lw=2.2)                   # fechado
+    ax.plot([ox - 0.75, ox + 1.65], [2.28, 2.28], color=RED, lw=2.0, ls="--")           # aberto
+    ax.annotate("", xy=(ox - 0.5, 2.2), xytext=(ox + 0.1, 0.6),
+                arrowprops=dict(arrowstyle="->", color=RED, lw=0.8, connectionstyle="arc3,rad=-0.35"))
+    ax.text(ox + 0.45, 1.2, "fechado", fontsize=5.5, va="center")
+    ax.text(ox + 1.75, 2.28, "aberto", fontsize=5.5, va="center", color=RED)
+    ax.text(ox - 0.8, 0.25, "passeio", fontsize=5.5, ha="center")
+    ax.text(ox + 2.9, 0.25, "garagem descoberta", fontsize=5.5, ha="center")
+    rect(ax, (ox + 0.35, 0.02, ox + 5.35, 0.06), fc="none", ec="none")
+    ax.add_patch(Rectangle((ox + 0.45, 0.25), 4.9, 1.45, fill=False, ec="#999999", lw=0.5, ls="--"))
+    ax.text(ox + 2.9, 1.0, "veículo de até 5,35 m", fontsize=5, ha="center", color="#777777")
+    dim_chain(ax, [ox - 0.75, ox, ox + 0.30, ox + 5.50], -0.35, False, min_label=0.25, fs=5.5)
+    dim_chain(ax, [0, 2.28, 2.70], ox + 6.9, True, min_label=0.25, fs=5.5)
+    ax.text(ox + 2.5, 4.95, "CORTE C-C — PORTÃO BASCULANTE", fontsize=9, fontweight="bold", ha="center")
+    # ---- planta da frente
+    oy = -7.3
+    rect(ax, (0, oy, 8.0, oy + 5.7), fc="#eeeeee", ec="none")
+    rect(ax, (0, oy, 0.20, oy + 5.5), fc="#8a8a8a", ec="none")
+    rect(ax, (7.80, oy, 8.0, oy + 5.5), fc="#8a8a8a", ec="none")
+    rect(ax, (0, oy + 5.5, 8.0, oy + 5.7), fc="#3a3a3a", ec="none")
+    for x0, x1 in ((0, 0.30), (1.30, 1.60), (7.70, 8.0)):
+        rect(ax, (x0, oy, x1, oy + 0.30), fc="#6b6b6b", ec="k", lw=0.5)
+    ax.plot([1.60, 7.70], [oy + 0.15, oy + 0.15], color="k", lw=2.0)
+    ax.plot([0.30, 0.30], [oy + 0.15, oy + 1.15], color="k", lw=0.8)
+    ax.add_patch(matplotlib.patches.Arc((0.30, oy + 0.15), 2.0, 2.0, theta1=0, theta2=90, lw=0.5))
+    rect(ax, (1.60, oy - 0.80, 7.70, oy + 0.15), fill=False, ec=RED, lw=0.6, ls="--")
+    ax.text(4.65, oy - 0.45, "projeção do portão aberto sobre o passeio: 0,80 m", fontsize=5, ha="center", color=RED)
+    for x0 in (1.00, 5.50):
+        rect(ax, (x0, oy + 0.4, x0 + 1.90, oy + 5.4), fill=False, ec="#777777", lw=0.5, ls="--")
+    rect(ax, (4.15, oy + 5.5, 5.05, oy + 5.7), fc="#b9895a", ec="k", lw=0.4)
+    ax.text(4.6, oy + 5.2, "entrada", fontsize=5, ha="center")
+    ax.text(4.0, oy + 2.9, "GARAGEM DESCOBERTA\n8,00 × 5,50 — piso drenante", fontsize=6, ha="center", va="center")
+    ax.text(4.0, oy + 5.85, "PLANTA DA FRENTE", fontsize=9, fontweight="bold", ha="center")
+    # ---- quadro
+    tx = fig.add_axes([20.5 / W, 0.5 / H, 20.5 / W, 28.6 / H])
+    tx.axis("off"); tx.set_xlim(0, 1); tx.set_ylim(0, 1)
+    y = table(tx, "FECHAMENTO FRONTAL E MUROS", [
+        ("Portão basculante de alumínio/aço, lambril horizontal, com motor e contrapeso", "6,10 × 2,40 m"),
+        ("Portão social de abrir, mesma linguagem, fechadura elétrica", "1,00 × 2,40 m"),
+        ("Pórtico: 3 pilares 30 × 30 cm e viga 20 × 30 cm de concreto armado", "h = 2,70 m"),
+        ("Muros de divisa novos em bloco cerâmico, h = 2,20 m, com pilaretes a cada 2,50 m", "31,45 m"),
+        ("  laterais da garagem 2 × 5,50 | lateral do pátio 14,65 | fundos 3,00 | pátio/spa 2,80", ""),
+        ("Fundação dos muros: brocas Ø20 × 2,0 m e baldrame 15 × 25 cm", "13 brocas"),
+        ("Interfone/vídeo-porteiro e ponto de iluminação nos pilares", "1 cj"),
+    ], 0.50, fs=6.0)
+    notes(tx, y - 0.01, [
+        "1. O portão basculante abre para cima e, aberto, avança cerca de 0,80 m sobre o passeio a 2,28 m de altura.",
+        "    Confirmar na Prefeitura se a projeção sobre o passeio é permitida; se não for, usar basculante",
+        "    articulado (dobra em duas folhas e recolhe para dentro) no mesmo vão.",
+        "2. Vão livre de 6,10 m para dois carros. Motor dimensionado para o peso da folha, com destrave manual,",
+        "    sensor de barreira e sinalizador.",
+        "3. As paredes da casa sobre as divisas fazem o papel de muro nesses trechos.",
+        "4. Altura dos muros e do fechamento frontal a confirmar na legislação municipal.",
+        "5. Cores e materiais de acabamento a definir com o proprietário.",
+    ], fs=5.6)
+    fig.text(1.0 / W, 0.4 / H, f"Doc. CP-ARQ-04   |   Revisão {REV} — {DATA}   |   Escala 1:50 (folha A3)   |   Unidade: metro   |   "
+             "Anteprojeto — exige conferência e ART/RRT de profissional habilitado", fontsize=5.8, fontweight="bold")
+    fig.text(1.0 / W, 28.8 / H, "CASA PÁTIO — Cascavel/PR      ARQ-04 — Fachada frontal, portão basculante e muros",
+             fontsize=12, fontweight="bold")
+    save(fig, "CP-ARQ-04_fachada-portao-muros")
 
 # ----------------------------------------------------------------------------- EST-01
 YL = [5.60, 10.275, 11.625, 14.275, 15.925, 18.575, 20.225, 21.875, 24.90]
@@ -703,7 +803,12 @@ def quantitativos(est, ele):
     add("05 Estrutura", "Laje pré-moldada treliçada h = 12 cm (reservatório)", "m²", 5.10)
     add("06 Alvenaria", "Alvenaria de bloco cerâmico 14 × 19 × 29 — externas e divisas, h = 3,60", "m²", alv_ext, f"{br(L_ext, 2)} m lineares")
     add("06 Alvenaria", "Alvenaria de bloco cerâmico 11,5 × 19 × 29 — internas, h = 3,00", "m²", alv_int, f"{br(L_int, 2)} m lineares")
-    add("06 Alvenaria", "Muros de divisa h = 2,20 (garagem, pátio, fundos) — só se não existirem", "m²", L_muro * H_MURO, f"{br(L_muro, 2)} m lineares")
+    add("06 Alvenaria", "Muros de divisa novos h = 2,20 em bloco cerâmico 14 cm (garagem, pátio, fundos, pátio/spa)", "m²", L_muro * H_MURO, f"{br(L_muro, 2)} m lineares")
+    add("06 Alvenaria", "Muros: brocas Ø20 × 2,0 m (13 un)", "m", 26.0, "uma a cada 2,50 m")
+    add("06 Alvenaria", "Muros: baldrame 15 × 25 e pilaretes 15 × 15 — concreto fck 20 MPa", "m³", L_muro * 0.15 * 0.25 + 13 * 0.15 * 0.15 * 2.2)
+    add("06 Alvenaria", "Muros: aço CA-50 / CA-60", "kg", (L_muro * 0.15 * 0.25 + 13 * 0.15 * 0.15 * 2.2) * 80, "taxa adotada 80 kg/m³")
+    add("06 Alvenaria", "Muros: chapisco + reboco nas faces internas e topo", "m²", L_muro * H_MURO + L_muro * 0.2)
+    add("06 Alvenaria", "Pórtico frontal: 3 pilares 30 × 30 e viga 20 × 30 — concreto fck 25 MPa", "m³", 3 * 0.3 * 0.3 * 2.7 + 8.0 * 0.2 * 0.3 + 3 * 0.5 * 0.5 * 0.5)
     add("07 Vergas e contravergas", "Verga pré-moldada 10 × 10 sobre portas e janelas", "m", sum(d + 0.6 for d in doors) + (1.8 + 1.4 + 2.4 + 1.8) + 4 * 0.6)
     add("07 Vergas e contravergas", "Contraverga pré-moldada 10 × 10 sob janelas", "m", (1.8 + 1.4 + 2.4) + 4 * 0.6)
     add("08 Cobertura", "Estrutura metálica leve para telha (perfis U enrijecidos)", "m²", A_CONST)
@@ -783,7 +888,10 @@ def quantitativos(est, ele):
     add("21 Vidros", "Espelhos", "m²", 3 * 0.8)
     add("22 Iluminação", "Luminárias/painéis de LED de embutir", "un", ele["nL"] - 5)
     add("22 Iluminação", "Arandelas e luminárias externas", "un", 5)
-    add("23 Acabamentos", "Portão de garagem basculante/deslizante 8,00 m com motor", "un", 1, "a definir com o proprietário")
+    add("23 Acabamentos", "Portão basculante 6,10 × 2,40 com motor, contrapeso e sensor", "un", 1, "abre para cima; ver CP-ARQ-04")
+    add("23 Acabamentos", "Portão social 1,00 × 2,40 com fechadura elétrica", "un", 1)
+    add("23 Acabamentos", "Interfone / vídeo-porteiro", "un", 1)
+    add("23 Acabamentos", "Pintura/textura dos muros (faces internas)", "m²", L_muro * H_MURO)
     add("23 Acabamentos", "Calçada/passeio público", "m²", 8.0 * 2.0, "largura do passeio a confirmar")
     add("24 Limpeza final", "Limpeza final e remoção de entulho", "m²", A_CONST)
     summary = dict(L_ext=L_ext, L_int=L_int, alv_ext=alv_ext, alv_int=alv_int, reb_int=reb_int, reb_ext=reb_ext,
@@ -949,6 +1057,7 @@ def main():
     arq(1)
     arq(2)
     arq03()
+    arq04()
     est = est01()
     ele = ele01()
     hid01()
