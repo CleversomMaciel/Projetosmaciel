@@ -19,7 +19,7 @@ from planta_fase2 import br, rect, dim_chain, WALLS, MUROS, OPEN, ROOMS
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "..", "plantas")
 DOCS = os.path.join(HERE, "..", "planilhas")
-REV = "R01"
+REV = "R02"
 DATA = "15/11/2026"
 W, H = 42.0, 29.7  # A3 paisagem, cm
 
@@ -1048,6 +1048,70 @@ def planilha(Q, est, ele):
     ]):
         wg.cell(row=i + j, column=1, value=t)
     wg.freeze_panes = "D2"
+
+    # estimativa paramétrica
+    we = wb.create_sheet("Estimativa de custo", 0)
+    we["A1"] = "CASA PÁTIO — Estimativa paramétrica do custo da obra (Etapa 1 completa, com muros e portão)"
+    we["A1"].font = Font(bold=True, size=13)
+    we["A2"] = ("ESTIMATIVA, NÃO É COTAÇÃO NEM ORÇAMENTO. Base: índices de custo por m² (SINAPI-PR informado pelo proprietário, "
+                "sem conferência do mês; CUB-PR R-1 normal de setembro/2026, fonte secundária). Itens fora dos índices são "
+                "faixas de ordem de grandeza estimadas, a substituir por SINAPI item a item e por cotações em Cascavel.")
+    we["A2"].alignment = Alignment(wrap_text=True)
+    we.merge_cells("A2:E2")
+    we.row_dimensions[2].height = 48
+    head(we, ["Item", "Econômico (R$)", "Provável (R$)", "Alto (R$)", "Base / observação"], [62, 18, 18, 18, 70], row=4)
+    money = "#,##0"
+    rows = [
+        ("Área construída da casa (m²)", A_CONST, A_CONST, A_CONST, "Planta aprovada"),
+        ("Custo por m² adotado (R$/m²)", 2232.31, "=(B6+D6)/2", 3365.21,
+         "Econômico: índice SINAPI-PR sem desoneração. Alto: CUB-PR R-1 normal. Provável: média dos dois"),
+        ("A. Casa — material e mão de obra", "=B5*B6", "=C5*C6", "=D5*D6", "Área × custo por m²"),
+        ("Projetos, ART/RRT, aprovação, taxas e sondagem", 12000, 17000, 22000, "Fora dos índices"),
+        ("Muros de divisa novos — 69 m², com fundação e reboco", 19000, 24000, 29000, "Fora dos índices"),
+        ("Pórtico, portão basculante 6,10 × 2,40 motorizado, portão social e interfone", 18000, 24000, 30000, "Fora dos índices"),
+        ("Acréscimo pelas esquadrias de vidro piso ao teto (37 m²) acima do padrão dos índices", 20000, 27500, 35000, "Diferença sobre esquadria comum"),
+        ("Garagem drenante 44 m², jardim do pátio e calçada", 7500, 10800, 14100, "Fora dos índices"),
+        ("Infraestrutura do spa e esperas da Etapa 2", 2000, 3000, 4000, "Base, pontos e blocos"),
+        ("Ligações definitivas de água, esgoto e energia", 3000, 4500, 6000, "Sanepar e Copel"),
+        ("B. Itens fora dos índices", "=SUM(B8:B14)", "=SUM(C8:C14)", "=SUM(D8:D14)", ""),
+        ("C. Custo direto (A + B)", "=B7+B15", "=C7+C15", "=D7+D15", ""),
+        ("Administração / BDI da construtora (%)", 0.08, 0.15, 0.22,
+         "Econômico: obra por administração. Provável e alto: construtora com preço fechado"),
+        ("Reserva para imprevistos (%)", 0.05, 0.07, 0.10, "A fundação depende da sondagem"),
+        ("D. Administração / BDI (R$)", "=B16*B17", "=C16*C17", "=D16*D17", ""),
+        ("E. Reserva (R$)", "=B16*B18", "=C16*C18", "=D16*D18", ""),
+        ("TOTAL ESTIMADO DA OBRA (C + D + E)", "=B16+B19+B20", "=C16+C19+C20", "=D16+D19+D20", "Não inclui o terreno, móveis, eletrodomésticos, ar-condicionado e o equipamento do spa"),
+        ("Total por m² construído (R$/m²)", "=B21/B5", "=C21/C5", "=D21/D5", ""),
+    ]
+    for i, row in enumerate(rows, 5):
+        for c, v in enumerate(row, 1):
+            cell = we.cell(row=i, column=c, value=v)
+            if c in (2, 3, 4):
+                cell.number_format = "0.0%" if i in (17, 18) else ("#,##0.00" if i in (5, 6) else money)
+        if row[0][:2] in ("A.", "B.", "C.", "TO"):
+            for c in range(1, 6):
+                we.cell(row=i, column=c).font = bold
+                we.cell(row=i, column=c).fill = sec_fill
+    r0 = 25
+    we.cell(row=r0, column=1, value="DISTRIBUIÇÃO DO ITEM A (CASA) POR ETAPA — cenário provável").font = bold
+    we.cell(row=r0 + 1, column=1, value="Pesos típicos de referência para casa térrea. Não são preços medidos; servem para planejar desembolso.")
+    head(we, ["Etapa", "Peso (%)", "Valor provável (R$)", "", ""], [62, 18, 18, 18, 70], row=r0 + 2)
+    pesos = [("01 Serviços preliminares", 3.0), ("02 Limpeza e preparação do terreno", 0.5), ("03 Terraplenagem", 1.0),
+             ("04 Fundação", 6.5), ("05 Estrutura", 8.5), ("06 Alvenaria", 7.5), ("07 Vergas e contravergas", 0.5),
+             ("08 Cobertura", 9.0), ("09 Impermeabilização", 2.0), ("10 Instalação hidráulica", 4.0),
+             ("11 Instalação sanitária", 4.0), ("12 Instalação elétrica", 7.0), ("13 Esquadrias", 5.0),
+             ("14 Revestimentos", 8.5), ("15 Contrapiso", 3.0), ("16 Pisos", 8.0), ("17 Forros", 3.0), ("18 Pintura", 6.0),
+             ("19 Louças e metais", 3.0), ("20 Bancadas", 1.5), ("21 Vidros", 4.0), ("22 Iluminação", 1.5),
+             ("23 Acabamentos", 2.0), ("24 Limpeza final", 1.0)]
+    assert abs(sum(p for _, p in pesos) - 100) < 1e-9
+    for i, (n, pz) in enumerate(pesos, r0 + 3):
+        we.cell(row=i, column=1, value=n)
+        we.cell(row=i, column=2, value=pz / 100).number_format = "0.0%"
+        we.cell(row=i, column=3, value=f"=$C$7*B{i}").number_format = money
+    i = r0 + 3 + len(pesos)
+    we.cell(row=i, column=1, value="TOTAL").font = bold
+    we.cell(row=i, column=2, value=f"=SUM(B{r0 + 3}:B{i - 1})").number_format = "0.0%"
+    we.cell(row=i, column=3, value=f"=SUM(C{r0 + 3}:C{i - 1})").number_format = money
     wb.save(os.path.join(DOCS, f"CP-ORC-01_quantitativos-orcamento_{REV}.xlsx"))
 
 
