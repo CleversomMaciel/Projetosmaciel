@@ -1,4 +1,4 @@
-"""Casa Pátio — planta baixa cotada (Fase 2, estudo preliminar R02).
+"""Casa Pátio — planta baixa cotada (Fase 2, estudo preliminar R03).
 
 Gera PDF (A3, 1:100), SVG editável e PNG em ../plantas/.
 Coordenadas em metros: x = largura (0 a 8), y = profundidade (0 = alinhamento da rua, 25 = fundos).
@@ -37,8 +37,6 @@ WALLS = [
     (0.20, 18.50, 3.60, 18.65),
     (0.20, 20.15, 3.60, 20.30),      # banho suíte / closet
     (0.20, 21.80, 4.85, 21.95),      # frente da suíte
-    (2.20, 10.35, 2.35, 11.55),      # lavabo / hall
-    (2.30, 14.35, 2.45, 15.85),      # banho compartilhado / hall
     # lavanderia (dentro do bloco social, junto à cozinha)
     (5.20, 5.70, 5.35, 7.35),
     (5.35, 7.20, 7.80, 7.35),
@@ -57,12 +55,11 @@ OPEN = [
     (5.90, 5.50, 7.30, 5.70, "win", "J2"),
     (5.00, 10.20, 7.80, 10.35, "glass", "V1"),
     (4.85, 10.35, 5.00, 21.80, "glass", "V2"),
-    (3.60, 10.35, 3.75, 11.55, "void", ""),
-    (2.20, 10.60, 2.35, 11.30, "door", "P3"),
+    (3.60, 10.60, 3.75, 11.30, "door", "P3"),
     (3.60, 11.80, 3.75, 12.60, "door", "P2"),
     (3.60, 12.90, 3.75, 14.10, "win", "J3"),
-    (3.60, 14.35, 3.75, 15.85, "void", ""),
-    (2.30, 14.75, 2.45, 15.45, "door", "P3"),
+    (2.60, 14.20, 3.30, 14.35, "door", "P3"),
+    (2.60, 15.85, 3.30, 16.00, "door", "P3"),
     (3.60, 16.10, 3.75, 16.90, "door", "P2"),
     (3.60, 17.20, 3.75, 18.40, "win", "J3"),
     (1.40, 20.15, 2.10, 20.30, "door", "P3"),
@@ -77,11 +74,9 @@ ROOMS = [
     (2.7, 8.3, "ESTAR / JANTAR", 5.00, 4.50),
     (6.5, 8.9, "COZINHA", 2.60, 2.85),
     (6.6, 6.45, "LAVANDERIA", 2.45, 1.50),
-    (1.2, 10.95, "LAVABO", 2.00, 1.20),
-    (2.98, 10.95, "HALL", 1.25, 1.20),
+    (1.7, 10.95, "LAVABO", 3.40, 1.20),
     (1.9, 12.95, "DEMI-SUÍTE 02", 3.40, 2.50),
-    (1.25, 15.1, "BANHO COMP.", 2.10, 1.50),
-    (3.03, 15.1, "HALL", 1.15, 1.50),
+    (1.5, 15.1, "BANHO COMPARTILHADO", 3.40, 1.50),
     (1.9, 17.25, "DEMI-SUÍTE 01", 3.40, 2.50),
     (1.9, 19.4, "BANHO SUÍTE", 3.40, 1.50),
     (1.9, 21.05, "CLOSET", 3.40, 1.50),
@@ -238,12 +233,10 @@ def main():
         ("Banho suíte — 3,40 × 1,50", "5,10 m²", False),
         ("Demi-suíte 01 — 3,40 × 2,50", "8,50 m²", False),
         ("Demi-suíte 02 — 3,40 × 2,50", "8,50 m²", False),
-        ("Banho compartilhado — 2,10 × 1,50", "3,15 m²", False),
-        ("Hall do banho — 1,15 × 1,50", "1,72 m²", False),
-        ("Lavabo — 2,00 × 1,20", "2,40 m²", False),
-        ("Hall do lavabo — 1,25 × 1,20", "1,50 m²", False),
+        ("Banho compartilhado (acesso pelos dois quartos) — 3,40 × 1,50", "5,10 m²", False),
+        ("Lavabo — 3,40 × 1,20", "4,08 m²", False),
         ("Corredor envidraçado — 1,10 × 11,45", "12,60 m²", False),
-        ("TOTAL ÁREA ÚTIL", "95,41 m²", True),
+        ("TOTAL ÁREA ÚTIL", "95,81 m²", True),
     ], y)
     y = table("QUADRO DE ÁREAS — ETAPA 1", [
         ("Área do terreno", "200,00 m²", False),
@@ -284,12 +277,12 @@ def main():
         "    assinatura de profissional habilitado (ART/RRT)."
     )
     tx.text(0, y, notes, fontsize=5.4, va="top", linespacing=1.3)
-    tx.text(0, 0.0, "Doc. CP-ARQ-01   |   Revisão R02 — 15/11/2026   |   Escala 1:100 (folha A3)   |   Unidade: metro",
+    tx.text(0, 0.0, "Doc. CP-ARQ-01   |   Revisão R03 — 15/11/2026   |   Escala 1:100 (folha A3)   |   Unidade: metro",
             fontsize=6.3, va="bottom", fontweight="bold")
 
     for ext in ("pdf", "svg"):
-        fig.savefig(os.path.join(OUT, f"CP-ARQ-01_planta-baixa_R02.{ext}"))
-    fig.savefig(os.path.join(OUT, "CP-ARQ-01_planta-baixa_R02.png"), dpi=200)
+        fig.savefig(os.path.join(OUT, f"CP-ARQ-01_planta-baixa_R03.{ext}"))
+    fig.savefig(os.path.join(OUT, "CP-ARQ-01_planta-baixa_R03.png"), dpi=200)
 
 
 if __name__ == "__main__":
