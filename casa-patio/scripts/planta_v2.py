@@ -45,13 +45,13 @@ MUROS = [
     (0.20, 24.80, 1.70, 25.00), (5.80, 24.80, 7.80, 25.00), (5.80, 22.25, 7.80, 22.40),
 ]
 OPEN = [
-    (4.55, 5.50, 5.45, 5.70, "door", "P1"), (2.30, 5.50, 3.90, 5.70, "win", "J1"), (6.00, 5.50, 7.40, 5.70, "win", "J2"),
-    (1.70, 22.40, 1.90, 24.00, "win", "J3"), (1.70, 18.75, 1.90, 19.35, "win", "J5"),
+    (4.55, 5.50, 5.45, 5.70, "door", "P1"), (1.95, 5.50, 4.35, 5.70, "win", "J1"), (5.90, 5.50, 7.50, 5.70, "win", "J2"),
+    (1.70, 22.40, 1.90, 24.00, "win", "J3"), (1.70, 18.55, 1.90, 19.55, "win", "J5"),
     (1.70, 15.90, 1.90, 17.10, "win", "J4"), (1.70, 12.75, 1.90, 13.95, "win", "J4"),
-    (1.70, 10.80, 1.90, 11.40, "win", "J5"),
-    (4.60, 10.70, 4.75, 11.40, "door", "P3"), (4.60, 14.10, 4.75, 14.90, "door", "P2"),
+    (1.70, 10.60, 1.90, 11.60, "win", "J5"),
+    (4.60, 10.65, 4.75, 11.45, "door", "P2"), (4.60, 14.10, 4.75, 14.90, "door", "P2"),
     (4.60, 17.25, 4.75, 18.05, "door", "P2"),
-    (2.90, 19.80, 3.60, 19.95, "door", "P3"), (2.90, 21.45, 3.60, 21.60, "door", "P3"),
+    (2.85, 19.80, 3.65, 19.95, "door", "P2"), (2.90, 21.45, 3.60, 21.60, "door", "P3"),
     (4.80, 21.45, 5.60, 21.60, "door", "P2"),
     (5.65, 10.65, 5.80, 11.45, "door", "P2"), (6.30, 11.85, 7.30, 12.00, "win", "J6"),
     (5.65, 12.00, 5.80, 21.45, "glass", "V2"), (5.65, 22.60, 5.80, 24.40, "glass", "V3"),
@@ -287,20 +287,19 @@ def medidas():
             ("Corredor lateral (descoberto)", "1,50 × 19,30", "28,95 m²", "—", ""), ("Garagem (descoberta)", "7,60 × 5,50", "41,80 m²", "—", ""),
             ("Pátio / gourmet (descoberto)", "2,00 × 10,25", "20,50 m²", "—", ""), ("Deck do spa (descoberto)", "2,00 × 2,40", "4,80 m²", "—", "")]
     y1 = grid("MEDIDAS DOS AMBIENTES", ["Ambiente", "Largura × profund.", "Área", "Pé-direito"], [0, 0.17, 0.29, 0.37], amb, 0.89)
-    esq = [("P1", "Porta de entrada", "0,90 × 2,10", "—", ""), ("P2", "Quartos, suíte, lavanderia", "0,80 × 2,10", "—", ""),
-           ("P3", "Banheiros e closet", "0,70 × 2,10", "—", ""), ("J1", "Janela do estar (frente)", "1,60 × 1,20", "1,00", ""),
-           ("J2", "Janela da cozinha (frente)", "1,40 × 1,00", "1,05", ""), ("J3", "Janela da suíte (lateral)", "1,60 × 1,20", "1,00", ""),
-           ("J4", "Janela dos quartos 02 e 03", "1,20 × 1,20", "1,00", ""), ("J5", "Janela alta dos banheiros", "0,60 × 0,60", "1,55", ""),
+    esq = [("P1", "Porta de entrada", "0,90 × 2,10", "—", ""), ("P2", "Quartos, suíte, banheiros, lavanderia", "0,80 × 2,10", "—", ""),
+           ("P3", "Closet", "0,70 × 2,10", "—", ""), ("J1", "Janela do estar (frente)", "2,40 × 1,50", "0,70", ""),
+           ("J2", "Janela da cozinha (frente)", "1,60 × 1,10", "1,10", ""), ("FA", "Faixa de vidro alta da sala (3 lados)", "16,30 × 0,70", "3,45", ""), ("J3", "Janela da suíte (lateral)", "1,60 × 1,20", "1,00", ""),
+           ("J4", "Janela dos quartos 02 e 03", "1,20 × 1,20", "1,00", ""), ("J5", "Janela alta dos banheiros", "1,00 × 0,60", "1,55", ""),
            ("J6", "Janela da lavanderia", "1,00 × 1,00", "1,00", ""), ("V2", "Vidro corredor / pátio", "9,45 × 2,60", "piso", ""),
            ("V3", "Porta de vidro suíte / spa", "1,80 × 2,10", "piso", "")]
     grid("PORTAS E JANELAS", ["Cód.", "Local", "Largura × altura", "Peitoril"], [0, 0.04, 0.21, 0.32], esq, 0.89, x0=0.53)
-    il = [("Estar / jantar / cozinha, só janelas baixas", "26,55", "3,32 (12,5 %)", "1,66 (6,3 %)", "INSUFICIENTE", "no"),
-          ("Estar / jantar / cozinha, com faixa alta", "26,55", "14,73 (55,5 %)", "3,76 (14,2 %)", "BOA", "ok"),
+    il = [("Estar / jantar / cozinha", "26,55", "16,77 (63,2 %)", "4,78 (18,0 %)", "BOA", "ok"),
           ("Suíte master", "12,00", "5,70 (47,5 %)", "2,85 (23,8 %)", "BOA", "ok"),
           ("Quarto 02", "8,10", "1,44 (17,8 %)", "0,72 (8,9 %)", "ATENDE", "ok"),
           ("Quarto 03", "8,10", "1,44 (17,8 %)", "0,72 (8,9 %)", "ATENDE", "ok"),
-          ("Banho social", "4,05", "0,36 (8,9 %)", "0,36 (8,9 %)", "JANELA PEQUENA", "at"),
-          ("Banho da suíte", "4,05", "0,36 (8,9 %)", "0,36 (8,9 %)", "JANELA PEQUENA", "at"),
+          ("Banho social", "4,05", "0,60 (14,8 %)", "0,60 (14,8 %)", "ATENDE", "ok"),
+          ("Banho da suíte", "4,05", "0,60 (14,8 %)", "0,60 (14,8 %)", "ATENDE", "ok"),
           ("Lavanderia", "3,00", "1,00 (33,3 %)", "0,50 (16,7 %)", "BOA", "ok"),
           ("Closet", "4,05", "sem janela", "pelas portas", "ACEITÁVEL", "ok")]
     y2 = grid("ILUMINAÇÃO E VENTILAÇÃO NATURAL", ["Ambiente", "Piso (m²)", "Vidro (m² e % do piso)", "Abertura p/ ar (m² e %)", "Situação"],
@@ -312,7 +311,7 @@ def medidas():
     ci = [("Corredor lateral", "1,50 m", "Confortável. Duas pessoas se cruzam; cadeira de rodas gira.", "AMPLO", "ok"),
           ("Corredor interno", "0,90 m × 11,25 m", "Passa uma pessoa por vez. Para duas se cruzarem seria 1,20 m.", "JUSTO", "at"),
           ("Portas dos quartos", "0,80 m", "Boas para uso comum. Cadeira de rodas pede folha de 0,90 m.", "ATENDE", "ok"),
-          ("Portas dos banheiros", "0,70 m", "Estreitas para cadeira de rodas ou andador.", "ESTREITAS", "at"),
+          ("Portas dos banheiros", "0,80 m", "Iguais às dos quartos. Casa adaptável no futuro.", "ATENDE", "ok"),
           ("Suíte master", "1,05 a 1,20 m livres", "Sobra espaço dos dois lados e no pé da cama queen.", "AMPLA", "ok"),
           ("Quartos 02 e 03", "0,82 / 0,75 / 0,37 m", "Cama de casal encostada: acesso por um lado só. Com solteiro fica folgado.", "JUSTO", "at"),
           ("Closet", "1,60 m entre armários", "Passagem larga entre quarto e banho.", "AMPLO", "ok"),
@@ -327,24 +326,25 @@ def medidas():
         "COMO O AR CIRCULA\n"
         "• Quartos: o ar entra pela janela do corredor lateral e sai pela porta, pelo corredor interno e pelo vidro do pátio. É ventilação cruzada, a melhor que\n"
         "   existe, mas só funciona com a porta do quarto aberta. Uma bandeira ventilada sobre a porta resolve com a porta fechada.\n"
-        "• Sala e cozinha: são o ponto fraco. Só têm as duas janelas da frente, e a lavanderia ficou entre a cozinha e o pátio.\n"
+        "• Sala e cozinha: o ar entra pelas janelas da frente e o ar quente sai pelos painéis que abrem na faixa de vidro alta.\n"
         "• Corredor lateral: com 1,50 m e aberto em cima, funciona como poço de luz e ar para a ala dos quartos.\n"
         "\n"
-        "AJUSTES QUE RECOMENDO (não mexem na planta, só em janelas, portas e móveis)\n"
-        "1. Bloco social com pé-direito de 4,30 m e faixa de vidro alta de 0,70 m (do nível 3,45 ao 4,15) em três lados: frente, corredor lateral e\n"
-        "    fundo, acima do telhado dos quartos. São 16,30 m de faixa, 11,41 m² de vidro. A parede da divisa direita fica cega.\n"
-        "2. Seis painéis da faixa alta que abrem (maxim-ar com comando): o ar quente sobe e sai por cima, e a sala ganha ventilação cruzada.\n"
-        "3. Janelas dos banheiros de 0,60 × 0,60 para 1,00 × 0,60 (basculante).\n"
-        "4. Portas dos banheiros de 0,70 para 0,80 m. Custo quase igual e a casa fica adaptável no futuro.\n"
+        "AJUSTES JÁ APLICADOS NESTA REVISÃO\n"
+        "1. Sala e cozinha com pé-direito de 4,30 m e faixa de vidro alta de 0,70 m em três lados (16,30 m, 11,41 m² de vidro), com seis painéis que abrem.\n"
+        "2. Janela do estar J1 ampliada para 2,40 × 1,50 e janela da cozinha J2 para 1,60 × 1,10.\n"
+        "3. Janelas dos banheiros ampliadas para 1,00 × 0,60 (basculante).\n"
+        "4. Portas dos banheiros com 0,80 m.\n"
+        "\n"
+        "AINDA RECOMENDO (móveis e equipamentos)\n"
         "5. Mesa de jantar redonda de 1,10 m (4 a 5 lugares) ou banco fixo no lado da parede, no lugar da mesa de 6 com cadeiras dos dois lados.\n"
         "6. Coifa na cozinha, porque o cooktop fica longe de janela.\n"
         "7. Na área gourmet, mesa estreita de 0,65 m com banco do lado do vidro, e abrir as folhas do corredor para ganhar largura nos dias de uso."
     )
     tx.text(0, y4 - 0.002, notes, fontsize=5.6, va="top", linespacing=1.32)
-    tx.text(0, 0.0, f"Doc. CP-ARQ-V2-MED   |   Revisão R01 — {DATA}   |   Escala 1:100 (folha A3)   |   Unidade: metro   |   "
+    tx.text(0, 0.0, f"Doc. CP-ARQ-V2-MED   |   Revisão R02 — {DATA}   |   Escala 1:100 (folha A3)   |   Unidade: metro   |   "
             "Estudo — exige conferência e ART/RRT de profissional habilitado", fontsize=6, va="bottom", fontweight="bold")
     for ext, kw in (("pdf", {}), ("png", {"dpi": 200})):
-        fig.savefig(os.path.join(OUT, f"CP-ARQ-V2_planta-terrea-medidas_R01.{ext}"), **kw)
+        fig.savefig(os.path.join(OUT, f"CP-ARQ-V2_planta-terrea-medidas_R02.{ext}"), **kw)
 
 
 def corte_social():
@@ -417,8 +417,8 @@ def main():
     ], y)
     y = table("ESQUADRIAS", [
         ("P1 porta de entrada 0,90 × 2,10  |  P2 portas 0,80 × 2,10  |  P3 portas 0,70 × 2,10", ""),
-        ("J1 estar 1,60 × 1,20  |  J2 cozinha 1,40 × 1,00  |  J3 suíte 1,60 × 1,20", ""),
-        ("J4 quartos 1,20 × 1,20  |  J5 banheiros 0,60 × 0,60 alta  |  J6 lavanderia 1,00 × 1,00", ""),
+        ("J1 estar 2,40 × 1,50  |  J2 cozinha 1,60 × 1,10  |  J3 suíte 1,60 × 1,20", ""),
+        ("J4 quartos 1,20 × 1,20  |  J5 banheiros 1,00 × 0,60 alta  |  J6 lavanderia 1,00 × 1,00", ""),
         ("V2 vidro de abrir piso ao teto corredor/pátio 9,45 m  |  V3 porta de vidro suíte/spa 1,80", ""),
     ], y)
     notes = (
