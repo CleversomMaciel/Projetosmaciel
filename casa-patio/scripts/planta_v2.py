@@ -83,7 +83,7 @@ FURN = [
     (1.90, 10.35, 2.80, 11.85, "shower", "#b5d6e6"), (3.50, 10.35, 4.50, 10.83, "box", "#efefef"), (2.95, 10.35, 3.35, 11.00, "wc", "#fff"),
     (1.90, 6.60, 2.35, 8.60, "box", W), (3.75, 6.50, 4.70, 8.70, "sofa", "#c9c0b0"), (2.75, 7.05, 3.30, 8.15, "box", "#7d5029"),
     (5.60, 5.70, 7.80, 6.30, "box", "#4a4a4a"), (6.40, 5.78, 7.00, 6.22, "sink", "#c8c8c8"), (7.20, 6.30, 7.80, 7.50, "box", "#4a4a4a"),
-    (7.26, 6.55, 7.74, 7.25, "cook", "#1d1d1d"), (5.60, 6.30, 6.25, 7.00, "box", "#dcdcdc"),
+    (7.26, 6.55, 7.74, 7.25, "cook", "#1d1d1d"), (7.12, 7.50, 7.80, 8.18, "box", "#dcdcdc"),
     (6.10, 8.20, 7.00, 9.80, "box", W),
     (5.68, 8.28, 6.06, 8.68, "chair", "#e4d7bf"), (5.68, 8.80, 6.06, 9.20, "chair", "#e4d7bf"), (5.68, 9.32, 6.06, 9.72, "chair", "#e4d7bf"),
     (7.04, 8.28, 7.42, 8.68, "chair", "#e4d7bf"), (7.04, 8.80, 7.42, 9.20, "chair", "#e4d7bf"), (7.04, 9.32, 7.42, 9.72, "chair", "#e4d7bf"),
@@ -231,6 +231,121 @@ def humanizada(ax):
     ax.text(4.0, 25.35, "PLANTA COM MÓVEIS (Etapa 2 com gourmet)", fontsize=8, fontweight="bold", ha="center")
 
 
+# ----------------------------------------------------------------------------- prancha de medidas e análise
+CLEAR = [  # (x0, y0, x1, y1, rótulo): passagens livres medidas entre móveis e paredes
+    (4.75, 13.0, 5.65, 13.0, "0,90"), (0.20, 9.0, 1.70, 9.0, "1,50"),
+    (3.78, 14.0, 4.60, 14.0, "0,82"), (3.0, 12.50, 3.0, 13.25, "0,75"), (3.0, 14.63, 3.0, 15.00, "0,37"),
+    (3.78, 17.0, 4.60, 17.0, "0,82"), (3.0, 15.65, 3.0, 16.40, "0,75"), (3.0, 17.78, 3.0, 18.15, "0,37"),
+    (3.8, 21.60, 3.8, 22.80, "1,20"), (1.90, 23.5, 3.00, 23.5, "1,10"), (4.60, 23.5, 5.65, 23.5, "1,05"),
+    (2.45, 20.2, 4.05, 20.2, "1,60"), (2.35, 7.6, 3.75, 7.6, "1,40"), (4.70, 8.6, 5.68, 8.6, "0,98"),
+    (7.42, 9.25, 7.80, 9.25, "0,38"), (6.6, 6.30, 6.6, 8.20, "1,90"), (5.80, 13.2, 7.80, 13.2, "2,00"),
+    (2.80, 11.65, 4.60, 11.65, "1,80"), (2.80, 19.6, 4.60, 19.6, "1,80"), (4.10, 3.0, 5.60, 3.0, "1,50"),
+]
+
+
+def medidas():
+    PW, PH = 42.0, 29.7
+    fig = plt.figure(figsize=(PW / 2.54, PH / 2.54))
+    ax = fig.add_axes([0.8 / PW, 0.5 / PH, 11.2 / PW, 28.0 / PH])
+    tecnica(ax)
+    for t in list(ax.texts):
+        if t.get_text() == "PLANTA COTADA":
+            t.set_text("PLANTA TÉRREA COTADA")
+    for x0, y0, x1, y1, kind, col in FURN:                                   # móveis em contorno
+        rect(ax, (x0, y0, x1, y1), fill=False, ec="#9a9a9a", lw=0.35)
+    for x0, y0, x1, y1, lab in CLEAR:                                        # passagens livres
+        ax.annotate("", xy=(x1, y1), xytext=(x0, y0), arrowprops=dict(arrowstyle="<->", color="#b00000", lw=0.6,
+                                                                     shrinkA=0, shrinkB=0, mutation_scale=4))
+        horiz = abs(x1 - x0) > abs(y1 - y0)
+        ax.text((x0 + x1) / 2 + (0 if horiz else 0.07), (y0 + y1) / 2 + (0.07 if horiz else 0), lab, fontsize=3.8,
+                color="#b00000", ha="center" if horiz else "left", va="bottom" if horiz else "center", fontweight="bold")
+    dim_chain(ax, [5.50, 5.70, 10.20, 10.35, 11.85, 12.00, 22.25, 22.40, 24.80, 25.00], 8.75, True, fs=4.4)
+    ax.set_xlim(-1.9, 9.3)
+
+    tx = fig.add_axes([12.8 / PW, 0.5 / PH, 28.6 / PW, 28.6 / PH]); tx.axis("off"); tx.set_xlim(0, 1); tx.set_ylim(0, 1)
+    tx.text(0, 0.985, "CASA PÁTIO — Cascavel/PR", fontsize=13, fontweight="bold", va="top")
+    tx.text(0, 0.95, "Planta térrea com todas as medidas e análise de circulação, ventilação e conforto", fontsize=10,
+            fontweight="bold", va="top")
+    tx.text(0, 0.925, "Planta V2 aprovada pelo proprietário. Números vermelhos na planta: passagem livre entre móveis e paredes, em metros.",
+            fontsize=7, va="top")
+
+    def grid(title, cols, xs, rows, y, x0=0.0, fs=5.9):
+        tx.text(x0, y, title, fontsize=8, fontweight="bold", va="top"); y -= 0.022
+        for c, x in zip(cols, xs):
+            tx.text(x0 + x, y, c, fontsize=fs, fontweight="bold", va="top")
+        y -= 0.016
+        for r in rows:
+            color = {"ok": "#1d6b2f", "at": "#a05a00", "no": "#b00000"}.get(r[-1], "k")
+            for i, (c, x) in enumerate(zip(r[:-1], xs)):
+                tx.text(x0 + x, y, c, fontsize=fs, va="top", color=color if i == len(r) - 2 else "k",
+                        fontweight="bold" if i == len(r) - 2 else "normal")
+            tx.plot([x0, x0 + xs[-1] + 0.21], [y - 0.0128, y - 0.0128], color="#cccccc", lw=0.3); y -= 0.0150
+        return y - 0.007
+
+    amb = [(n.title(), f"{br(w)} × {br(d)}", br(w * d) + " m²", "2,80", "") for _, _, n, w, d in ROOMS]
+    amb += [("Corredor Interno", "0,90 × 11,25", "10,13 m²", "2,80", ""), ("TOTAL ÁREA ÚTIL", "", br(A_UTIL) + " m²", "", ""),
+            ("Corredor lateral (descoberto)", "1,50 × 19,30", "28,95 m²", "—", ""), ("Garagem (descoberta)", "7,60 × 5,50", "41,80 m²", "—", ""),
+            ("Pátio / gourmet (descoberto)", "2,00 × 10,25", "20,50 m²", "—", ""), ("Deck do spa (descoberto)", "2,00 × 2,40", "4,80 m²", "—", "")]
+    y1 = grid("MEDIDAS DOS AMBIENTES", ["Ambiente", "Largura × profund.", "Área", "Pé-direito"], [0, 0.17, 0.29, 0.37], amb, 0.89)
+    esq = [("P1", "Porta de entrada", "0,90 × 2,10", "—", ""), ("P2", "Quartos, suíte, lavanderia", "0,80 × 2,10", "—", ""),
+           ("P3", "Banheiros e closet", "0,70 × 2,10", "—", ""), ("J1", "Janela do estar (frente)", "1,60 × 1,20", "1,00", ""),
+           ("J2", "Janela da cozinha (frente)", "1,40 × 1,00", "1,05", ""), ("J3", "Janela da suíte (lateral)", "1,60 × 1,20", "1,00", ""),
+           ("J4", "Janela dos quartos 02 e 03", "1,20 × 1,20", "1,00", ""), ("J5", "Janela alta dos banheiros", "0,60 × 0,60", "1,55", ""),
+           ("J6", "Janela da lavanderia", "1,00 × 1,00", "1,00", ""), ("V2", "Vidro corredor / pátio", "9,45 × 2,60", "piso", ""),
+           ("V3", "Porta de vidro suíte / spa", "1,80 × 2,10", "piso", "")]
+    grid("PORTAS E JANELAS", ["Cód.", "Local", "Largura × altura", "Peitoril"], [0, 0.04, 0.21, 0.32], esq, 0.89, x0=0.53)
+    il = [("Estar / jantar / cozinha", "26,55", "3,32 (12,5 %)", "1,66 (6,3 %)", "INSUFICIENTE", "no"),
+          ("Suíte master", "12,00", "5,70 (47,5 %)", "2,85 (23,8 %)", "BOA", "ok"),
+          ("Quarto 02", "8,10", "1,44 (17,8 %)", "0,72 (8,9 %)", "ATENDE", "ok"),
+          ("Quarto 03", "8,10", "1,44 (17,8 %)", "0,72 (8,9 %)", "ATENDE", "ok"),
+          ("Banho social", "4,05", "0,36 (8,9 %)", "0,36 (8,9 %)", "JANELA PEQUENA", "at"),
+          ("Banho da suíte", "4,05", "0,36 (8,9 %)", "0,36 (8,9 %)", "JANELA PEQUENA", "at"),
+          ("Lavanderia", "3,00", "1,00 (33,3 %)", "0,50 (16,7 %)", "BOA", "ok"),
+          ("Closet", "4,05", "sem janela", "pelas portas", "ACEITÁVEL", "ok")]
+    y2 = grid("ILUMINAÇÃO E VENTILAÇÃO NATURAL", ["Ambiente", "Piso (m²)", "Vidro (m² e % do piso)", "Abertura p/ ar (m² e %)", "Situação"],
+              [0, 0.17, 0.25, 0.42, 0.59], il, y1 - 0.004)
+    tx.text(0, y2 + 0.002, "Referências: iluminação de 1/6 do piso (16,7 %) em sala e quartos e 1/8 (12,5 %) em banheiros, usual nos códigos de obras; ventilação\n"
+            "de 7 % do piso (NBR 15575-4). Janela de correr abre metade do vão. Os valores exatos de Cascavel precisam ser conferidos no Código de Obras.",
+            fontsize=5.3, va="top", color="#444444", linespacing=1.3)
+    y3 = y2 - 0.036
+    ci = [("Corredor lateral", "1,50 m", "Confortável. Duas pessoas se cruzam; cadeira de rodas gira.", "AMPLO", "ok"),
+          ("Corredor interno", "0,90 m × 11,25 m", "Passa uma pessoa por vez. Para duas se cruzarem seria 1,20 m.", "JUSTO", "at"),
+          ("Portas dos quartos", "0,80 m", "Boas para uso comum. Cadeira de rodas pede folha de 0,90 m.", "ATENDE", "ok"),
+          ("Portas dos banheiros", "0,70 m", "Estreitas para cadeira de rodas ou andador.", "ESTREITAS", "at"),
+          ("Suíte master", "1,05 a 1,20 m livres", "Sobra espaço dos dois lados e no pé da cama queen.", "AMPLA", "ok"),
+          ("Quartos 02 e 03", "0,82 / 0,75 / 0,37 m", "Cama de casal encostada: acesso por um lado só. Com solteiro fica folgado.", "JUSTO", "at"),
+          ("Closet", "1,60 m entre armários", "Passagem larga entre quarto e banho.", "AMPLO", "ok"),
+          ("Banheiros", "1,80 × 1,50 m fora do box", "Bom para uso comum. Não é acessível sem adaptação.", "ATENDE", "ok"),
+          ("Sala de estar", "1,40 m sofá–rack", "Caminho da porta ao corredor com 0,98 m livres.", "BOA", "ok"),
+          ("Mesa de jantar", "0,38 m atrás das cadeiras", "Não dá para passar atrás de quem está sentado do lado da parede.", "APERTADA", "no"),
+          ("Cozinha", "1,90 m de corredor", "Espaço de sobra entre a bancada e a mesa.", "AMPLA", "ok"),
+          ("Pátio / gourmet", "2,00 m de largura", "Com bancada e mesa, só cabe gente sentada de um lado.", "APERTADO", "no"),
+          ("Garagem", "7,60 × 5,50 m", "Dois carros com 1,50 m de passagem no meio.", "AMPLA", "ok")]
+    y4 = grid("CIRCULAÇÃO E ESPAÇO PARA ANDAR", ["Local", "Medida livre", "Avaliação", "Situação"], [0, 0.13, 0.28, 0.69], ci, y3)
+    notes = (
+        "COMO O AR CIRCULA\n"
+        "• Quartos: o ar entra pela janela do corredor lateral e sai pela porta, pelo corredor interno e pelo vidro do pátio. É ventilação cruzada, a melhor que\n"
+        "   existe, mas só funciona com a porta do quarto aberta. Uma bandeira ventilada sobre a porta resolve com a porta fechada.\n"
+        "• Sala e cozinha: são o ponto fraco. Só têm as duas janelas da frente, e a lavanderia ficou entre a cozinha e o pátio.\n"
+        "• Corredor lateral: com 1,50 m e aberto em cima, funciona como poço de luz e ar para a ala dos quartos.\n"
+        "\n"
+        "AJUSTES QUE RECOMENDO (não mexem na planta, só em janelas, portas e móveis)\n"
+        "1. Janela do estar J1 de 1,60 × 1,20 para 2,40 × 1,50, e janela da cozinha J2 de 1,40 × 1,00 para 1,60 × 1,10. A área social passa a 20 % de\n"
+        "    vidro e 10 % de abertura, acima das referências.\n"
+        "2. Janela alta de 2,00 × 0,60 na parede da sala voltada para o corredor lateral, acima do painel da TV: cria ventilação cruzada na sala.\n"
+        "3. Janelas dos banheiros de 0,60 × 0,60 para 1,00 × 0,60 (basculante).\n"
+        "4. Portas dos banheiros de 0,70 para 0,80 m. Custo quase igual e a casa fica adaptável no futuro.\n"
+        "5. Mesa de jantar redonda de 1,10 m (4 a 5 lugares) ou banco fixo no lado da parede, no lugar da mesa de 6 com cadeiras dos dois lados.\n"
+        "6. Coifa na cozinha, porque o cooktop fica longe de janela.\n"
+        "7. Na área gourmet, mesa estreita de 0,65 m com banco do lado do vidro, e abrir as folhas do corredor para ganhar largura nos dias de uso."
+    )
+    tx.text(0, y4 - 0.002, notes, fontsize=5.6, va="top", linespacing=1.32)
+    tx.text(0, 0.0, f"Doc. CP-ARQ-V2-MED   |   Revisão R00 — {DATA}   |   Escala 1:100 (folha A3)   |   Unidade: metro   |   "
+            "Estudo — exige conferência e ART/RRT de profissional habilitado", fontsize=6, va="bottom", fontweight="bold")
+    for ext, kw in (("pdf", {}), ("png", {"dpi": 200})):
+        fig.savefig(os.path.join(OUT, f"CP-ARQ-V2_planta-terrea-medidas_R00.{ext}"), **kw)
+
+
 def main():
     PW, PH = 42.0, 29.7
     fig = plt.figure(figsize=(PW / 2.54, PH / 2.54))
@@ -296,6 +411,7 @@ def main():
             "Estudo para aprovação do proprietário", fontsize=6, va="bottom", fontweight="bold")
     for ext, kw in (("pdf", {}), ("png", {"dpi": 190})):
         fig.savefig(os.path.join(OUT, f"CP-ARQ-V2_proposta-corredor-lateral_{REV}.{ext}"), **kw)
+    medidas()
     print("util", round(A_UTIL, 2), "const", round(A_CONST, 2), "TO", round(A_CONST / 2, 1))
 
 
