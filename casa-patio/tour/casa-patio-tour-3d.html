@@ -416,10 +416,16 @@ function buildFurniture(){
   box(2.04,11.75,2.06,13.25,F,F+1.95,M.glass,{cast:false}); colliders.push([2.02,11.75,2.08,12.5]); fb(1.15,11.75,2.05,13.25,.005,.012,"stone",{cast:false});
   cyl(1.6,11.87,.012,F+1.0,F+2.1,"steel",{seg:8}); cyl(1.6,12.05,.11,F+2.08,F+2.1,"steel");
   toilet(2.2,11.75,2.6,12.4); vanity(2.75,11.75,3.4,12.2); ceilLight(2.5,12.65,.9,PDQ);
-  /* quarto 02, com porta de vidro para o jardim de inverno */
-  fb(0.3,13.4,2.5,13.92,0,2.4,"wood",{col:1}); for (let i=1;i<4;i++) fb(0.3+i*.55,13.92,0.305+i*.55,13.925,.05,2.35,"dark",{cast:false});
-  bed(0.2,14.55,2.2,16.13,"W"); fb(0.2,14.08,0.6,14.48,0,.5,"woodDark"); tableLamp(0.4,14.28,.5);
-  fb(0.9,14.4,3.2,16.25,0,.015,"rug",{cast:false}); painting(0.2,14.8,0.215,15.9,1.25,1.95); ceilLight(1.8,15.0,1.1,PDQ);
+  /* quarto 02: quarto de criança, cama de solteiro, com porta de vidro para o jardim de inverno */
+  fb(0.3,13.4,1.9,13.92,0,2.4,"wood",{col:1}); for (let i=1;i<3;i++) fb(0.3+i*.53,13.92,0.305+i*.53,13.925,.05,2.35,"dark",{cast:false});
+  fb(2.0,13.4,2.55,13.8,0,1.2,"wood",{col:1}); for (let h=.3;h<1.2;h+=.3) fb(2.02,13.8,2.53,13.805,h-.01,h+.01,"dark",{cast:false});
+  [[2.1,.32,"accent"],[2.3,.62,"fabric2"],[2.45,.92,"accent"]].forEach(q=>fb(q[0]-.07,13.5,q[0]+.07,13.75,q[1],q[1]+.2,q[2],{cast:false}));
+  bed(0.2,14.42,1.1,16.32,"N"); fb(1.15,15.95,1.5,16.3,0,.45,"woodDark"); tableLamp(1.32,16.12,.45);
+  fb(1.3,14.4,2.75,15.9,0,.015,"accent",{cast:false});
+  fb(2.85,14.6,3.4,15.8,.7,.74,"wood"); fb(2.87,14.62,2.91,14.66,0,.7,"woodDark",{cast:false}); fb(2.87,15.74,2.91,15.78,0,.7,"woodDark",{cast:false});
+  fb(3.34,14.62,3.38,15.78,0,.7,"woodDark",{cast:false}); colliders.push([2.85,14.6,3.4,15.8]); chairBack(2.6,15.2,"W"); tableLamp(3.2,14.8,.74);
+  fb(3.385,14.7,3.4,15.7,1.1,1.8,"cab",{cast:false});
+  painting(0.2,14.8,0.215,15.9,1.25,1.95); ceilLight(1.8,15.0,1.1,PDQ);
   /* jardim de inverno 3,20 × 1,50, aberto para o céu */
   cyl(1.0,17.3,.06,F,F+1.5,"woodDark",{seg:8}); ball(1.0,17.3,F+1.9,.5,"leaf",1,1,1); ball(1.3,17.45,F+1.7,.38,"leaf2",1,1,1); ball(0.8,17.1,F+2.2,.34,"leaf2",1,1,1);
   plant(2.9,17.75,1.2,F); plant(0.5,16.85,.9,F); plant(2.2,17.7,.8,F); box(1.7,16.9,2.7,17.3,F+.03,F+.07,"concrete");
@@ -549,7 +555,7 @@ const TOUR = [
   {p:[4.1,11.0]},{p:[5.4,11.0]},{p:[5.3,12.1],look:[6.4,14.2],stop:5.5,n:"Pátio e área gourmet",a:"3,00 × 10,50 m",t:"Pátio com 3 m de largura, saindo direto da cozinha: mesa para seis com cadeiras dos dois lados, churrasqueira e bancada com pia."},
   {p:[5.4,11.0]},{p:[4.1,11.0]},
   {p:[4.1,12.75],look:[2.0,12.6],stop:4,n:"Banho social",a:m2(2.25,1.5),t:"Logo na entrada do corredor, atende as visitas e o quarto. Tem fosso de luz próprio, com janela para ele."},
-  {p:[4.1,13.95]},{p:[2.9,13.95],look:[1.4,15.6],stop:5,n:"Quarto 02",a:m2(3.2,3.0),t:"Cama queen, guarda-roupa de 2,20 m e porta de vidro do piso ao teto para um jardim de inverno só dele."},
+  {p:[4.1,13.95]},{p:[2.9,13.95],look:[1.4,15.6],stop:5,n:"Quarto da criança",a:m2(3.2,3.0),t:"Cama de solteiro, guarda-roupa, estante, escrivaninha e espaço livre para brincar, com porta de vidro para um jardim de inverno só dele."},
   {p:[2.75,16.0]},{p:[2.6,17.1],look:[1.0,17.3],stop:4.5,n:"Jardim de inverno",a:m2(3.2,1.5),t:"Aberto para o céu. Dá janela de verdade, luz e ar ao quarto 02 e ao banho da suíte, sem depender do vizinho."},
   {p:[2.75,16.0]},{p:[2.9,13.95]},{p:[4.1,13.95]},
   {p:[4.1,18.3],look:[6.3,18.3],stop:4.5,n:"Corredor envidraçado",a:"1,10 × 9,60 m",t:"Vidro do piso ao teto entre os quartos e o jardim, com porta de correr para o pátio."},

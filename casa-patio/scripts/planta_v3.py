@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from planta_fase2 import br, rect, dim_chain
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "plantas")
-REV = "P6"
+REV = "P7"
 DATA = "16/11/2026"
 
 WALLS = [
@@ -35,7 +35,7 @@ ROOMS = [  # (x, y, nome, largura, profundidade, área)
     (3.6, 9.2, "ESTAR / JANTAR / COZINHA", 7.60, 5.90, A_SOCIAL),
     (6.45, 6.75, "LAVANDERIA", 2.45, 1.50, 2.45 * 1.50),
     (2.3, 12.85, "BANHO SOCIAL", 2.25, 1.50, 3.375),
-    (2.6, 14.5, "QUARTO 02", 3.20, 3.00, 9.60),
+    (2.0, 14.75, "QUARTO 02 (criança)", 3.20, 3.00, 9.60),
     (2.0, 19.35, "BANHO SUÍTE", 3.20, 1.50, 4.80),
     (1.8, 20.9, "CLOSET", 3.20, 1.50, 4.80),
     (2.4, 22.2, "SUÍTE MASTER", 4.45, 3.30, 14.685),
@@ -47,7 +47,7 @@ FURN = [
     (1.65, 22.80, 3.25, 24.80), (1.20, 24.40, 1.65, 24.80), (3.25, 24.40, 3.70, 24.80), (0.35, 23.90, 0.95, 24.50),
     (0.20, 19.85, 0.75, 21.35), (2.85, 19.85, 3.40, 21.35),
     (0.20, 18.20, 1.20, 19.70), (1.45, 18.20, 1.85, 18.85), (2.05, 18.20, 3.35, 18.70),
-    (0.30, 13.40, 2.50, 13.92), (0.20, 14.55, 2.20, 16.13), (0.20, 14.08, 0.60, 14.48),
+    (0.30, 13.40, 1.90, 13.92), (2.00, 13.40, 2.55, 13.80), (0.20, 14.42, 1.10, 16.32), (1.15, 15.95, 1.50, 16.30), (2.85, 14.60, 3.40, 15.80),
     (1.15, 11.75, 2.05, 13.25), (2.20, 11.75, 2.60, 12.40), (2.75, 11.75, 3.40, 12.20),
     (0.20, 6.50, 0.65, 8.60), (2.60, 6.40, 3.55, 8.70), (1.50, 7.00, 2.10, 8.10),
     (1.60, 9.50, 2.50, 11.10), (1.16, 9.6, 1.56, 11.0), (2.54, 9.6, 2.94, 11.0),
@@ -58,7 +58,7 @@ FURN = [
 ]
 CLEAR = [
     (3.55, 15.4, 4.65, 15.4, "1,10"), (4.80, 18.9, 7.80, 18.9, "3,00"),
-    (2.20, 15.3, 3.40, 15.3, "1,20"), (1.4, 13.92, 1.4, 14.55, "0,63"),
+    (1.10, 15.3, 2.85, 15.3, "1,75"), (0.65, 13.92, 0.65, 14.42, "0,50"),
     (0.20, 23.6, 1.65, 23.6, "1,45"), (3.25, 23.6, 4.65, 23.6, "1,40"), (2.4, 21.50, 2.4, 22.80, "1,30"),
     (0.75, 20.3, 2.85, 20.3, "2,10"), (0.65, 7.6, 2.60, 7.6, "1,95"), (3.55, 7.4, 4.95, 7.4, "1,40"),
     (6.25, 9.2, 7.20, 9.2, "0,95"), (2.94, 10.3, 4.95, 10.3, "2,01"), (3.75, 3.0, 5.60, 3.0, "1,85"),
@@ -163,7 +163,7 @@ def main():
             tx.plot([x0, x0 + xs[-1] + 0.16], [y - 0.0128, y - 0.0128], color="#cccccc", lw=0.3); y -= 0.0150
         return y - 0.007
 
-    v2 = {"ESTAR / JANTAR / COZINHA": "26,55", "LAVANDERIA": "3,00", "BANHO SOCIAL": "4,05", "QUARTO 02": "8,10",
+    v2 = {"ESTAR / JANTAR / COZINHA": "26,55", "LAVANDERIA": "3,00", "BANHO SOCIAL": "4,05", "QUARTO 02 (criança)": "8,10",
           "BANHO SUÍTE": "4,05", "CLOSET": "4,05", "SUÍTE MASTER": "12,00"}
     amb = [(n.title(), f"{br(w)} × {br(d)}", br(a) + " m²", v2[n] + " m²", "4,30" if n.startswith("ESTAR") else ("2,80" if n in ("SUÍTE MASTER", "LAVANDERIA") else "3,45"), "")
            for _, _, n, w, d, a in ROOMS]
@@ -187,7 +187,7 @@ def main():
            ("FA", "Faixa alta da sala: vidro frente e fundo", "15,60 × 0,70", ""), ("FQ", "Faixa alta dos quartos e banheiros, que abre", "6,00 × 0,40", "")]
     grid("PORTAS, JANELAS E VIDROS", ["Cód.", "Local", "Largura × altura"], [0, 0.04, 0.27], esq, 0.89, x0=0.60)
     an = [("Quarto 02: janela", "porta de vidro de 2,40 m", "Abre para o jardim de inverno, a céu aberto. Luz e ventilação diretas, legal.", "BOA", "ok"),
-          ("Quarto 02: espaço", "3,20 × 3,00 m", "Cama queen com 1,20 m no pé e 0,63 m até o guarda-roupa. Um lado fica junto ao vidro.", "BOM", "ok"),
+          ("Quarto 02: espaço", "3,20 × 3,00 m", "Quarto de criança: cama de solteiro, escrivaninha, estante e 1,75 m livres no meio.", "FOLGADO", "ok"),
           ("Jardim de inverno", "3,20 × 1,50 m", "Serve o quarto 02, o banho da suíte e ilumina o corredor. Precisa de ralo.", "BOM", "ok"),
           ("Pátio", "3,00 × 10,50 m", "Mesa de seis com cadeiras dos dois lados, bancada, churrasqueira e jardim.", "BOM", "ok"),
           ("Spa com pergolado", "deck de 3,00 × 2,40 m", "Jacuzzi de 2,00 × 1,80 com 0,80 m de chegada pela suíte. Pergolado vazado.", "CABE BEM", "ok"),
