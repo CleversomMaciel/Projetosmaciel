@@ -84,8 +84,8 @@ input[type=range]{width:min(34vw,170px);accent-color:var(--accent)}
     <h1 id="wNome"></h1>
     <div class="addr" id="wEnd"></div>
     <div class="facts">
-      <div><b>3</b><span>quartos, 1 suíte com closet</span></div>
-      <div><b>80 m²</b><span>de área útil</span></div>
+      <div><b>2</b><span>quartos, 1 suíte com closet</span></div>
+      <div><b>94 m²</b><span>de área útil</span></div>
       <div><b>8 × 25 m</b><span>de terreno</span></div>
     </div>
     <p class="price" id="wPreco"></p>
@@ -115,32 +115,32 @@ const CFG = {
   contatoFone: ""       // seu telefone
 };
 
-/* ===================== PLANTA (metros; x = largura 0–8, y = profundidade 0 = rua) ===================== */
-const F = 0.15, PD = 2.8, PDH = 4.3;   // PDH = pé-direito alto do bloco social              // nível do piso interno e pé-direito
+/* ===================== PLANTA V3 (metros; x = largura 0–8, y = profundidade 0 = rua) ===================== */
+const F = 0.15, PD = 2.8, PDH = 4.3;   // PDH = pé-direito alto do bloco social
 const WALLS = [
-  [1.70,10.35,1.90,25.00],[1.70,5.50,8.00,5.70],[7.80,10.35,8.00,12.00],[1.70,24.80,5.80,25.00],
-  [1.90,10.20,4.75,10.35],[5.65,10.20,7.80,10.35],[4.60,10.35,4.75,21.45],[5.65,10.35,5.80,12.00],
-  [5.80,11.85,7.80,12.00],[5.65,12.00,5.80,21.45],[5.65,21.45,5.80,24.80],
-  [1.90,11.85,4.60,12.00],[1.90,15.00,4.60,15.15],[1.90,18.15,4.60,18.30],[1.90,19.80,4.60,19.95],[1.90,21.45,5.65,21.60],
-  [1.70,5.70,1.90,10.35],[7.80,5.70,8.00,10.35]
+  [1.10,12.70,1.30,25.00],[1.10,5.50,8.00,5.70],[7.80,5.70,8.00,12.70],[1.10,24.80,5.90,25.00],
+  [2.40,12.55,5.90,12.70],[5.90,12.55,7.80,12.70],[2.40,12.70,2.55,21.05],[5.75,12.70,5.90,24.80],
+  [2.55,14.20,5.75,14.35],[2.55,17.55,5.75,17.70],[2.55,19.30,5.75,19.45],[1.30,21.05,5.75,21.20],
+  [5.20,5.70,5.35,7.35],[5.35,7.20,7.80,7.35],[1.10,5.70,1.30,12.70]
 ];
-const EXT = new Set([0,1,2,3,16,17]), HIGH = new Set([1,16,17]);        // paredes externas (sobem como platibanda)
-const MUROS = [[0,0,0.20,25],[7.80,0,8,5.5],[7.80,12,8,25],[0.20,24.80,1.70,25],[5.80,24.80,7.80,25],[5.80,22.25,6.00,22.40],[6.80,22.25,7.80,22.40]];
+const EXT = new Set([0,1,2,3,14]), HIGH = new Set([1,2,14]);
+const MUROS = [[0,0,0.20,25],[7.80,0,8,5.5],[7.80,12.7,8,25],[0.20,24.80,1.10,25],[5.90,24.80,7.80,25],[5.90,22.25,6.10,22.40],[6.90,22.25,7.80,22.40]];
 // aberturas: [x0,y0,x1,y1,tipo,opções]
 const OPEN = [
-  [4.55,5.50,5.45,5.70,"door",{flip:1,ext:1}],[1.95,5.50,4.35,5.70,"win",{sill:.7}],[5.90,5.50,7.50,5.70,"win",{sill:1.1}],
-  [1.70,22.40,1.90,24.00,"win",{}],[1.70,18.55,1.90,19.55,"win",{sill:1.6}],[1.70,15.90,1.90,17.10,"win",{}],
-  [1.70,12.75,1.90,13.95,"win",{}],[1.70,10.60,1.90,11.60,"win",{sill:1.6}],
-  [4.60,10.65,4.75,11.45,"door",{flip:1}],[4.60,14.10,4.75,14.90,"door",{}],[4.60,17.25,4.75,18.05,"door",{}],
-  [2.85,19.80,3.65,19.95,"door",{}],[2.90,21.45,3.60,21.60,"door",{}],[4.80,21.45,5.60,21.60,"door",{}],
-  [5.65,10.65,5.80,11.45,"door",{right:1}],[6.30,11.85,7.30,12.00,"win",{}],
-  [5.65,12.00,5.80,19.20,"glass",{}],[5.65,19.20,5.80,21.00,"gap",{}],[5.65,21.00,5.80,21.45,"glass",{}],
-  [5.65,22.60,5.80,24.40,"glass",{}]
+  [4.20,5.50,5.10,5.70,"door",{flip:1,ext:1}],[1.60,5.50,4.00,5.70,"win",{sill:.7}],[6.00,5.50,7.40,5.70,"win",{sill:1.1}],
+  [5.55,7.20,6.35,7.35,"door",{}],
+  [5.90,12.55,6.85,12.70,"gap",{}],[6.85,12.55,7.80,12.70,"glass",{}],
+  [2.40,12.95,2.55,13.75,"door",{right:1,flip:1}],[2.40,14.50,2.55,15.30,"door",{right:1}],
+  [5.75,12.95,5.90,13.95,"win",{sill:1.6}],[5.75,14.75,5.90,17.15,"glass",{}],[5.75,18.00,5.90,19.00,"win",{sill:1.6}],
+  [5.75,19.95,5.90,20.55,"win",{sill:1.6}],[5.75,21.35,5.90,22.15,"win",{}],
+  [5.75,22.60,5.90,23.50,"glass",{}],[5.75,23.50,5.90,24.40,"gap",{}],
+  [3.75,19.30,4.55,19.45,"door",{}],[3.75,21.05,4.55,21.20,"door",{}],[1.45,21.05,2.25,21.20,"door",{}],
+  [1.10,13.60,1.30,15.60,"block",{}],[1.10,17.00,1.30,19.00,"block",{}],[1.10,22.30,1.30,23.90,"block",{}]
 ];
 const ROOMS = [
-  {n:"Estar, jantar e cozinha",w:5.90,d:4.50},{n:"Lavanderia",w:2.00,d:1.50},{n:"Banho social",w:2.70,d:1.50},
-  {n:"Quarto 03",w:2.70,d:3.00},{n:"Quarto 02",w:2.70,d:3.00},{n:"Banho da suíte",w:2.70,d:1.50},
-  {n:"Closet",w:2.70,d:1.50},{n:"Suíte master",w:3.75,d:3.20},{n:"Corredor interno",w:0.90,d:11.25}
+  {n:"Estar, jantar e cozinha",a:40.24},{n:"Lavanderia",w:2.45,d:1.50},{n:"Banho social",w:3.20,d:1.50},
+  {n:"Quarto 02",w:3.20,d:3.20},{n:"Banho da suíte",w:3.20,d:1.60},{n:"Closet",w:3.20,d:1.60},
+  {n:"Suíte master",w:4.45,d:3.60},{n:"Corredor interno",w:1.10,d:8.35}
 ];
 
 /* ===================== BASE THREE ===================== */
@@ -206,7 +206,8 @@ mat("muro",{map:T.plaster,color:0xd9d4c8,roughness:.95}); mat("street",{color:0x
 mat("leaf",{color:0x3f7d36,roughness:.8}); mat("leaf2",{color:0x5d9b4a,roughness:.8}); mat("pot",{color:0xd8d2c4,roughness:.7});
 mat("brick",{color:0x9a4f2e,roughness:.9}); mat("car1",{color:0xe6e6e6,roughness:.25,metalness:.6}); mat("car2",{color:0x2a2c30,roughness:.25,metalness:.6});
 mat("tire",{color:0x151515,roughness:.9});
-M.glass = new THREE.MeshPhysicalMaterial({color:0xcfe6f0, roughness:.05, metalness:0, transparent:true, opacity:.22, envMapIntensity:1.6, side:THREE.DoubleSide, depthWrite:false});
+M.glass = new THREE.MeshPhysicalMaterial({color:0xdcefF5, roughness:.02, metalness:0, transparent:true, opacity:.13, envMapIntensity:1.2, depthWrite:false});
+M.block = new THREE.MeshStandardMaterial({color:0xeaf3f2, roughness:.25, transparent:true, opacity:.62, emissive:0xcfdedc, emissiveIntensity:.18});
 M.mirror = new THREE.MeshStandardMaterial({color:0xdfe8ec, roughness:.04, metalness:1, envMapIntensity:1.4});
 M.lamp = new THREE.MeshStandardMaterial({color:0xfff1d6, emissive:0xffd9a0, emissiveIntensity:0, roughness:.6});
 M.screen = new THREE.MeshStandardMaterial({color:0x0c0d0f, roughness:.15, metalness:.4});
@@ -255,10 +256,17 @@ function wallSegs(w){
   for (const c of cuts){ if (c[0]>pos+1e-6) segs.push([pos,c[0],null]); segs.push([c[0],c[1],c[2]]); pos = c[1]; }
   if (pos < a1-1e-6) segs.push([pos,a1,null]); return [horiz, segs];
 }
+function glassPane(a,b,mid,horiz,h0,h1,to){            // vidro fino com caixilho estreito
+  const t=.004, f=.03;
+  if (horiz){ box(a,mid-t,b,mid+t,h0,h1,M.glass,{cast:false,to}); box(a,mid-f,a+f,mid+f,h0,h1,"metal",{to,cast:false}); box(b-f,mid-f,b,mid+f,h0,h1,"metal",{to,cast:false});
+    box(a,mid-f,b,mid+f,h1-f,h1,"metal",{to,cast:false}); box(a,mid-f,b,mid+f,h0,h0+f,"metal",{to,cast:false}); }
+  else { box(mid-t,a,mid+t,b,h0,h1,M.glass,{cast:false,to}); box(mid-f,a,mid+f,a+f,h0,h1,"metal",{to,cast:false}); box(mid-f,b-f,mid+f,b,h0,h1,"metal",{to,cast:false});
+    box(mid-f,a,mid+f,b,h1-f,h1,"metal",{to,cast:false}); box(mid-f,a,mid+f,b,h0,h0+f,"metal",{to,cast:false}); }
+}
 function buildWalls(){
   WALLS.forEach((w,i)=>{
     const ext = EXT.has(i), [horiz, segs] = wallSegs(w), top = F+PD, m = ext ? "wallExt" : "wall";
-    const R = (a,b) => horiz ? [a,w[1],b,w[3]] : [w[0],a,w[2],b];
+    const R = (a,b) => horiz ? [a,w[1],b,w[3]] : [w[0],a,w[2],b], mid = horiz ? (w[1]+w[3])/2 : (w[0]+w[2])/2;
     for (const [a,b,o] of segs){
       const r = R(a,b);
       if (!o){ box(r[0],r[1],r[2],r[3],0,top,m,{col:1,uv:.5}); continue; }
@@ -267,40 +275,38 @@ function buildWalls(){
         box(r[0],r[1],r[2],r[3],F+2.1,top,m,{uv:.5});
         const wd = b-a, dm = op.ext ? "woodDark" : "wood";
         if (horiz){ const hx = op.flip ? b-0.04 : a; fb(hx,r[3],hx+0.04,r[3]+wd,0,2.08,dm); }
-        else if (op.right){ fb(r[2],a,r[2]+wd,a+0.04,0,2.08,dm); }
+        else if (op.right){ const hy = op.flip ? b-0.04 : a; fb(r[2],hy,r[2]+wd,hy+0.04,0,2.08,dm); }
         else { const hy = op.flip ? b-0.04 : a; fb(r[0]-wd,hy,r[0],hy+0.04,0,2.08,dm); }
       } else if (kind==="win"){
         const sill = op.sill||1.0, wt = 2.2;
         box(r[0],r[1],r[2],r[3],0,F+sill,m,{col:1,uv:.5}); box(r[0],r[1],r[2],r[3],F+wt,top,m,{uv:.5});
-        const t = .02; const gr = horiz ? [a,(w[1]+w[3])/2-t,b,(w[1]+w[3])/2+t] : [(w[0]+w[2])/2-t,a,(w[0]+w[2])/2+t,b];
-        box(gr[0],gr[1],gr[2],gr[3],F+sill,F+wt,M.glass,{cast:false});
-        const fr = horiz ? [[a,r[1],a+.05,r[3]],[b-.05,r[1],b,r[3]]] : [[r[0],a,r[2],a+.05],[r[0],b-.05,r[2],b]];
-        fr.forEach(q=>box(q[0],q[1],q[2],q[3],F+sill,F+wt,"metal"));
-        box(r[0],r[1],r[2],r[3],F+sill-.03,F+sill,"stone");
+        const n = (b-a) > 1.5 ? 2 : 1; for (let k=0;k<n;k++) glassPane(a+(b-a)*k/n, a+(b-a)*(k+1)/n, mid, horiz, F+sill, F+wt);
+        box(r[0]-(horiz?0:.02),r[1]-(horiz?.02:0),r[2]+(horiz?0:.02),r[3]+(horiz?.02:0),F+sill-.03,F+sill,"stone",{cast:false});
       } else if (kind==="glass"){
         box(r[0],r[1],r[2],r[3],F+2.6,top,m,{uv:.5});
-        const t = .015, mid = horiz ? (w[1]+w[3])/2 : (w[0]+w[2])/2, len = b-a, n = Math.max(1, Math.round(len/0.95));
-        for (let k=0;k<n;k++){ const s0 = a+len*k/n, s1 = a+len*(k+1)/n;
-          const g = horiz ? [s0,mid-t,s1,mid+t] : [mid-t,s0,mid+t,s1]; box(g[0],g[1],g[2],g[3],F+.04,F+2.6,M.glass,{cast:false});
-          const p = horiz ? [s0,mid-.03,s0+.04,mid+.03] : [mid-.03,s0,mid+.03,s0+.04]; box(p[0],p[1],p[2],p[3],F,F+2.6,"metal"); }
+        const len = b-a, n = Math.max(1, Math.round(len/1.2));
+        for (let k=0;k<n;k++) glassPane(a+len*k/n, a+len*(k+1)/n, mid, horiz, F+.02, F+2.6);
         colliders.push(r);
       } else if (kind==="gap"){
-        box(r[0],r[1],r[2],r[3],F+2.6,top,m,{uv:.5});
-        for (let k=0;k<2;k++){ const yy = (k? b-.06 : a+.02); box(w[0]-.55,yy,w[0]+.1,yy+.03,F+.04,F+2.6,M.glass,{cast:false}); box(w[0]-.57,yy,w[0]-.53,yy+.04,F,F+2.6,"metal"); }
+        box(r[0],r[1],r[2],r[3],F+2.6,top,m,{uv:.5});                             // porta de correr aberta
+      } else if (kind==="block"){
+        box(r[0],r[1],r[2],r[3],0,F+.9,m,{uv:.5}); box(r[0],r[1],r[2],r[3],F+2.3,top,m,{uv:.5});
+        box(r[0]+.03,r[1],r[2]-.03,r[3],F+.9,F+2.3,M.block,{cast:false}); colliders.push(r);
+        for (let h=.9;h<2.31;h+=.2) box(r[0]+.02,r[1],r[2]-.02,r[3],F+h-.008,F+h+.008,"wall",{cast:false});
+        for (let yy=a;yy<b+.01;yy+=.2) box(r[0]+.02,yy-.008,r[2]-.02,yy+.008,F+.9,F+2.3,"wall",{cast:false});
       }
     }
     if (ext && !HIGH.has(i)) box(w[0],w[1],w[2],w[3],top,F+3.45,"wallExt",{to:roof,uv:.5});
   });
-  // bloco social com pé-direito alto: faixa de vidro no alto em três lados (a parede da divisa é cega)
-  const band = (x0,y0,x1,y1,glass) => {
-    if (!glass){ box(x0,y0,x1,y1,F+PD,F+PDH+.45,"wallExt",{to:roof,uv:.5}); return; }
+  // bloco social com pé-direito alto: faixa alta em três lados (vidro na frente e no fundo, tijolo de vidro no lado do corredor)
+  const band = (x0,y0,x1,y1,kind) => {
+    if (!kind){ box(x0,y0,x1,y1,F+PD,F+PDH+.45,"wallExt",{to:roof,uv:.5}); return; }
     box(x0,y0,x1,y1,F+PD,F+3.45,"wallExt",{to:roof,uv:.5}); box(x0,y0,x1,y1,F+4.15,F+PDH+.45,"wallExt",{to:roof,uv:.5});
-    const horiz = (x1-x0)>(y1-y0), len = horiz?x1-x0:y1-y0, n = Math.round(len), t = .015, o = horiz?x0:y0;
-    for (let k=0;k<n;k++){ const a = o+len*k/n, b = o+len*(k+1)/n;
-      if (horiz){ const m=(y0+y1)/2; box(a,m-t,b,m+t,F+3.45,F+4.15,M.glass,{to:roof,cast:false}); box(a,y0,a+.05,y1,F+3.45,F+4.15,"metal",{to:roof}); }
-      else { const m=(x0+x1)/2; box(m-t,a,m+t,b,F+3.45,F+4.15,M.glass,{to:roof,cast:false}); box(x0,a,x1,a+.05,F+3.45,F+4.15,"metal",{to:roof}); } }
+    const horiz = (x1-x0)>(y1-y0), len = horiz?x1-x0:y1-y0, n = Math.round(len/1.3), o = horiz?x0:y0, mid = horiz?(y0+y1)/2:(x0+x1)/2;
+    if (kind==="block"){ box(x0+.03,y0,x1-.03,y1,F+3.45,F+4.15,M.block,{to:roof,cast:false}); return; }
+    for (let k=0;k<n;k++) glassPane(o+len*k/n, o+len*(k+1)/n, mid, horiz, F+3.45, F+4.15, roof);
   };
-  band(1.70,5.50,8.00,5.70,1); band(1.70,5.70,1.90,10.35,1); band(7.80,5.70,8.00,10.35,0); band(1.90,10.20,7.80,10.35,1);
+  band(1.10,5.50,8.00,5.70,"glass"); band(1.10,5.70,1.30,12.70,"block"); band(7.80,5.70,8.00,12.70,0); band(1.30,12.55,7.80,12.70,"glass");
   MUROS.forEach(w=>box(w[0],w[1],w[2],w[3],0,2.2,"muro",{col:1,uv:.5}));
 }
 
@@ -309,18 +315,16 @@ function buildFloors(){
   const g = new THREE.Mesh(new THREE.PlaneGeometry(120,120), M.street); g.rotation.x = -Math.PI/2; g.position.y = -.02; g.receiveShadow = true; world.add(g);
   box(-3,-2.2,11,0,-.05,.06,"concrete",{cast:false,uv:.5});
   box(0.2,0,7.8,5.5,-.05,.02,"paver",{cast:false,uv:1});
-  box(0.2,5.5,1.7,24.8,-.05,.03,"concrete",{cast:false,uv:.8});
-  box(1.9,5.7,7.8,10.2,0,F,"floor",{cast:false,uv:1.25}); box(1.9,10.2,5.65,24.8,0,F,"floor",{cast:false,uv:1.25});
-  box(5.65,10.2,7.8,12.0,0,F,"floor",{cast:false,uv:1.25});
-  [[1.9,10.35,4.6,11.85],[1.9,18.3,4.6,19.8],[5.8,10.35,7.8,11.85]].forEach(r=>box(r[0],r[1],r[2],r[3],F,F+.005,"wet",{cast:false,uv:1.6}));
-  box(5.8,12.0,7.8,22.25,-.05,.05,"grass",{cast:false,uv:.5});
-  box(5.8,14.5,7.8,19.0,.05,.09,"stone",{cast:false,uv:.6});
-  box(5.8,22.4,7.8,24.8,-.05,.12,"deck",{cast:false,uv:1});
-  for (let y=12.5;y<14.2;y+=.75) box(6.3,y,7.3,y+.5,.05,.08,"concrete");
-  for (let y=19.5;y<22;y+=.75) box(6.3,y,7.3,y+.5,.05,.08,"concrete");
+  box(0.2,5.5,1.1,24.8,-.05,.03,"concrete",{cast:false,uv:.8});
+  box(1.3,5.7,7.8,12.55,0,F,"floor",{cast:false,uv:1.25}); box(1.3,12.55,5.75,24.8,0,F,"floor",{cast:false,uv:1.25}); box(5.75,12.55,7.8,12.7,0,F,"floor",{cast:false,uv:1.25});
+  [[2.55,12.7,5.75,14.2],[2.55,17.7,5.75,19.3],[5.35,5.7,7.8,7.2]].forEach(r=>box(r[0],r[1],r[2],r[3],F,F+.005,"wet",{cast:false,uv:1.6}));
+  box(5.9,12.7,7.8,22.25,-.05,.05,"grass",{cast:false,uv:.5});
+  box(5.9,12.7,7.8,16.2,.05,.13,"stone",{cast:false,uv:.6});
+  box(5.9,22.4,7.8,24.8,-.05,.12,"deck",{cast:false,uv:1});
+  for (let y=16.7;y<22;y+=.75) box(6.35,y,7.35,y+.5,.05,.08,"concrete");
   // laje/forro + cobertura (somem na vista de casa de bonecas)
-  [[1.7,5.5,8,10.35],[5.65,10.35,8,12],[1.7,10.35,5.8,25]].forEach((r,i)=>{ const h = i ? PD : PDH; box(r[0],r[1],r[2],r[3],F+h,F+h+.12,"ceil",{to:roof}); });
-  box(1.5,5.25,8,5.5,F+2.45,F+2.55,"dark",{to:roof});                         // marquise
+  [[1.1,5.5,8,12.7],[1.1,12.7,5.9,25]].forEach((r,i)=>{ const h = i ? PD : PDH; box(r[0],r[1],r[2],r[3],F+h,F+h+.12,"ceil",{to:roof}); });
+  box(.9,5.25,8,5.5,F+2.45,F+2.55,"dark",{to:roof});                          // marquise
 }
 
 /* ---------- mobiliário ---------- */
@@ -356,80 +360,84 @@ function car(x0,y0,m){ const L=4.7, W=1.82;
 
 function buildFurniture(){
   /* garagem e fachada */
-  car(2.25,.5,"car1"); car(5.6,.5,"car2");
-  box(0,0,.2,.3,0,2.7,"dark"); box(1.7,0,1.9,.3,0,2.7,"dark"); box(7.8,0,8,.3,0,2.7,"dark"); box(0,.05,8,.25,2.4,2.7,"dark");
-  for (let h=.08;h<2.38;h+=.115) box(1.9,.12,7.8,.17,h,h+.085,"metal",{cast:false});
+  car(1.75,.5,"car1"); car(5.55,.5,"car2");
+  box(0,0,.2,.3,0,2.7,"dark"); box(1.1,0,1.3,.3,0,2.7,"dark"); box(7.8,0,8,.3,0,2.7,"dark"); box(0,.05,8,.25,2.4,2.7,"dark");
+  for (let h=.08;h<2.38;h+=.115) box(1.3,.12,7.8,.17,h,h+.085,"metal",{cast:false});
   colliders.push([0,0,8,.3]);
-  for (let x=.22;x<1.68;x+=.09) box(x,.12,x+.055,.17,.05,2.38,"wood",{cast:false});
-  for (let x=4.3;x<5.72;x+=.085){ const side = (x<4.5||x>5.48);                      // ripado: laterais inteiras, só bandeira sobre a porta
+  for (let x=.22;x<1.08;x+=.09) box(x,.12,x+.055,.17,.05,2.38,"wood",{cast:false});
+  for (let x=3.95;x<5.37;x+=.085){ const side = (x<4.15||x>5.13);                     // ripado: laterais inteiras, bandeira sobre a porta
     box(x,5.44,x+.05,5.5,side?F:F+2.15,F+PD,"wood",{cast:false}); box(x,5.44,x+.05,5.5,F+PD,F+4.6,"wood",{cast:false,to:roof}); }
-  box(0.2,5.55,1.7,5.6,0,1.9,"wood",{cast:false}); colliders.push([0.2,5.52,0.75,5.63]);  // portão de serviço (entreaberto)
-  plant(.5,4.9,1.3,0); plant(7.45,5.1,1.2,0);
-  for (let y=7;y<24;y+=2.4){ plant(.45,y,1.05,.03); const s=cyl(.24,y+1.2,.05,1.75,1.9,M.lamp,{cast:false}); }
-  ceilLight(4.85,2.8,.9); lights[lights.length-1].position.y = 2.5; ceilLight(.95,14,.7); lights[lights.length-1].position.y = 2.2;
+  box(0.2,5.55,1.1,5.6,0,1.9,"wood",{cast:false}); colliders.push([0.2,5.5,1.1,5.65]);
+  plant(.6,5.0,1.2,0); plant(7.45,5.1,1.2,0);
+  for (let y=7;y<24;y+=3.2){ plant(.42,y,.9,.03); cyl(.24,y+1.6,.05,1.75,1.9,M.lamp,{cast:false}); }
+  ceilLight(4.65,2.8,.9); lights[lights.length-1].position.y = 2.5; ceilLight(.65,15,.6); lights[lights.length-1].position.y = 2.2;
 
   /* sala de estar */
-  fb(1.9,6.3,1.94,8.9,0,PD,"wood",{cast:false}); fb(1.9,6.6,2.35,8.6,.12,.48,"woodDark",{col:1}); fb(1.94,6.95,1.98,8.25,.85,1.6,M.screen,{cast:false});
-  fb(2.4,6.55,4.45,8.65,0,.015,"rug",{cast:false});
-  fb(3.75,6.5,4.7,8.7,.08,.42,"fabric",{col:1}); fb(4.46,6.5,4.7,8.7,.42,.82,"fabric"); fb(3.75,6.5,4.5,6.7,.42,.62,"fabric"); fb(3.75,8.5,4.5,8.7,.42,.62,"fabric");
-  for (let i=0;i<3;i++) fb(3.8,6.74+i*.6,4.44,7.28+i*.6,.42,.52,"fabric");
-  fb(4.2,6.8,4.44,7.15,.52,.86,"fabric2"); fb(4.2,8.05,4.44,8.4,.52,.86,"accent");
-  fb(2.75,7.05,3.3,8.15,.3,.36,"wood"); fb(2.8,7.1,3.25,8.1,.06,.3,"dark",{cast:false}); cyl(3.02,7.6,.1,F+.36,F+.5,"pot"); ball(3.02,7.6,F+.62,.13,"leaf",1,.9,1);
-  cyl(3.95,6.15,.14,F,F+.03,"metal"); cyl(3.95,6.15,.015,F,F+1.5,"metal",{seg:8}); cyl(3.95,6.15,.17,F+1.45,F+1.72,M.lamp,{rt:.11,cast:false});
-  plant(2.15,9.75,1.5); painting(2.6,10.185,3.9,10.2,1.15,2.0); ceilLight(3.2,7.6,1.9,PDH);
-  /* cozinha e jantar */
-  fb(5.6,5.7,7.8,6.3,0,.86,"cab",{col:1}); fb(5.58,5.7,7.8,6.33,.86,.9,"stone"); fb(6.5,5.8,7.05,6.2,.82,.905,"steel",{cast:false}); cyl(6.78,5.76,.014,F+.9,F+1.18,"steel",{seg:8});
-  fb(7.2,6.3,7.8,7.5,0,.86,"cab",{col:1}); fb(7.17,6.3,7.8,7.52,.86,.9,"stone"); fb(7.27,6.55,7.73,7.25,.9,.91,M.screen,{cast:false});
-  fb(7.45,6.3,7.8,7.5,1.5,2.2,"cab"); fb(7.12,7.52,7.8,8.18,0,1.85,"steel",{col:1}); fb(7.1,7.84,7.12,7.86,.5,1.5,"metal",{cast:false});
-  cyl(5.85,5.95,.07,F+.9,F+1.12,"accent"); cyl(6.1,5.92,.05,F+.9,F+1.05,"wood"); ball(7.5,5.95,F+1.0,.1,"leaf2",1,1.2,1);
-  fb(6.1,8.2,7.0,9.8,.72,.77,"wood"); [[6.17,8.27],[6.93,8.27],[6.17,9.73],[6.93,9.73]].forEach(p=>cyl(p[0],p[1],.03,F,F+.72,"woodDark",{seg:8}));
-  colliders.push([6.1,8.2,7.0,9.8]); fb(6.42,8.3,6.68,9.7,.77,.775,"fabric2",{cast:false});
-  for (let i=0;i<3;i++){ const y=8.48+i*.52; chairBack(5.86,y,"W"); chairBack(7.24,y,"E");
-    [6.3,6.8].forEach(x=>{ cyl(x,y,.13,F+.775,F+.79,"white",{cast:false}); cyl(x+(x<6.5?.17:-.17),y-.14,.03,F+.775,F+.9,M.glass,{cast:false,seg:10}); }); }
-  cyl(6.55,9.0,.07,F+.775,F+.98,"pot"); ball(6.55,9.0,F+1.12,.15,"leaf",1,1.1,1);
-  [8.6,9.4].forEach(y=>{ cyl(6.55,y,.006,F+1.75,F+PDH,"metal",{seg:6,cast:false}); cyl(6.55,y,.13,F+1.5,F+1.75,M.lamp,{rt:.05,cast:false}); });
-  ceilLight(6.55,9.0,1.2); lights[lights.length-1].position.y = F+1.45; ceilLight(6.6,6.6,1.4,PDH);
-  painting(7.785,8.4,7.8,9.6,1.2,1.95);
+  fb(1.3,6.4,1.34,9.2,0,3.3,"wood",{cast:false}); fb(1.3,6.7,1.75,8.9,.12,.48,"woodDark",{col:1}); fb(1.34,7.05,1.38,8.55,.85,1.7,M.screen,{cast:false});
+  fb(1.95,6.5,4.1,9.1,0,.015,"rug",{cast:false});
+  fb(3.35,6.5,4.3,9.0,.08,.42,"fabric",{col:1}); fb(4.06,6.5,4.3,9.0,.42,.82,"fabric"); fb(3.35,6.5,4.1,6.7,.42,.62,"fabric"); fb(3.35,8.8,4.1,9.0,.42,.62,"fabric");
+  for (let i=0;i<3;i++) fb(3.4,6.74+i*.69,4.04,7.38+i*.69,.42,.52,"fabric");
+  fb(3.8,6.8,4.04,7.15,.52,.86,"fabric2"); fb(3.8,8.35,4.04,8.7,.52,.86,"accent");
+  fb(2.3,7.2,2.9,8.3,.3,.36,"wood"); fb(2.35,7.25,2.85,8.25,.06,.3,"dark",{cast:false}); cyl(2.6,7.75,.1,F+.36,F+.5,"pot"); ball(2.6,7.75,F+.62,.13,"leaf",1,.9,1);
+  fb(1.5,9.5,2.25,10.2,.08,.42,"fabric2",{col:1}); fb(1.5,9.5,1.62,10.2,.42,.85,"fabric2");
+  cyl(3.55,6.15,.14,F,F+.03,"metal"); cyl(3.55,6.15,.015,F,F+1.5,"metal",{seg:8}); cyl(3.55,6.15,.17,F+1.45,F+1.72,M.lamp,{rt:.11,cast:false});
+  plant(1.55,6.05,1.6); painting(2.75,12.535,4.3,12.55,1.2,2.1); ceilLight(2.9,7.7,2.0,PDH);
+  /* jantar */
+  fb(3.0,10.2,3.9,12.0,.72,.77,"wood"); [[3.07,10.27],[3.83,10.27],[3.07,11.93],[3.83,11.93]].forEach(p=>cyl(p[0],p[1],.03,F,F+.72,"woodDark",{seg:8}));
+  colliders.push([3.0,10.2,3.9,12.0]); fb(3.32,10.3,3.58,11.9,.77,.775,"fabric2",{cast:false});
+  for (let i=0;i<3;i++){ const y=10.5+i*.6; chairBack(2.76,y,"W"); chairBack(4.14,y,"E");
+    [3.2,3.7].forEach(x=>{ cyl(x,y,.13,F+.775,F+.79,"white",{cast:false}); cyl(x+(x<3.4?.17:-.17),y-.14,.03,F+.775,F+.9,M.glass,{cast:false,seg:10}); }); }
+  cyl(3.45,11.1,.07,F+.775,F+.98,"pot"); ball(3.45,11.1,F+1.12,.15,"leaf",1,1.1,1);
+  [10.7,11.5].forEach(y=>{ cyl(3.45,y,.006,F+1.75,F+PDH,"metal",{seg:6,cast:false}); cyl(3.45,y,.13,F+1.5,F+1.75,M.lamp,{rt:.05,cast:false}); });
+  ceilLight(3.45,11.1,1.3); lights[lights.length-1].position.y = F+1.45;
+  /* cozinha com ilha */
+  fb(7.2,7.35,7.8,11.3,0,.86,"cab",{col:1}); fb(7.17,7.35,7.8,11.32,.86,.9,"stone"); fb(7.27,8.5,7.73,9.1,.82,.905,"steel",{cast:false}); cyl(7.72,8.8,.014,F+.9,F+1.18,"steel",{seg:8});
+  fb(7.27,9.8,7.73,10.5,.9,.91,M.screen,{cast:false}); fb(7.45,7.35,7.8,11.3,1.55,2.25,"cab"); fb(7.12,11.3,7.8,11.98,0,1.85,"steel",{col:1});
+  fb(5.45,8.4,6.25,10.6,0,.9,"cab",{col:1}); fb(5.38,8.35,6.3,10.65,.9,.94,"stone");
+  for (let i=0;i<3;i++){ const y=8.85+i*.65; cyl(5.12,y,.17,F+.62,F+.67,"wood",{seg:14}); cyl(5.12,y,.02,F,F+.62,"metal",{seg:6,cast:false}); }
+  cyl(5.85,9.0,.07,F+.94,F+1.16,"accent"); ball(5.85,10.1,F+1.05,.12,"leaf2",1,1.2,1);
+  [8.9,10.1].forEach(y=>{ cyl(5.85,y,.006,F+1.85,F+PDH,"metal",{seg:6,cast:false}); cyl(5.85,y,.1,F+1.6,F+1.85,M.lamp,{rt:.04,cast:false}); });
+  ceilLight(6.4,9.5,1.6,PDH);
   /* lavanderia */
-  fb(7.2,10.4,7.8,11.0,0,.88,"white",{col:1}); const dr = cyl(7.19,10.7,.19,F+.3,F+.31,"dark",{cast:false}); dr.rotation.z = Math.PI/2; dr.position.y = F+.45;
-  fb(7.2,11.1,7.8,11.65,0,.82,"white",{col:1}); fb(7.26,11.16,7.74,11.6,.74,.83,"steel",{cast:false}); fb(7.5,10.4,7.8,11.65,1.5,1.9,"cab"); fb(5.85,10.4,6.25,10.9,0,.5,"wood"); ceilLight(6.6,11.1,.7);
+  fb(7.2,5.75,7.8,6.35,0,.88,"white",{col:1}); fb(7.2,6.45,7.8,7.0,0,.82,"white",{col:1}); fb(7.26,6.5,7.74,6.95,.74,.83,"steel",{cast:false});
+  fb(5.9,5.7,7.1,6.15,0,.86,"cab",{col:1}); fb(5.9,5.7,7.12,6.17,.86,.9,"stone"); ceilLight(6.5,6.5,.7);
   /* banho social */
-  shower(1.9,10.35,2.8,11.85); toilet(2.95,10.35,3.35,11.0); vanity(3.5,10.35,4.5,10.83); ceilLight(3.4,11.2,.8); fb(3.0,11.3,3.6,11.7,0,.012,"rug",{cast:false});
-  /* quarto 03 */
-  fb(1.9,12.0,3.9,12.5,0,2.4,"wood",{col:1}); for (let i=1;i<4;i++) fb(1.9+i*.5,12.5,1.905+i*.5,12.505,.05,2.35,"dark",{cast:false});
-  bed(1.9,13.25,3.78,14.63,"W"); fb(1.9,12.75,2.3,13.15,0,.48,"woodDark"); tableLamp(2.1,12.95,.48);
-  fb(2.3,12.9,4.4,14.85,0,.015,"rug",{cast:false}); painting(4.585,12.45,4.6,13.55,1.2,1.95); plant(4.3,12.3,1.1); ceilLight(3.3,13.6,1);
+  box(4.74,12.7,4.76,14.2,F,F+1.95,M.glass,{cast:false}); colliders.push([4.72,12.7,4.78,13.45]); fb(4.75,12.7,5.75,14.2,.005,.012,"stone",{cast:false});
+  cyl(5.6,13.45,.012,F+1.0,F+2.1,"steel",{seg:8}); cyl(5.42,13.45,.11,F+2.08,F+2.1,"steel");
+  toilet(2.95,12.7,3.35,13.35); vanity(3.6,12.7,4.6,13.18); ceilLight(3.7,13.5,.8);
   /* quarto 02 */
-  fb(1.9,15.15,3.9,15.65,0,2.4,"wood",{col:1}); for (let i=1;i<4;i++) fb(1.9+i*.5,15.65,1.905+i*.5,15.655,.05,2.35,"dark",{cast:false});
-  bed(1.9,16.4,3.78,17.78,"W"); fb(1.9,15.9,2.3,16.3,0,.48,"woodDark"); tableLamp(2.1,16.1,.48);
-  fb(2.3,16.05,4.4,18.0,0,.015,"rug",{cast:false}); painting(4.585,15.6,4.6,16.7,1.2,1.95); plant(4.3,15.45,1.1); ceilLight(3.3,16.75,1);
+  fb(3.45,14.35,5.65,14.9,0,2.4,"wood",{col:1}); for (let i=1;i<4;i++) fb(3.45+i*.55,14.9,3.455+i*.55,14.905,.05,2.35,"dark",{cast:false});
+  bed(3.35,15.55,4.95,17.55,"N"); [[2.9,3.35],[4.95,5.4]].forEach(n=>{ fb(n[0],17.15,n[1],17.55,0,.5,"woodDark"); tableLamp((n[0]+n[1])/2,17.35,.5); });
+  fb(2.9,15.2,5.4,17.1,0,.015,"rug",{cast:false}); painting(3.6,17.535,4.7,17.55,1.45,2.1); plant(2.8,14.6,1.1); ceilLight(4.1,16.0,1);
   /* banho da suíte e closet */
-  shower(1.9,18.3,2.8,19.8); toilet(2.95,18.3,3.35,18.95); vanity(3.5,18.3,4.6,18.78); ceilLight(3.4,19.15,.8);
-  [[1.9,2.45],[4.05,4.6]].forEach(c=>{ fb(c[0],19.95,c[1],21.45,0,2.4,"wood",{col:1}); const fx = c[0]<3 ? c[1] : c[0];
-    for (let i=0;i<3;i++) fb(fx-.005,19.98+i*.5,fx+.005,20.42+i*.5,.9,2.3,"dark",{cast:false});
-    for (let i=0;i<6;i++) fb(fx+(c[0]<3?.0:-.02),20.02+i*.23,fx+(c[0]<3?.02:0),20.2+i*.23,1.2,1.95,i%2?"fabric":"fabric2",{cast:false}); });
-  fb(2.75,20.1,3.75,21.3,0,.015,"rug",{cast:false}); ceilLight(3.25,20.7,.8);
+  box(3.54,17.7,3.56,19.3,F,F+1.95,M.glass,{cast:false}); colliders.push([3.52,18.5,3.58,19.3]); fb(2.55,17.7,3.55,19.3,.005,.012,"stone",{cast:false});
+  cyl(2.67,18.5,.012,F+1.0,F+2.1,"steel",{seg:8}); cyl(2.85,18.5,.11,F+2.08,F+2.1,"steel");
+  toilet(3.7,17.7,4.1,18.35); vanity(4.3,17.7,5.7,18.2); ceilLight(4.3,18.6,.8);
+  [[2.55,3.1],[5.2,5.75]].forEach(c=>{ fb(c[0],19.45,c[1],21.05,0,2.4,"wood",{col:1}); const fx = c[0]<4 ? c[1] : c[0];
+    for (let i=0;i<3;i++) fb(fx-.005,19.5+i*.52,fx+.005,19.96+i*.52,.9,2.3,"dark",{cast:false});
+    for (let i=0;i<6;i++) fb(fx+(c[0]<4?.0:-.02),19.55+i*.24,fx+(c[0]<4?.02:0),19.74+i*.24,1.2,1.95,i%2?"fabric":"fabric2",{cast:false}); });
+  fb(3.6,19.6,4.7,20.9,0,.015,"rug",{cast:false}); ceilLight(4.15,20.25,.8);
   /* suíte master */
-  bed(3.0,22.8,4.6,24.8,"N"); [[2.55,3.0],[4.6,5.05]].forEach(n=>{ fb(n[0],24.4,n[1],24.8,0,.5,"woodDark"); tableLamp((n[0]+n[1])/2,24.6,.5); });
-  fb(2.5,22.4,5.1,24.3,0,.015,"rug",{cast:false}); painting(3.3,24.785,4.3,24.8,1.45,2.1);
-  fb(3.7,21.6,4.72,21.64,0,PD,"wood",{cast:false}); fb(3.78,21.64,4.64,21.67,.95,1.5,M.screen,{cast:false});
-  fb(2.0,22.0,2.5,22.5,0,.42,"fabric",{col:1}); fb(2.0,22.0,2.08,22.5,.42,.85,"fabric"); plant(2.15,24.5,1.4); ceilLight(3.7,23.3,1.1);
+  bed(2.75,22.8,4.35,24.8,"N"); [[2.3,2.75],[4.35,4.8]].forEach(n=>{ fb(n[0],24.4,n[1],24.8,0,.5,"woodDark"); tableLamp((n[0]+n[1])/2,24.6,.5); });
+  fb(2.2,22.3,4.9,24.3,0,.015,"rug",{cast:false}); painting(3.05,24.785,4.05,24.8,1.45,2.1);
+  fb(2.45,21.2,3.6,21.24,0,PD,"wood",{cast:false}); fb(2.55,21.24,3.5,21.27,.95,1.55,M.screen,{cast:false});
+  fb(1.45,23.9,2.05,24.5,.08,.42,"fabric",{col:1}); fb(1.45,24.38,2.05,24.5,.42,.85,"fabric"); plant(5.45,24.5,1.4); ceilLight(3.5,23.0,1.2);
   /* corredor interno */
-  fb(4.85,12.2,5.55,21.2,0,.012,"rug",{cast:false}); painting(4.75,12.6,4.765,13.6,1.2,1.95); painting(4.75,15.5,4.765,16.5,1.2,1.95); painting(4.75,19.0,4.765,20.6,1.15,2.0);
-  ceilLight(5.2,13.2,.8); ceilLight(5.2,17.0,.8); ceilLight(5.2,20.6,.8);
-  /* pátio, gourmet e spa */
-  [[5.9,14.6],[7.7,14.6],[5.9,18.9],[7.7,18.9]].forEach(p=>box(p[0]-.07,p[1]-.07,p[0]+.07,p[1]+.07,.05,2.55,"woodDark"));
-  box(5.83,14.5,5.97,19.0,2.55,2.72,"woodDark"); box(7.63,14.5,7.77,19.0,2.55,2.72,"woodDark");
-  for (let y=14.55;y<19;y+=.42) box(5.8,y,7.8,y+.08,2.72,2.84,"wood");
-  box(7.25,15.0,7.8,17.6,.09,.92,"cab",{col:1}); box(7.22,15.0,7.8,17.62,.92,.96,"stone"); box(7.32,15.5,7.72,16.1,.9,.965,"steel",{cast:false});
-  box(7.2,17.6,7.8,18.5,.09,1.0,"brick",{col:1}); box(7.25,17.7,7.8,18.4,1.0,1.55,"dark"); box(7.2,17.6,7.8,18.5,1.55,2.0,"brick"); box(7.4,17.85,7.7,18.25,2.0,3.5,"brick");
-  box(6.2,15.6,6.85,17.6,.8,.85,"wood"); [[6.26,15.66],[6.79,15.66],[6.26,17.54],[6.79,17.54]].forEach(p=>cyl(p[0],p[1],.03,.09,.8,"woodDark",{seg:8}));
-  colliders.push([6.2,15.6,6.85,17.6]);
-  for (let i=0;i<3;i++){ const y=15.95+i*.65; fb(5.86,y-.2,6.12,y+.2,.3,.36,"wood"); }
-  ceilLight(6.6,16.6,1.1); lights[lights.length-1].position.y = 2.4; cyl(6.6,16.6,.12,2.3,2.5,M.lamp,{rt:.05,cast:false});
-  [[6.0,12.4],[7.55,12.9],[6.05,13.9],[7.5,14.1],[6.0,19.5],[7.55,20.2],[6.05,21.3],[7.5,21.8]].forEach((p,i)=>plant(p[0],p[1],1.2+(i%3)*.25,.05));
-  box(6.0,22.75,7.6,24.45,.12,.16,"wood"); box(5.85,24.5,7.75,24.75,.12,.5,"concrete"); plant(6.2,24.62,1,.5); plant(6.8,24.62,1.2,.5); plant(7.4,24.62,1,.5);
-  ceilLight(6.8,23.4,.7); lights[lights.length-1].position.y = 2.1;
+  fb(1.5,13.0,2.2,20.8,0,.012,"rug",{cast:false}); painting(2.385,15.7,2.4,17.2,1.15,2.0); painting(2.385,18.2,2.4,20.4,1.15,2.0);
+  ceilLight(1.85,14.5,.8); ceilLight(1.85,17.6,.8); ceilLight(1.85,20.2,.8);
+  /* área gourmet junto à cozinha, jardim e spa */
+  [[6.0,12.85],[7.7,12.85],[6.0,16.1],[7.7,16.1]].forEach(p=>box(p[0]-.07,p[1]-.07,p[0]+.07,p[1]+.07,.13,2.55,"woodDark"));
+  box(5.93,12.75,6.07,16.2,2.55,2.72,"woodDark"); box(7.63,12.75,7.77,16.2,2.55,2.72,"woodDark");
+  for (let y=12.8;y<16.2;y+=.42) box(5.9,y,7.8,y+.08,2.72,2.84,"wood");
+  box(7.25,13.4,7.8,15.3,.13,.92,"cab",{col:1}); box(7.22,13.4,7.8,15.32,.92,.96,"stone"); box(7.32,13.7,7.72,14.3,.9,.965,"steel",{cast:false});
+  box(7.2,15.3,7.8,16.15,.13,1.0,"brick",{col:1}); box(7.25,15.4,7.8,16.05,1.0,1.55,"dark"); box(7.2,15.3,7.8,16.15,1.55,2.0,"brick"); box(7.4,15.5,7.7,15.9,2.0,3.5,"brick");
+  box(6.05,13.6,6.65,15.6,.8,.85,"wood"); [[6.1,13.66],[6.6,13.66],[6.1,15.54],[6.6,15.54]].forEach(p=>cyl(p[0],p[1],.03,.13,.8,"woodDark",{seg:8}));
+  colliders.push([6.05,13.6,6.65,15.6]);
+  for (let i=0;i<3;i++){ const y=13.95+i*.65; box(6.72,y-.2,6.98,y+.2,.46,.52,"wood"); }
+  ceilLight(6.6,14.5,1.1); lights[lights.length-1].position.y = 2.4; cyl(6.6,14.5,.12,2.3,2.5,M.lamp,{rt:.05,cast:false});
+  [[6.1,16.8],[7.55,17.3],[6.1,18.4],[7.55,19.1],[6.1,20.0],[7.55,20.7],[6.15,21.6],[7.5,21.9]].forEach((p,i)=>plant(p[0],p[1],1.15+(i%3)*.25,.05));
+  box(6.1,22.75,7.6,24.45,.12,.16,"wood"); box(5.95,24.5,7.75,24.75,.12,.5,"concrete"); plant(6.3,24.62,1,.5); plant(6.85,24.62,1.2,.5); plant(7.4,24.62,1,.5);
+  ceilLight(6.85,23.4,.7); lights[lights.length-1].position.y = 2.1;
 }
 
 /* ===================== LUZ E HORA DO DIA ===================== */
@@ -466,11 +474,11 @@ function updateEnv(now){
 }
 
 /* ===================== CÂMERA: ANDAR, CASA DE BONECAS, TOUR ===================== */
-let mode = "doll"; const P = {x:4.9, y:2.2, yaw:0, pitch:-.03}; const O = {az:.75, pol:.95, r:34, tx:4, ty:12.5};
+let mode = "doll"; const P = {x:4.65, y:2.2, yaw:0, pitch:-.03}; const O = {az:.75, pol:.95, r:34, tx:4, ty:12.5};
 const keys = {}; let stickV = {x:0,y:0};
 function blocked(x,y){ const r=.2; if (x<.2+r||x>7.8-r||y<.3+r||y>24.8-r) return true;
   for (const c of colliders) if (x>c[0]-r && x<c[2]+r && y>c[1]-r && y<c[3]+r) return true; return false; }
-function eyeLevel(x,y){ return (y>5.6 && x>1.8 ? F : .02) + 1.6; }
+function eyeLevel(x,y){ return (y>5.6 && x>1.2 ? F : .02) + 1.6; }
 let eyeY = 1.62;
 function walkStep(dt){
   let f = (keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0) - stickV.y, s = (keys.KeyD?1:0)-(keys.KeyA?1:0) + stickV.x;
@@ -511,20 +519,20 @@ const stickUp = ()=>{ stickId=null; stickV={x:0,y:0}; knob.style.transform=""; }
 /* ---------- tour guiado ---------- */
 const m2 = (w,d)=> (w*d).toFixed(2).replace(".",",")+" m²";
 const TOUR = [
-  {p:[4.9,1.3]},{p:[4.95,4.2],look:[4.95,9],stop:4.5,n:"Fachada e garagem",a:"41,80 m²",t:"Dois carros lado a lado, com 7,60 m livres. Portão social separado e passagem direta até a porta de entrada."},
-  {p:[5.0,5.6]},{p:[5.05,6.9],look:[2.6,7.7],stop:5,n:"Sala de estar",a:"26,55 m² integrados",t:"Estar, jantar e cozinha em um só ambiente, com pé-direito de 4,30 m e faixa de vidro no alto que enche a sala de luz natural."},
-  {p:[5.15,7.7],look:[6.7,8.9],stop:4.5,n:"Jantar",a:"mesa para 6",t:"Mesa posta sob pendentes, ao lado da cozinha e a poucos passos do pátio."},
-  {p:[5.2,8.6],look:[6.9,6.0],stop:4.5,n:"Cozinha",a:"bancada em L",t:"Pia sob a janela da frente, cooktop na lateral e geladeira no fim da bancada. Tudo ao alcance em dois passos."},
-  {p:[5.2,10.9],look:[6.9,11.1],stop:3.5,n:"Lavanderia",a:m2(2,1.5),t:"Fechada, atrás da cozinha, com lavadora, tanque e armário aéreo. Janela para o pátio."},
-  {p:[5.2,11.05],look:[3.0,11.1],stop:3.5,n:"Banho social",a:m2(2.7,1.5),t:"Ao lado da sala, atende as visitas e os dois quartos. Box com vidro e bancada em pedra."},
-  {p:[5.2,14.5]},{p:[4.25,14.5],look:[2.6,13.5],stop:4.5,n:"Quarto 03",a:m2(2.7,3),t:"Cama de casal, guarda-roupa de 2 m e janela para o corredor lateral, com luz da tarde."},
-  {p:[5.2,14.5]},{p:[5.2,17.65]},{p:[4.25,17.65],look:[2.6,16.6],stop:4.5,n:"Quarto 02",a:m2(2.7,3),t:"Mesmo tamanho do quarto 03. Serve como quarto de filho, hóspede ou escritório."},
-  {p:[5.2,17.65]},{p:[5.2,18.6],look:[6.9,16.6],stop:4.5,n:"Corredor envidraçado",a:"0,90 × 11,25 m",t:"Vidro do piso ao teto. A casa inteira olha para o pátio, e as folhas abrem para o jardim."},
-  {p:[5.2,21.2]},{p:[5.2,22.15]},{p:[4.6,22.2],look:[3.7,24.3],stop:5,n:"Suíte master",a:m2(3.75,3.2),t:"Cama queen, janela para o corredor lateral e porta de vidro para o deck do spa."},
-  {p:[3.25,22.1]},{p:[3.25,20.75],look:[2.2,20.7],stop:4,n:"Closet",a:m2(2.7,1.5),t:"Dois armários de 1,50 m, um de cada lado, na passagem entre o quarto e o banho."},
-  {p:[3.3,19.45],look:[3.9,18.5],stop:4,n:"Banho da suíte",a:m2(2.7,1.5),t:"Box de 0,90 m, bancada de 1,10 m com espelho e janela alta para ventilar."},
-  {p:[3.25,22.1]},{p:[5.2,22.15]},{p:[5.2,20.1]},{p:[6.6,20.1],look:[6.9,16.5],stop:5,n:"Pátio e área gourmet",a:"20,50 m²",t:"Jardim com pergolado de madeira, churrasqueira, bancada com pia e mesa. Fica pronto na segunda etapa."},
-  {p:[6.4,21.9]},{p:[6.4,22.9],look:[7.0,24.3],stop:4,n:"Deck do spa",a:"2,00 × 2,40 m",t:"Deck privativo da suíte, já com base e pontos de água e energia para receber o spa."},
+  {p:[4.65,1.3]},{p:[4.65,4.2],look:[4.65,9],stop:4.5,n:"Fachada e garagem",a:"41,80 m²",t:"Dois carros com 2 m de passagem no meio, portão social separado e o volume alto da sala com faixa de vidro."},
+  {p:[4.65,5.6]},{p:[4.65,6.7],look:[2.2,7.8],stop:5.5,n:"Sala de estar",a:"40,24 m² integrados",t:"Sala, jantar e cozinha num só ambiente de 6,50 m de largura, com pé-direito de 4,30 m e luz natural pelo alto."},
+  {p:[4.8,8.0],look:[6.4,6.7],stop:3.5,n:"Lavanderia",a:m2(2.45,1.5),t:"Fechada, ao lado da cozinha, com janela para a frente. Lavadora, tanque e bancada."},
+  {p:[4.8,9.4],look:[6.9,9.6],stop:5,n:"Cozinha com ilha",a:"bancada de 3,95 m",t:"Bancada longa com pia e cooktop, ilha com três banquetas e 1,00 m de circulação entre as duas."},
+  {p:[4.8,11.0],look:[3.3,11.1],stop:4.5,n:"Jantar",a:"mesa para 6",t:"Mesa de 1,80 m sob pendentes, entre a sala, a cozinha e a porta do pátio."},
+  {p:[6.4,11.9]},{p:[6.4,13.0],look:[6.9,15.2],stop:5,n:"Área gourmet",a:"1,90 × 3,50 m",t:"Sai direto da cozinha: pergolado, churrasqueira, bancada com pia e mesa. Fica pronta na segunda etapa."},
+  {p:[6.4,11.9]},{p:[4.8,9.7]},{p:[2.2,9.6]},{p:[1.85,11.6]},
+  {p:[1.85,13.35],look:[4.0,13.4],stop:4,n:"Banho social",a:m2(3.2,1.5),t:"Logo na entrada do corredor, atende as visitas e o quarto. Janela para o pátio."},
+  {p:[1.85,14.9]},{p:[3.0,14.9],look:[4.5,16.7],stop:5,n:"Quarto 02",a:m2(3.2,3.2),t:"Cama queen com passagem dos dois lados, guarda-roupa de 2,20 m e porta de vidro do piso ao teto abrindo para o jardim."},
+  {p:[1.85,14.9]},{p:[1.85,18.3],look:[1.3,17.6],stop:4,n:"Corredor interno",a:"1,10 × 8,35 m",t:"Mais largo, com painéis de tijolo de vidro que trazem luz do corredor lateral sem abrir janela para o vizinho."},
+  {p:[1.85,20.8]},{p:[1.85,21.8]},{p:[2.4,22.1],look:[3.7,24.3],stop:5,n:"Suíte master",a:m2(4.45,3.6),t:"Cama queen, poltrona, janela para o jardim e porta de vidro para o deck do spa."},
+  {p:[4.15,21.9]},{p:[4.15,20.3],look:[3.0,20.3],stop:4,n:"Closet",a:m2(3.2,1.6),t:"Dois armários de 1,60 m e mais de 2 m de passagem entre eles."},
+  {p:[4.15,18.9],look:[3.3,18.3],stop:4,n:"Banho da suíte",a:m2(3.2,1.6),t:"Box de 1,00 m, bancada de 1,40 m com espelho e janela para o pátio."},
+  {p:[4.15,21.9]},{p:[5.0,23.95]},{p:[6.6,23.7],look:[6.9,20.0],stop:5,n:"Deck do spa e jardim",a:"1,90 × 2,40 m",t:"Deck privativo da suíte, com base e pontos prontos para o spa, de frente para o jardim."},
   {end:1}
 ];
 const tour = {on:false, i:0, wait:0, yawGoal:null};
@@ -536,7 +544,7 @@ function stopTour(toDoll){ tour.on = false; showCard(null); document.getElementB
 const angTo = (a,b)=>{ let d = (b-a)%(2*Math.PI); if (d>Math.PI) d-=2*Math.PI; if (d<-Math.PI) d+=2*Math.PI; return d; };
 function tourStep(dt){
   const s = TOUR[tour.i];
-  if (s.end){ tour.end += dt; if (tour.end<.1){ setMode("doll"); O.r = 14; O.pol = .5; showCard({n:CFG.projeto, a:"80 m² úteis em terreno de 8 × 25 m", t:"Três quartos, pátio central e corredor lateral que leva luz e ventilação a todos os ambientes."}); }
+  if (s.end){ tour.end += dt; if (tour.end<.1){ setMode("doll"); O.r = 14; O.pol = .5; showCard({n:CFG.projeto, a:"94 m² úteis em terreno de 8 × 25 m", t:"Sala e cozinha de 40 m² com pé-direito alto, dois quartos abrindo para o jardim e área gourmet ao lado da cozinha."}); }
     O.r += (36-O.r)*Math.min(1,dt*.6); O.pol += (.92-O.pol)*Math.min(1,dt*.6); O.az += dt*.12; if (tour.end>14) stopTour(true); return; }
   const dx = s.p[0]-P.x, dy = s.p[1]-P.y, d = Math.hypot(dx,dy);
   if (d > .03){ const v = Math.min(d, 1.15*dt); P.x += dx/d*v; P.y += dy/d*v; if (d>.3) P.yaw += angTo(P.yaw, Math.atan2(-dx, dy))*Math.min(1,dt*2.6); P.pitch += (-.03-P.pitch)*Math.min(1,dt*2); return; }
@@ -567,7 +575,7 @@ const $ = id => document.getElementById(id);
 $("wNome").textContent = CFG.projeto; $("wEnd").textContent = CFG.endereco; $("wPreco").textContent = CFG.preco ? "Valor: "+CFG.preco : "Valor a definir";
 $("kNome").textContent = CFG.contatoNome || "Contato a definir"; $("kFone").textContent = CFG.contatoFone || "Telefone ainda não informado";
 $("kObs").textContent = CFG.contatoFone ? "Toque no número para selecionar, ou use o botão para copiar." : "O nome e o telefone entram aqui assim que forem informados."; $("bCopy").hidden = !CFG.contatoFone;
-function begin(withTour){ $("welcome").hidden = true; $("bar").hidden = false; $("hint").hidden = false; if (withTour) startTour(); else { setMode("walk"); P.x=4.9; P.y=2.2; P.yaw=0; } }
+function begin(withTour){ $("welcome").hidden = true; $("bar").hidden = false; $("hint").hidden = false; if (withTour) startTour(); else { setMode("walk"); P.x=4.65; P.y=2.2; P.yaw=0; } }
 $("bStart").onclick = ()=>begin(false); $("bStartTour").onclick = ()=>begin(true);
 $("bWalk").onclick = ()=>{ if (tour.on) stopTour(); setMode("walk"); }; $("bDoll").onclick = ()=>{ if (tour.on) stopTour(); O.r = 34; O.pol = .95; setMode("doll"); };
 document.querySelectorAll("[data-style]").forEach(b=> b.onclick = ()=>applyStyle(b.dataset.style));
