@@ -12,13 +12,13 @@ import matplotlib.pyplot as plt
 from planta_fase2 import br, rect, dim_chain
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "plantas")
-REV = "P1"
+REV = "P2"
 DATA = "16/11/2026"
 
 WALLS = [
     (1.10, 5.50, 1.30, 25.00), (1.10, 5.50, 8.00, 5.70), (7.80, 5.50, 8.00, 12.70), (1.10, 24.80, 5.90, 25.00),
-    (2.40, 12.55, 5.90, 12.70), (5.90, 12.55, 7.80, 12.70), (2.40, 12.70, 2.55, 21.05), (5.75, 12.70, 5.90, 24.80),
-    (2.55, 14.20, 5.75, 14.35), (2.55, 17.55, 5.75, 17.70), (2.55, 19.30, 5.75, 19.45), (1.30, 21.05, 5.75, 21.20),
+    (1.30, 12.55, 4.65, 12.70), (5.75, 12.55, 7.80, 12.70), (4.50, 12.70, 4.65, 21.05), (5.75, 12.70, 5.90, 24.80),
+    (1.30, 14.20, 4.50, 14.35), (1.30, 17.55, 4.50, 17.70), (1.30, 19.30, 4.50, 19.45), (1.30, 21.05, 5.75, 21.20),
     (5.20, 5.70, 5.35, 7.35), (5.35, 7.20, 7.80, 7.35),
 ]
 MUROS = [(0, 0, 0.20, 25), (7.80, 0, 8, 5.5), (7.80, 12.7, 8, 25), (0.20, 24.80, 1.10, 25), (5.90, 24.80, 7.80, 25),
@@ -26,21 +26,20 @@ MUROS = [(0, 0, 0.20, 25), (7.80, 0, 8, 5.5), (7.80, 12.7, 8, 25), (0.20, 24.80,
 OPEN = [
     (4.20, 5.50, 5.10, 5.70, "door", "P1"), (1.60, 5.50, 4.00, 5.70, "win", "J1"), (6.00, 5.50, 7.40, 5.70, "win", "J2"),
     (5.55, 7.20, 6.35, 7.35, "door", "P2"), (5.90, 12.55, 7.80, 12.70, "glass", "V1"),
-    (2.40, 12.95, 2.55, 13.75, "doorR", "P2"), (2.40, 14.50, 2.55, 15.30, "doorR", "P2"),
-    (5.75, 12.95, 5.90, 13.95, "win", "J5"), (5.75, 14.75, 5.90, 17.15, "glass", "V4"), (5.75, 18.00, 5.90, 19.00, "win", "J5"),
-    (5.75, 19.95, 5.90, 20.55, "win", "J6"), (5.75, 21.35, 5.90, 22.15, "win", "J3"), (5.75, 22.60, 5.90, 24.40, "glass", "V3"),
-    (3.75, 19.30, 4.55, 19.45, "door", "P2"), (3.75, 21.05, 4.55, 21.20, "door", "P3"), (1.45, 21.05, 2.25, 21.20, "door", "P2"),
-    (1.10, 13.60, 1.30, 15.60, "block", "TV"), (1.10, 17.00, 1.30, 19.00, "block", "TV"), (1.10, 22.30, 1.30, 23.90, "block", "TV"),
-    (6.10, 22.25, 6.90, 22.40, "void", ""),
+    (4.50, 12.95, 4.65, 13.75, "door", "P2"), (4.50, 14.50, 4.65, 15.30, "door", "P2"),
+    (5.75, 12.70, 5.90, 21.05, "glass", "V2"), (5.75, 21.35, 5.90, 22.15, "win", "J3"), (5.75, 22.60, 5.90, 24.40, "glass", "V3"),
+    (2.50, 19.30, 3.30, 19.45, "door", "P2"), (2.50, 21.05, 3.30, 21.20, "door", "P3"), (4.80, 21.05, 5.60, 21.20, "door", "P2"),
+    (1.10, 13.05, 1.30, 13.85, "block", "TV"), (1.10, 15.20, 1.30, 17.00, "block", "TV"), (1.10, 18.20, 1.30, 19.00, "block", "TV"),
+    (1.10, 22.30, 1.30, 23.90, "block", "TV"), (6.10, 22.25, 6.90, 22.40, "void", ""),
 ]
 A_SOCIAL = 6.50 * 6.85 - 2.60 * 1.65 + 1e-6
 ROOMS = [  # (x, y, nome, largura, profundidade, área)
     (3.2, 9.6, "ESTAR / JANTAR / COZINHA", 6.50, 6.85, A_SOCIAL),
     (6.45, 6.75, "LAVANDERIA", 2.45, 1.50, 2.45 * 1.50),
-    (3.9, 13.75, "BANHO SOCIAL", 3.20, 1.50, 4.80),
-    (4.3, 15.05, "QUARTO 02", 3.20, 3.20, 10.24),
-    (4.6, 18.85, "BANHO SUÍTE", 3.20, 1.60, 5.12),
-    (4.15, 20.55, "CLOSET", 3.20, 1.60, 5.12),
+    (2.9, 13.75, "BANHO SOCIAL", 3.20, 1.50, 4.80),
+    (2.9, 15.2, "QUARTO 02", 3.20, 3.20, 10.24),
+    (2.9, 18.85, "BANHO SUÍTE", 3.20, 1.60, 5.12),
+    (2.9, 20.55, "CLOSET", 3.20, 1.60, 5.12),
     (3.5, 22.15, "SUÍTE MASTER", 4.45, 3.60, 16.02),
 ]
 A_CORR = 1.10 * 8.35
@@ -48,23 +47,22 @@ A_UTIL = sum(r[5] for r in ROOMS) + A_CORR
 A_CONST = 6.90 * 7.20 + 4.80 * 12.30
 FURN = [
     (2.75, 22.80, 4.35, 24.80), (2.30, 24.40, 2.75, 24.80), (4.35, 24.40, 4.80, 24.80), (1.45, 23.90, 2.05, 24.50),
-    (2.55, 19.45, 3.10, 21.05), (5.20, 19.45, 5.75, 21.05),
-    (2.55, 17.70, 3.55, 19.30), (3.70, 17.70, 4.10, 18.35), (4.30, 17.70, 5.70, 18.20),
-    (3.45, 14.35, 5.65, 14.90), (3.35, 15.55, 4.95, 17.55), (2.90, 17.15, 3.35, 17.55), (4.95, 17.15, 5.40, 17.55),
-    (4.75, 12.70, 5.75, 14.20), (2.95, 12.70, 3.35, 13.35), (3.60, 12.70, 4.60, 13.18),
-    (1.30, 6.70, 1.75, 8.90), (3.35, 6.50, 4.30, 9.00), (2.30, 7.20, 2.90, 8.30), (1.50, 9.50, 2.25, 10.20),
-    (3.00, 10.20, 3.90, 12.00), (2.56, 10.3, 2.96, 11.9), (3.94, 10.3, 4.34, 11.9),
+    (1.30, 19.45, 1.85, 21.05), (3.95, 19.45, 4.50, 21.05),
+    (3.50, 17.70, 4.50, 19.30), (2.95, 17.70, 3.35, 18.35), (1.35, 17.70, 2.75, 18.20),
+    (1.40, 14.35, 3.60, 14.90), (2.10, 15.55, 3.70, 17.55), (1.65, 17.15, 2.10, 17.55), (3.70, 17.15, 4.15, 17.55),
+    (1.30, 12.70, 2.30, 14.20), (3.70, 12.70, 4.10, 13.35), (2.45, 12.70, 3.45, 13.18),
+    (1.30, 6.70, 1.75, 8.90), (3.15, 6.50, 4.10, 9.00), (2.15, 7.20, 2.75, 8.30),
+    (2.35, 10.20, 3.25, 12.00), (1.91, 10.3, 2.31, 11.9), (3.29, 10.3, 3.69, 11.9),
     (7.20, 7.35, 7.80, 11.30), (7.12, 11.30, 7.80, 11.98), (5.45, 8.40, 6.25, 10.60), (4.95, 8.60, 5.30, 10.40),
     (7.20, 5.75, 7.80, 6.35), (7.20, 6.45, 7.80, 7.00), (5.90, 5.70, 7.10, 6.15),
     (7.25, 13.40, 7.80, 16.15), (6.05, 13.60, 6.65, 15.60),
 ]
 CLEAR = [
-    (0.20, 9.0, 1.10, 9.0, "0,90"), (1.30, 16.4, 2.40, 16.4, "1,10"), (5.90, 18.6, 7.80, 18.6, "1,90"),
-    (2.55, 16.5, 3.35, 16.5, "0,80"), (4.95, 16.5, 5.75, 16.5, "0,80"), (4.2, 14.90, 4.2, 15.55, "0,65"),
+    (0.20, 9.0, 1.10, 9.0, "0,90"), (4.65, 16.4, 5.75, 16.4, "1,10"), (5.90, 18.6, 7.80, 18.6, "1,90"),
+    (1.30, 16.5, 2.10, 16.5, "0,80"), (3.70, 16.5, 4.50, 16.5, "0,80"), (2.9, 14.90, 2.9, 15.55, "0,65"),
     (1.30, 23.6, 2.75, 23.6, "1,45"), (4.35, 23.6, 5.75, 23.6, "1,40"), (3.5, 21.20, 3.5, 22.80, "1,60"),
-    (3.10, 20.6, 5.20, 20.6, "2,10"), (1.75, 7.8, 3.35, 7.8, "1,60"), (4.30, 7.6, 5.20, 7.6, "0,90"),
-    (6.25, 9.5, 7.20, 9.5, "0,95"), (4.34, 11.4, 4.95, 11.4, "0,61"), (1.30, 11.2, 2.56, 11.2, "1,26"),
-    (3.60, 3.0, 5.55, 3.0, "1,95"), (3.55, 13.8, 4.75, 13.8, "1,20"),
+    (1.85, 20.75, 3.95, 20.75, "2,10"), (1.75, 7.8, 3.15, 7.8, "1,40"), (4.10, 7.6, 5.20, 7.6, "1,10"),
+    (6.25, 9.5, 7.20, 9.5, "0,95"), (3.69, 10.5, 4.95, 10.5, "1,26"), (3.60, 3.0, 5.55, 3.0, "1,95"),
 ]
 
 
@@ -109,7 +107,7 @@ def planta(ax):
     for cx, cy, name, w, d, a in ROOMS:
         ax.text(cx, cy, f"{name}\n{br(w)} × {br(d)}\n{br(a)} m²", fontsize=4.5, ha="center", va="center", linespacing=1.25,
                 bbox=dict(fc="white", ec="none", pad=0.3, alpha=0.75))
-    ax.text(1.85, 17.6, f"CORREDOR INTERNO  1,10 × 8,35 = {br(A_CORR)} m²", fontsize=4.3, rotation=90, ha="center", va="center")
+    ax.text(5.2, 16.9, f"CORREDOR INTERNO  1,10 × 8,35 = {br(A_CORR)} m²", fontsize=4.3, rotation=90, ha="center", va="center")
     ax.text(0.65, 15.0, "CORREDOR LATERAL DESCOBERTO  0,90 × 19,30", fontsize=4.3, rotation=90, ha="center", va="center")
     ax.text(6.85, 19.6, "JARDIM\n1,90 × 6,05", fontsize=4.5, ha="center", va="center")
     ax.text(6.55, 16.45, "GOURMET 1,90 × 3,50", fontsize=4.2, ha="center", va="center", color="#7d5029")
@@ -132,7 +130,7 @@ def planta(ax):
     ys = [0, 5.50, 5.70, 12.55, 12.70, 14.20, 14.35, 17.55, 17.70, 19.30, 19.45, 21.05, 21.20, 24.80, 25.00]
     dim_chain(ax, ys, -0.45, True)
     dim_chain(ax, [0, 25.00], -1.25, True, fs=6)
-    dim_chain(ax, [0, 0.20, 1.10, 1.30, 2.40, 2.55, 5.75, 5.90, 7.80, 8.00], -0.95, False, min_label=0.8)
+    dim_chain(ax, [0, 0.20, 1.10, 1.30, 4.50, 4.65, 5.75, 5.90, 7.80, 8.00], -0.95, False, min_label=0.8)
     dim_chain(ax, [0, 8.00], -1.55, False, fs=6)
     dim_chain(ax, [5.50, 5.70, 7.20, 7.35, 12.55, 12.70, 16.20, 22.25, 22.40, 24.80, 25.00], 8.75, True, fs=4.4)
     ax.text(4.0, -2.1, "RUA  (testada 8,00 m)", fontsize=5.5, ha="center", va="center")
@@ -147,7 +145,7 @@ def main():
     tx = fig.add_axes([12.8 / PW, 0.5 / PH, 28.6 / PW, 28.6 / PH]); tx.axis("off"); tx.set_xlim(0, 1); tx.set_ylim(0, 1)
     tx.text(0, 0.985, "CASA PÁTIO — Cascavel/PR", fontsize=13, fontweight="bold", va="top")
     tx.text(0, 0.95, "PROPOSTA V3 PARA APROVAÇÃO", fontsize=10, fontweight="bold", va="top", color="#b00000")
-    tx.text(0, 0.925, "Corredor lateral de 0,90 m, sem o quarto 03, sala e cozinha ampliadas, quartos abrindo para o pátio. "
+    tx.text(0, 0.925, "Corredor lateral de 0,90 m, sem o quarto 03, sala e cozinha ampliadas, quartos à esquerda e corredor envidraçado para o pátio. "
             "Números vermelhos: passagem livre em metros.", fontsize=7, va="top")
 
     def grid(title, cols, xs, rows, y, x0=0.0, fs=5.9):
@@ -165,7 +163,7 @@ def main():
 
     v2 = {"ESTAR / JANTAR / COZINHA": "26,55", "LAVANDERIA": "3,00", "BANHO SOCIAL": "4,05", "QUARTO 02": "8,10",
           "BANHO SUÍTE": "4,05", "CLOSET": "4,05", "SUÍTE MASTER": "12,00"}
-    amb = [(n.title(), f"{br(w)} × {br(d)}", br(a) + " m²", v2[n] + " m²", "4,30" if n.startswith("ESTAR") else "2,80", "")
+    amb = [(n.title(), f"{br(w)} × {br(d)}", br(a) + " m²", v2[n] + " m²", "4,30" if n.startswith("ESTAR") else ("2,80" if n in ("SUÍTE MASTER", "LAVANDERIA") else "3,45"), "")
            for _, _, n, w, d, a in ROOMS]
     amb += [("Corredor Interno", "1,10 × 8,35", br(A_CORR) + " m²", "10,13 m²", "2,80", ""),
             ("Quarto 03", "retirado", "—", "8,10 m²", "", ""),
@@ -177,43 +175,45 @@ def main():
     esq = [("P1", "Porta de entrada", "0,90 × 2,10", ""), ("P2", "Quartos, banheiros, lavanderia", "0,80 × 2,10", ""),
            ("P3", "Closet (pela suíte)", "0,70 × 2,10", ""), ("J1", "Janela do estar (frente)", "2,40 × 1,50", ""),
            ("J2", "Janela da lavanderia (frente)", "1,40 × 1,00", ""), ("J3", "Janela da suíte (pátio)", "0,80 × 1,20", ""),
-           ("J5", "Janela alta dos banheiros (pátio)", "1,00 × 0,60", ""), ("J6", "Janela alta do closet (pátio)", "0,60 × 0,60", ""),
-           ("V1", "Vidro de correr cozinha / gourmet", "1,90 × 2,60", ""), ("V3", "Porta de vidro suíte / spa", "1,80 × 2,60", ""),
-           ("V4", "Porta de vidro quarto 02 / jardim", "2,40 × 2,60", ""), ("FA", "Faixa alta da sala: vidro frente e fundo", "13,40 × 0,70", ""),
-           ("TV", "Tijolo de vidro fixo (corredor, suíte, faixa lateral)", "ver planta", "")]
+           ("V1", "Vidro de correr cozinha / gourmet", "1,90 × 2,60", ""), ("V2", "Vidro do corredor / pátio, piso ao teto", "8,35 × 2,60", ""),
+           ("V3", "Porta de vidro suíte / spa", "1,80 × 2,60", ""), ("FA", "Faixa alta da sala: vidro frente e fundo", "13,40 × 0,70", ""),
+           ("FQ", "Faixa alta dos quartos e banheiros, que abre", "7,90 × 0,40", ""),
+           ("TV", "Tijolo de vidro fixo no lado do corredor lateral", "ver planta", "")]
     grid("PORTAS, JANELAS E VIDROS", ["Cód.", "Local", "Largura × altura"], [0, 0.04, 0.27], esq, 0.89, x0=0.60)
-    an = [("Sala, jantar e cozinha", "40,24 m², 6,50 m de largura", "Sofá a 1,60 m do rack, ilha com 0,95 m de corredor, passagem de 0,90 m.", "AMPLA", "ok"),
-          ("Quarto 02", "3,20 × 3,20 m", "Cama queen com 0,80 m dos dois lados. Porta de vidro para o jardim.", "BOM", "ok"),
+    an = [("Sala, jantar e cozinha", "40,24 m², 6,50 m de largura", "Sofá a 1,40 m do rack, ilha com 0,95 m de corredor, passagem de 1,10 m.", "AMPLA", "ok"),
+          ("Quarto 02", "3,20 × 3,20 m", "Cama queen com 0,80 m dos dois lados e 0,65 m até o guarda-roupa.", "BOM", "ok"),
           ("Suíte master", "4,45 × 3,60 m", "1,40 m livres de cada lado e 1,60 m no pé da cama.", "AMPLA", "ok"),
           ("Closet", "2,10 m entre armários", "Largo. Cabe um banco ou ilha baixa no meio.", "AMPLO", "ok"),
-          ("Corredor interno", "1,10 m × 8,35 m", "Duas pessoas se cruzam de lado. Mais curto e mais largo que antes.", "BOM", "ok"),
-          ("Mesa de jantar", "0,61 m até as banquetas", "Passagem justa entre a mesa e a ilha quando as cadeiras estão ocupadas.", "JUSTA", "at"),
+          ("Corredor interno", "1,10 m × 8,35 m", "Mais largo e mais curto que antes, todo envidraçado para o jardim.", "BOM", "ok"),
+          ("Mesa de jantar", "1,26 m até as banquetas", "Passagem folgada entre a mesa e a ilha.", "BOA", "ok"),
           ("Área gourmet", "1,90 m de largura", "Bancada de um lado, mesa estreita e banco. Só senta de um lado.", "APERTADA", "no"),
           ("Corredor lateral", "0,90 m", "Passa uma pessoa. NÃO PODE TER JANELA: fica a menos de 1,50 m da divisa.", "SÓ PASSAGEM", "at"),
           ("Ventilação da sala", "frente + pátio + faixa alta", "Cruzada: janela da frente, porta de vidro para o gourmet e painéis altos.", "MUITO BOA", "ok"),
-          ("Ventilação dos quartos", "direto para o pátio", "Portas e janelas de vidro abrem para o jardim, a 1,90 m da divisa (legal).", "BOA", "ok"),
-          ("Ventilação dos banheiros", "janela alta para o pátio", "Os dois banheiros e o closet têm janela para fora.", "BOA", "ok"),
+          ("Luz e ar do quarto 02", "tijolo de vidro + faixa alta", "Sem janela na altura dos olhos. O ar sai pela faixa alta e entra pela porta.", "ATENDE, SEM VISTA", "at"),
+          ("Luz e ar da suíte", "janela e porta de vidro", "Abre direto para o jardim e para o deck do spa.", "BOA", "ok"),
+          ("Banheiros e closet", "tijolo de vidro + faixa alta", "Ventilam por cima. Recomendo exaustor nos dois banheiros.", "ATENDE", "at"),
           ("Garagem", "7,60 × 5,50 m", "Dois carros com 1,95 m de passagem no meio.", "AMPLA", "ok")]
     y2 = grid("ANÁLISE DE ESPAÇO E VENTILAÇÃO", ["Local", "Medida", "Avaliação", "Situação"], [0, 0.13, 0.30, 0.74], an, y1 - 0.004)
     notes = (
-        "O QUE MUDOU A SEU PEDIDO\n"
-        "1. Corredor lateral de 1,50 para 0,90 m. Os 0,60 m foram para dentro da casa.\n"
-        "2. Corredor interno de 0,90 para 1,10 m, e mais curto (8,35 m em vez de 11,25 m).\n"
-        "3. Quarto 03 retirado. O espaço foi para a sala e cozinha (de 26,55 para 40,24 m²), para o quarto 02 (de 8,10 para 10,24 m²) e para a suíte (de 12,00 para 16,02 m²).\n"
-        "4. Pátio de 2,00 para 1,90 m de largura e área gourmet menor (3,50 m), agora encostada na cozinha, com porta de vidro direta.\n"
-        "5. Vidros refeitos: caixilhos finos, menos divisões, porta de vidro do piso ao teto no quarto 02 e faixa alta só onde a lei permite.\n"
+        "O QUE ESTÁ NESTA VERSÃO\n"
+        "1. Quartos e banheiros voltaram para o lado esquerdo, com o corredor interno envidraçado entre eles e o pátio, como você pediu.\n"
+        "2. Corredor lateral de 0,90 m e corredor interno de 1,10 m.\n"
+        "3. Quarto 03 retirado: sala e cozinha com 40,24 m², quarto 02 com 10,24 m² e suíte com 16,02 m².\n"
+        "4. Pátio com 1,90 m e área gourmet menor (3,50 m), encostada na cozinha, com porta de vidro direta.\n"
+        "5. Vidros refeitos: caixilhos finos e menos divisões.\n"
         "\n"
-        "O QUE EU MUDEI POR CONTA PRÓPRIA, E POR QUÊ\n"
-        "A. Com 0,90 m o corredor lateral não pode ter janela (Código Civil, art. 1.301: mínimo de 1,50 m da divisa). Por isso inverti a ala íntima: o corredor\n"
-        "    interno ficou do lado esquerdo e os quartos passaram para o lado do pátio, onde podem ter janelas e portas de vidro de verdade.\n"
-        "B. No lado do corredor lateral usei tijolo de vidro fixo e translúcido, que traz luz sem ser janela. Há entendimento do STF (Súmula 120) de que\n"
-        "    ele pode ficar a menos de 1,50 m da divisa; confirme com o arquiteto e a Prefeitura.\n"
-        "C. A lavanderia voltou para a frente, ao lado da cozinha, com janela para a garagem. Assim a cozinha abre direto para o pátio.\n"
+        "O PONTO QUE VOCÊ PRECISA SABER\n"
+        "Com o corredor lateral de 0,90 m, o quarto 02 e os banheiros não podem ter janela comum para ele: o Código Civil (art. 1.301) exige 1,50 m da\n"
+        "divisa. Para a casa ficar legal e ventilada, resolvi assim:\n"
+        "A. No lado do corredor lateral, painéis de tijolo de vidro fixo e translúcido: entram luz, não entra o olhar do vizinho. Há entendimento do STF\n"
+        "    (Súmula 120) de que isso é permitido; confirme com o arquiteto e a Prefeitura.\n"
+        "B. Quartos e banheiros com pé-direito de 3,45 m e uma faixa de vidro de 0,40 m que abre, acima do telhado do corredor interno, voltada para o\n"
+        "    pátio. É por ela que o ar sai e entra luz do céu.\n"
+        "O resultado é um quarto claro e ventilado, mas sem janela na altura dos olhos e sem vista para fora.\n"
         "\n"
-        "PONTO PARA VOCÊ DECIDIR\n"
-        "O corredor lateral de 0,90 m virou uma passagem sem saída: não tem janela, não dá acesso ao pátio e ocupa 1,10 m da largura do terreno.\n"
-        "Se ele for eliminado, a casa encosta na divisa esquerda e o pátio pode passar de 1,90 para 3,00 m, o que resolve a área gourmet apertada.\n"
-        "Mantive o corredor porque você pediu; me diga se prefere a versão sem ele."
+        "SE VOCÊ QUISER JANELA COMUM NO QUARTO, HÁ DUAS SAÍDAS\n"
+        "• Voltar o corredor lateral para 1,50 m: o quarto 02 fica com 2,60 m de largura em vez de 3,20 m.\n"
+        "• Eliminar o corredor lateral e abrir o quarto para o pátio, que passaria a ter 3,00 m de largura."
     )
     tx.text(0, y2 - 0.002, notes, fontsize=5.7, va="top", linespacing=1.32)
     tx.text(0, 0.0, f"Doc. CP-ARQ-V3   |   Revisão {REV} — {DATA}   |   Escala 1:100 (folha A3)   |   Unidade: metro   |   "
