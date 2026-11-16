@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from planta_fase2 import br, rect, dim_chain
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "plantas")
-REV = "P3"
+REV = "P4"
 DATA = "16/11/2026"
 
 WALLS = [
@@ -21,14 +21,13 @@ WALLS = [
     (0.20, 14.20, 3.40, 14.35), (0.20, 17.55, 3.40, 17.70), (0.20, 19.30, 3.40, 19.45), (0.20, 21.05, 4.65, 21.20),
     (5.20, 5.70, 5.35, 7.35), (5.35, 7.20, 7.80, 7.35),
 ]
-MUROS = [(0, 0, 0.20, 5.5), (7.80, 0, 8, 5.5), (7.80, 12.7, 8, 25), (4.80, 24.80, 7.80, 25), (4.80, 22.25, 7.80, 22.40)]
+MUROS = [(0, 0, 0.20, 5.5), (7.80, 0, 8, 5.5), (7.80, 12.7, 8, 25), (4.80, 24.80, 7.80, 25)]
 OPEN = [
     (4.20, 5.50, 5.10, 5.70, "door", "P1"), (1.00, 5.50, 3.40, 5.70, "win", "J1"), (6.00, 5.50, 7.40, 5.70, "win", "J2"),
     (5.55, 7.20, 6.35, 7.35, "door", "P2"), (4.80, 12.55, 7.80, 12.70, "glass", "V1"),
     (3.40, 12.95, 3.55, 13.75, "door", "P2"), (3.40, 14.50, 3.55, 15.30, "door", "P2"), (3.40, 15.75, 3.55, 17.35, "win", "J4"),
     (4.65, 12.70, 4.80, 21.05, "glass", "V2"), (4.65, 21.35, 4.80, 22.15, "win", "J3"), (4.65, 22.60, 4.80, 24.40, "glass", "V3"),
     (1.40, 19.30, 2.20, 19.45, "door", "P2"), (1.40, 21.05, 2.20, 21.20, "door", "P3"), (3.70, 21.05, 4.50, 21.20, "door", "P2"),
-    (5.00, 22.25, 5.80, 22.40, "void", ""),
 ]
 A_SOCIAL = 7.60 * 6.85 - 2.60 * 1.65
 ROOMS = [  # (x, y, nome, largura, profundidade, área)
@@ -53,14 +52,14 @@ FURN = [
     (1.60, 10.20, 2.50, 12.00), (1.16, 10.3, 1.56, 11.9), (2.54, 10.3, 2.94, 11.9),
     (7.20, 7.35, 7.80, 11.30), (7.12, 11.30, 7.80, 11.98), (5.45, 8.40, 6.25, 10.60), (4.95, 8.60, 5.30, 10.40),
     (7.20, 5.75, 7.80, 6.35), (7.20, 6.45, 7.80, 7.00), (5.90, 5.70, 7.10, 6.15),
-    (7.25, 13.30, 7.80, 16.50), (5.55, 13.70, 6.45, 15.70), (5.10, 13.85, 5.50, 15.55), (6.50, 13.85, 6.90, 15.55),
+    (7.25, 13.30, 7.80, 16.50), (5.55, 13.70, 6.45, 15.70), (5.60, 22.80, 7.60, 24.60), (5.10, 13.85, 5.50, 15.55), (6.50, 13.85, 6.90, 15.55),
 ]
 CLEAR = [
     (3.55, 16.4, 4.65, 16.4, "1,10"), (4.80, 18.6, 7.80, 18.6, "3,00"),
     (0.20, 16.5, 1.00, 16.5, "0,80"), (2.60, 16.5, 3.40, 16.5, "0,80"), (1.8, 14.90, 1.8, 15.55, "0,65"),
     (0.20, 23.6, 1.65, 23.6, "1,45"), (3.25, 23.6, 4.65, 23.6, "1,40"), (2.4, 21.20, 2.4, 22.80, "1,60"),
     (0.75, 20.75, 2.85, 20.75, "2,10"), (0.65, 7.8, 2.60, 7.8, "1,95"), (3.55, 7.6, 4.95, 7.6, "1,40"),
-    (6.25, 9.5, 7.20, 9.5, "0,95"), (2.94, 10.9, 4.95, 10.9, "2,01"), (3.75, 3.0, 5.60, 3.0, "1,85"),
+    (6.25, 9.5, 7.20, 9.5, "0,95"), (2.94, 10.9, 4.95, 10.9, "2,01"), (3.75, 3.0, 5.60, 3.0, "1,85"), (4.80, 23.2, 5.60, 23.2, "0,80"),
     (6.90, 14.7, 7.25, 14.7, "0,35"), (4.80, 14.3, 5.10, 14.3, "0,30"),
 ]
 
@@ -108,7 +107,7 @@ def planta(ax):
     ax.text(4.1, 16.9, f"CORREDOR INTERNO  1,10 × 8,35 = {br(A_CORR)} m²", fontsize=4.3, rotation=90, ha="center", va="center")
     ax.text(6.3, 19.9, "JARDIM\n3,00 × 5,55", fontsize=4.5, ha="center", va="center")
     ax.text(6.3, 16.95, "ÁREA GOURMET 3,00 × 4,00", fontsize=4.2, ha="center", va="center", color="#7d5029")
-    ax.text(6.3, 23.6, "SPA\n3,00 × 2,40", fontsize=4.5, ha="center", va="center")
+    ax.text(6.6, 23.7, "JACUZZI\n2,00 × 1,80\nsob pergolado", fontsize=4.5, ha="center", va="center")
     ax.text(4.5, 1.2, "GARAGEM DESCOBERTA  7,60 × 5,50", fontsize=4.5, ha="center", va="center")
     for x0 in (1.9, 5.6):
         rect(ax, (x0, 0.45, x0 + 1.85, 5.35), fill=False, ec="#777777", lw=0.5, ls="--")
@@ -178,12 +177,12 @@ def main():
            ("V3", "Porta de vidro suíte / spa", "1,80 × 2,60", ""), ("FA", "Faixa alta da sala: vidro frente e fundo", "15,60 × 0,70", ""),
            ("FQ", "Faixa alta dos quartos e banheiros, que abre", "7,90 × 0,40", "")]
     grid("PORTAS, JANELAS E VIDROS", ["Cód.", "Local", "Largura × altura"], [0, 0.04, 0.27], esq, 0.89, x0=0.60)
-    an = [("Pátio", "3,00 m de largura", "Antes 1,90 m. Cabe mesa de seis com cadeiras dos dois lados, bancada e churrasqueira.", "BOM", "ok"),
+    an = [("Spa com pergolado", "deck de 3,00 × 2,40 m", "Jacuzzi de 2,00 × 1,80 com 0,80 m de chegada pela suíte. Pergolado vazado.", "CABE BEM", "ok"),
+          ("Pátio", "3,00 m de largura", "Antes 1,90 m. Cabe mesa de seis com cadeiras dos dois lados, bancada e churrasqueira.", "BOM", "ok"),
           ("Área gourmet", "3,00 × 4,00 m", "Sobra 0,30 a 0,35 m atrás das cadeiras: senta-se bem, mas não se passa por trás.", "FUNCIONA", "ok"),
           ("Sala, jantar e cozinha", "47,77 m², 7,60 m de largura", "Sofá a 1,95 m do rack, 1,40 m de passagem, ilha com 0,95 m de corredor.", "AMPLA", "ok"),
           ("Quarto 02", "3,20 × 3,20 m", "Cama queen com 0,80 m dos dois lados e 0,65 m até o guarda-roupa.", "BOM", "ok"),
           ("Suíte master", "4,45 × 3,60 m", "1,40 m livres de cada lado e 1,60 m no pé da cama.", "AMPLA", "ok"),
-          ("Closet", "2,10 m entre armários", "Largo. Cabe um banco ou ilha baixa no meio.", "AMPLO", "ok"),
           ("Corredor interno", "1,10 m × 8,35 m", "Todo envidraçado para o jardim, com porta de correr para o pátio.", "BOM", "ok"),
           ("Ventilação da sala", "frente + pátio + faixa alta", "Cruzada: janela da frente, 3,00 m de vidro para o gourmet e painéis altos.", "MUITO BOA", "ok"),
           ("Luz e ar do quarto 02", "janela interna + faixa alta", "Vê o jardim através do corredor de vidro. O ar sai pela faixa alta que abre.", "ATENDE", "at"),

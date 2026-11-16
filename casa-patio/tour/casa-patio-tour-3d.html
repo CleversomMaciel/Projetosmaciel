@@ -125,7 +125,7 @@ const WALLS = [
   [5.20,5.70,5.35,7.35],[5.35,7.20,7.80,7.35],[0,5.70,0.20,12.70]
 ];
 const EXT = new Set([0,1,2,3,14]), HIGH = new Set([1,2,14]);
-const MUROS = [[0,0,0.20,5.5],[7.80,0,8,5.5],[7.80,12.7,8,25],[4.80,24.80,7.80,25],[4.80,22.25,5.00,22.40],[5.80,22.25,7.80,22.40]];
+const MUROS = [[0,0,0.20,5.5],[7.80,0,8,5.5],[7.80,12.7,8,25],[4.80,24.80,7.80,25]];
 // aberturas: [x0,y0,x1,y1,tipo,opções]
 const OPEN = [
   [4.20,5.50,5.10,5.70,"door",{flip:1,ext:1}],[1.00,5.50,3.40,5.70,"win",{sill:.7}],[6.00,5.50,7.40,5.70,"win",{sill:1.1}],
@@ -206,6 +206,7 @@ mat("leaf",{color:0x3f7d36,roughness:.8}); mat("leaf2",{color:0x5d9b4a,roughness
 mat("brick",{color:0x9a4f2e,roughness:.9}); mat("car1",{color:0xe6e6e6,roughness:.25,metalness:.6}); mat("car2",{color:0x2a2c30,roughness:.25,metalness:.6});
 mat("tire",{color:0x151515,roughness:.9});
 M.glass = new THREE.MeshPhysicalMaterial({color:0xdcefF5, roughness:.02, metalness:0, transparent:true, opacity:.13, envMapIntensity:1.2, depthWrite:false});
+M.water = new THREE.MeshStandardMaterial({color:0x58c0dc, roughness:.06, metalness:.1, emissive:0x1b7f9a, emissiveIntensity:.35, transparent:true, opacity:.88});
 M.block = new THREE.MeshStandardMaterial({color:0xeaf3f2, roughness:.25, transparent:true, opacity:.62, emissive:0xcfdedc, emissiveIntensity:.18});
 M.mirror = new THREE.MeshStandardMaterial({color:0xdfe8ec, roughness:.04, metalness:1, envMapIntensity:1.4});
 M.lamp = new THREE.MeshStandardMaterial({color:0xfff1d6, emissive:0xffd9a0, emissiveIntensity:0, roughness:.6});
@@ -437,9 +438,15 @@ function buildFurniture(){
   colliders.push([5.55,13.7,6.45,15.7]);
   for (let i=0;i<3;i++){ const y=14.05+i*.65; [5.3,6.7].forEach(x=>{ box(x-.2,y-.2,x+.2,y+.2,.5,.55,"fabric2"); box(x-.2,y-.2,x+.2,y+.2,.13,.5,"woodDark",{cast:false}); }); }
   ceilLight(6.0,14.7,1.2); lights[lights.length-1].position.y = 2.4; cyl(6.0,14.7,.12,2.3,2.5,M.lamp,{rt:.05,cast:false});
-  [[5.1,17.2],[7.5,17.4],[5.15,18.9],[7.5,19.2],[5.1,20.5],[7.55,20.8],[5.2,21.8],[7.45,21.9],[6.3,21.9]].forEach((p,i)=>plant(p[0],p[1],1.2+(i%3)*.3,.05));
-  box(5.4,22.7,7.4,24.45,.12,.16,"wood"); box(4.9,24.5,7.75,24.75,.12,.5,"concrete"); [5.3,6.0,6.7,7.4].forEach((x,i)=>plant(x,24.62,1+(i%2)*.2,.5));
-  ceilLight(6.3,23.4,.8); lights[lights.length-1].position.y = 2.1;
+  [[5.1,17.2],[7.5,17.4],[5.15,18.9],[7.5,19.2],[5.1,20.5],[7.55,20.8],[7.5,21.9]].forEach((p,i)=>plant(p[0],p[1],1.2+(i%3)*.3,.05));
+  /* jacuzzi 2,00 × 1,80 com pergolado vazado sobre o deck */
+  box(5.6,22.8,7.6,24.6,.12,.86,"woodDark",{col:1}); box(5.56,22.76,7.64,24.64,.86,.92,"white"); box(5.72,22.92,7.48,24.48,.5,.9,"white",{cast:false});
+  box(5.74,22.94,7.46,24.46,.82,.84,M.water,{cast:false}); box(5.15,23.1,5.6,23.7,.12,.46,"woodDark");
+  [[4.95,22.55],[7.7,22.55],[4.95,24.68],[7.7,24.68]].forEach(q=>box(q[0]-.07,q[1]-.07,q[0]+.07,q[1]+.07,.12,2.55,"woodDark"));
+  box(4.88,22.45,5.02,24.78,2.55,2.72,"woodDark"); box(7.63,22.45,7.77,24.78,2.55,2.72,"woodDark");
+  for (let y=22.5;y<24.75;y+=.38) box(4.8,y,7.8,y+.08,2.72,2.84,"wood");
+  plant(5.1,24.55,1.3,.12); plant(5.1,22.65,1.0,.12);
+  ceilLight(6.6,23.7,1.0); lights[lights.length-1].position.y = 2.45; cyl(6.6,23.7,.1,2.45,2.6,M.lamp,{rt:.04,cast:false});
 }
 
 /* ===================== LUZ E HORA DO DIA ===================== */
@@ -534,7 +541,7 @@ const TOUR = [
   {p:[4.1,20.8]},{p:[4.1,21.8]},{p:[3.6,22.1],look:[2.3,24.3],stop:5,n:"Suíte master",a:m2(4.45,3.6),t:"Cama queen, poltrona, janela para o jardim e porta de vidro para o deck do spa."},
   {p:[1.8,21.9]},{p:[1.8,20.3],look:[0.8,20.3],stop:4,n:"Closet",a:m2(3.2,1.6),t:"Dois armários de 1,60 m e mais de 2 m de passagem entre eles."},
   {p:[1.8,18.9],look:[0.9,18.2],stop:4,n:"Banho da suíte",a:m2(3.2,1.6),t:"Box de 1,00 m, bancada de 1,40 m com espelho e vidro alto para ventilar."},
-  {p:[1.8,21.9]},{p:[3.9,22.3]},{p:[3.9,23.95]},{p:[5.9,23.7],look:[6.3,20.0],stop:5,n:"Deck do spa e jardim",a:"3,00 × 2,40 m",t:"Deck privativo da suíte, com base e pontos prontos para o spa, de frente para o jardim."},
+  {p:[1.8,21.9]},{p:[3.9,22.3]},{p:[3.9,23.95]},{p:[5.2,23.95],look:[6.8,23.6],stop:5.5,n:"Spa com pergolado",a:"3,00 × 2,40 m",t:"Jacuzzi de 2,00 × 1,80 m sob pergolado de madeira, saindo direto da suíte e de frente para o jardim."},
   {end:1}
 ];
 const tour = {on:false, i:0, wait:0, yawGoal:null};
