@@ -266,7 +266,7 @@ def medidas():
     tx.text(0, 0.985, "CASA PÁTIO — Cascavel/PR", fontsize=13, fontweight="bold", va="top")
     tx.text(0, 0.95, "Planta térrea com todas as medidas e análise de circulação, ventilação e conforto", fontsize=10,
             fontweight="bold", va="top")
-    tx.text(0, 0.925, "Planta V2 aprovada pelo proprietário. Números vermelhos na planta: passagem livre entre móveis e paredes, em metros.",
+    tx.text(0, 0.925, "Planta V2 aprovada, com pé-direito alto na sala e cozinha. Números vermelhos na planta: passagem livre entre móveis e paredes, em metros.",
             fontsize=7, va="top")
 
     def grid(title, cols, xs, rows, y, x0=0.0, fs=5.9):
@@ -282,7 +282,7 @@ def medidas():
             tx.plot([x0, x0 + xs[-1] + 0.21], [y - 0.0128, y - 0.0128], color="#cccccc", lw=0.3); y -= 0.0150
         return y - 0.007
 
-    amb = [(n.title(), f"{br(w)} × {br(d)}", br(w * d) + " m²", "2,80", "") for _, _, n, w, d in ROOMS]
+    amb = [(n.title(), f"{br(w)} × {br(d)}", br(w * d) + " m²", "4,30" if n.startswith("ESTAR") else "2,80", "") for _, _, n, w, d in ROOMS]
     amb += [("Corredor Interno", "0,90 × 11,25", "10,13 m²", "2,80", ""), ("TOTAL ÁREA ÚTIL", "", br(A_UTIL) + " m²", "", ""),
             ("Corredor lateral (descoberto)", "1,50 × 19,30", "28,95 m²", "—", ""), ("Garagem (descoberta)", "7,60 × 5,50", "41,80 m²", "—", ""),
             ("Pátio / gourmet (descoberto)", "2,00 × 10,25", "20,50 m²", "—", ""), ("Deck do spa (descoberto)", "2,00 × 2,40", "4,80 m²", "—", "")]
@@ -294,7 +294,8 @@ def medidas():
            ("J6", "Janela da lavanderia", "1,00 × 1,00", "1,00", ""), ("V2", "Vidro corredor / pátio", "9,45 × 2,60", "piso", ""),
            ("V3", "Porta de vidro suíte / spa", "1,80 × 2,10", "piso", "")]
     grid("PORTAS E JANELAS", ["Cód.", "Local", "Largura × altura", "Peitoril"], [0, 0.04, 0.21, 0.32], esq, 0.89, x0=0.53)
-    il = [("Estar / jantar / cozinha", "26,55", "3,32 (12,5 %)", "1,66 (6,3 %)", "INSUFICIENTE", "no"),
+    il = [("Estar / jantar / cozinha, só janelas baixas", "26,55", "3,32 (12,5 %)", "1,66 (6,3 %)", "INSUFICIENTE", "no"),
+          ("Estar / jantar / cozinha, com faixa alta", "26,55", "14,73 (55,5 %)", "3,76 (14,2 %)", "BOA", "ok"),
           ("Suíte master", "12,00", "5,70 (47,5 %)", "2,85 (23,8 %)", "BOA", "ok"),
           ("Quarto 02", "8,10", "1,44 (17,8 %)", "0,72 (8,9 %)", "ATENDE", "ok"),
           ("Quarto 03", "8,10", "1,44 (17,8 %)", "0,72 (8,9 %)", "ATENDE", "ok"),
@@ -330,9 +331,9 @@ def medidas():
         "• Corredor lateral: com 1,50 m e aberto em cima, funciona como poço de luz e ar para a ala dos quartos.\n"
         "\n"
         "AJUSTES QUE RECOMENDO (não mexem na planta, só em janelas, portas e móveis)\n"
-        "1. Janela do estar J1 de 1,60 × 1,20 para 2,40 × 1,50, e janela da cozinha J2 de 1,40 × 1,00 para 1,60 × 1,10. A área social passa a 20 % de\n"
-        "    vidro e 10 % de abertura, acima das referências.\n"
-        "2. Janela alta de 2,00 × 0,60 na parede da sala voltada para o corredor lateral, acima do painel da TV: cria ventilação cruzada na sala.\n"
+        "1. Bloco social com pé-direito de 4,30 m e faixa de vidro alta de 0,70 m (do nível 3,45 ao 4,15) em três lados: frente, corredor lateral e\n"
+        "    fundo, acima do telhado dos quartos. São 16,30 m de faixa, 11,41 m² de vidro. A parede da divisa direita fica cega.\n"
+        "2. Seis painéis da faixa alta que abrem (maxim-ar com comando): o ar quente sobe e sai por cima, e a sala ganha ventilação cruzada.\n"
         "3. Janelas dos banheiros de 0,60 × 0,60 para 1,00 × 0,60 (basculante).\n"
         "4. Portas dos banheiros de 0,70 para 0,80 m. Custo quase igual e a casa fica adaptável no futuro.\n"
         "5. Mesa de jantar redonda de 1,10 m (4 a 5 lugares) ou banco fixo no lado da parede, no lugar da mesa de 6 com cadeiras dos dois lados.\n"
@@ -340,10 +341,47 @@ def medidas():
         "7. Na área gourmet, mesa estreita de 0,65 m com banco do lado do vidro, e abrir as folhas do corredor para ganhar largura nos dias de uso."
     )
     tx.text(0, y4 - 0.002, notes, fontsize=5.6, va="top", linespacing=1.32)
-    tx.text(0, 0.0, f"Doc. CP-ARQ-V2-MED   |   Revisão R00 — {DATA}   |   Escala 1:100 (folha A3)   |   Unidade: metro   |   "
+    tx.text(0, 0.0, f"Doc. CP-ARQ-V2-MED   |   Revisão R01 — {DATA}   |   Escala 1:100 (folha A3)   |   Unidade: metro   |   "
             "Estudo — exige conferência e ART/RRT de profissional habilitado", fontsize=6, va="bottom", fontweight="bold")
     for ext, kw in (("pdf", {}), ("png", {"dpi": 200})):
-        fig.savefig(os.path.join(OUT, f"CP-ARQ-V2_planta-terrea-medidas_R00.{ext}"), **kw)
+        fig.savefig(os.path.join(OUT, f"CP-ARQ-V2_planta-terrea-medidas_R01.{ext}"), **kw)
+
+
+def corte_social():
+    """Corte longitudinal esquemático mostrando o pé-direito alto do bloco social."""
+    fig, ax = plt.subplots(figsize=(29.7 / 2.54, 12.0 / 2.54))
+    fig.subplots_adjust(0.02, 0.04, 0.98, 0.9)
+    ax.plot([-1, 26], [0, 0], color="k", lw=0.9)
+    rect(ax, (5.50, 0, 25.0, 0.15), fc="#bbbbbb", ec="none")
+    for y0, w, h in [(5.50, 0.20, 4.90), (10.20, 0.15, 4.90), (11.85, 0.15, 3.07), (15.00, 0.15, 3.07), (18.15, 0.15, 3.07),
+                     (19.80, 0.15, 3.07), (21.45, 0.15, 3.07), (24.80, 0.20, 3.45)]:
+        rect(ax, (y0, 0.15, y0 + w, h), fc="#3a3a3a", ec="none")
+    for y0 in (5.50, 10.20):                                               # faixas de vidro altas
+        w = 0.20 if y0 < 6 else 0.15
+        rect(ax, (y0, 3.60, y0 + w, 4.30), fc="white", ec="none")
+        ax.plot([y0 + w / 2] * 2, [3.60, 4.30], color="#2f8fd0", lw=2.2)
+    rect(ax, (5.50, 4.45, 10.35, 4.57), fc="#777777", ec="none")            # laje/forro alto
+    rect(ax, (10.35, 2.95, 25.0, 3.07), fc="#777777", ec="none")            # forro dos quartos
+    ax.plot([5.50, 10.35], [4.75, 4.62], color="k", lw=1.4); ax.plot([10.35, 25.0], [3.30, 3.18], color="k", lw=1.4)
+    for x, t in [(7.9, "ESTAR / JANTAR / COZINHA\npé-direito 4,30"), (11.1, "banho\nsocial"), (13.5, "quarto 03"), (16.65, "quarto 02"),
+                 (19.05, "banho\nsuíte"), (20.7, "closet"), (23.2, "suíte master"), (2.75, "garagem\ndescoberta")]:
+        ax.text(x, 1.5, t, fontsize=6, ha="center", va="center")
+    ax.text(17.5, 2.45, "pé-direito 2,80 nos demais ambientes", fontsize=6, ha="center")
+    ax.annotate("faixa de vidro alta\n0,70 m, do 3,45 ao 4,15", xy=(5.6, 3.95), xytext=(1.3, 4.6), fontsize=6, ha="center",
+                arrowprops=dict(arrowstyle="->", lw=0.6))
+    ax.annotate("vidro alto no fundo,\nacima do telhado dos quartos", xy=(10.28, 3.95), xytext=(14.5, 4.55), fontsize=6, ha="center",
+                arrowprops=dict(arrowstyle="->", lw=0.6))
+    ax.annotate("", xy=(9.6, 4.25), xytext=(8.4, 2.9), arrowprops=dict(arrowstyle="->", color="#b00000", lw=1))
+    ax.text(8.2, 3.3, "ar quente\nsobe e sai", fontsize=5.5, color="#b00000", ha="right")
+    for lvl, t in [(0, "0,00"), (0.15, "+0,15 piso"), (2.95, "+2,95 forro dos quartos"), (4.45, "+4,45 forro da sala"), (4.90, "+4,90 topo")]:
+        ax.plot([25.3, 25.7], [lvl, lvl], color="k", lw=0.4); ax.text(25.8, lvl, t, fontsize=5.5, va="center")
+    dim_chain(ax, [0, 5.50, 10.35, 25.0], -0.5, False, fs=6)
+    ax.set_xlim(-1.5, 29.5); ax.set_ylim(-1.3, 5.6); ax.set_aspect("equal"); ax.axis("off")
+    ax.set_title("CASA PÁTIO — Corte longitudinal esquemático: pé-direito alto na sala e cozinha (escala 1:100)", fontsize=9,
+                 fontweight="bold", loc="left")
+    for ext, kw in (("pdf", {}), ("png", {"dpi": 200})):
+        fig.savefig(os.path.join(OUT, f"CP-ARQ-V2_corte-pe-direito-alto_R00.{ext}"), **kw)
+    plt.close(fig)
 
 
 def main():
@@ -412,6 +450,7 @@ def main():
     for ext, kw in (("pdf", {}), ("png", {"dpi": 190})):
         fig.savefig(os.path.join(OUT, f"CP-ARQ-V2_proposta-corredor-lateral_{REV}.{ext}"), **kw)
     medidas()
+    corte_social()
     print("util", round(A_UTIL, 2), "const", round(A_CONST, 2), "TO", round(A_CONST / 2, 1))
 
 
