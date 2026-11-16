@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Documento | CP-MEM-01 |
-| Revisão | R02 — 15/11/2026 |
+| Revisão | R03 — 16/11/2026 |
 | Local | Cascavel/PR — terreno 8,00 × 25,00 m (200 m²), plano, no nível da rua |
 | Situação | Anteprojeto para cotação. Não substitui os projetos legais e executivos assinados por profissionais habilitados (ART/RRT). |
 
@@ -11,14 +11,14 @@
 
 | Código | Conteúdo | Arquivo |
 |---|---|---|
-| CP-ARQ-01 | Planta baixa da Etapa 1, áreas e esquadrias | `plantas/CP-ARQ-01_planta-etapa1_R02` |
-| CP-ARQ-02 | Planta baixa da Etapa 2 (área gourmet) | `plantas/CP-ARQ-02_planta-etapa2_R02` |
-| CP-ARQ-03 | Cobertura, cortes A-A e B-B, fachada | `plantas/CP-ARQ-03_cobertura-cortes-fachada_R02` |
-| CP-ARQ-04 | Fachada frontal com portão basculante, corte do portão e muros | `plantas/CP-ARQ-04_fachada-portao-muros_R02` |
-| CP-EST-01 | Locação de pilares, baldrames e estacas | `plantas/CP-EST-01_estrutura-fundacoes_R02` |
-| CP-ELE-01 | Pontos elétricos e quadro de cargas | `plantas/CP-ELE-01_eletrica_R02` |
-| CP-HID-01 | Água fria, esgoto e pluvial | `plantas/CP-HID-01_hidrossanitario_R02` |
-| CP-ORC-01 | Estimativa de custo, quantitativos, orçamento, quadro de cargas e cronograma | `planilhas/CP-ORC-01_quantitativos-orcamento_R02.xlsx` |
+| CP-ARQ-01 | Planta baixa da Etapa 1, áreas e esquadrias | `plantas/CP-ARQ-01_planta-etapa1_R03` |
+| CP-ARQ-02 | Planta baixa da Etapa 2 (área gourmet) | `plantas/CP-ARQ-02_planta-etapa2_R03` |
+| CP-ARQ-03 | Cobertura, cortes A-A e B-B, fachada | `plantas/CP-ARQ-03_cobertura-cortes-fachada_R03` |
+| CP-ARQ-04 | Fachada frontal com portão basculante, corte do portão e muros | `plantas/CP-ARQ-04_fachada-portao-muros_R03` |
+| CP-EST-01 | Locação de pilares, baldrames e estacas | `plantas/CP-EST-01_estrutura-fundacoes_R03` |
+| CP-ELE-01 | Pontos elétricos e quadro de cargas | `plantas/CP-ELE-01_eletrica_R03` |
+| CP-HID-01 | Água fria, esgoto e pluvial | `plantas/CP-HID-01_hidrossanitario_R03` |
+| CP-ORC-01 | Estimativa de custo, quantitativos, orçamento, quadro de cargas e cronograma | `planilhas/CP-ORC-01_quantitativos-orcamento_R03.xlsx` |
 | CP-EST-CUSTO-01 | Estimativa paramétrica de custo, em três cenários | `03-estimativa-de-custo.md` |
 | CP-DIAG-01 | Diagnóstico inicial | `01-diagnostico-fase1.md` |
 
@@ -28,7 +28,7 @@ Cada prancha existe em PDF (A3, escala 1:100), SVG (editável) e PNG. Os desenho
 
 - Planta aprovada: ala dos quartos em fila como na imagem de referência; banho compartilhado com acesso pelos dois quartos; lavanderia junto à cozinha.
 - Garagem descoberta com 5,50 m de profundidade.
-- Corredor com vidro de correr do piso ao teto, abrindo para o pátio.
+- Corredor com vidro de correr do piso ao teto, abrindo para o pátio, com 1,30 m de largura (os quartos passaram de 3,40 m para 3,20 m de largura). Janelas dos quartos só para o corredor.
 - Spa: só infraestrutura na Etapa 1.
 - Terreno plano, no nível da rua.
 - Taxa de ocupação informada: 60 %.
@@ -41,7 +41,7 @@ Cada prancha existe em PDF (A3, escala 1:100), SVG (editável) e PNG. Os desenho
 | Grandeza | Valor |
 |---|---:|
 | Terreno | 200,00 m² |
-| Área útil total | 95,81 m² |
+| Área útil total | 95,96 m² |
 | Área construída = projeção coberta (Etapa 1) | 112,05 m² |
 | Taxa de ocupação (Etapa 1) | 56,0 % |
 | Saldo de projeção até 60 % | 7,95 m² |

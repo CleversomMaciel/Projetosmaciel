@@ -19,7 +19,7 @@ from planta_fase2 import br, rect, dim_chain, WALLS, MUROS, OPEN, ROOMS
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "..", "plantas")
 DOCS = os.path.join(HERE, "..", "planilhas")
-REV = "R02"
+REV = "R03"
 DATA = "15/11/2026"
 W, H = 42.0, 29.7  # A3 paisagem, cm
 
@@ -115,13 +115,13 @@ AREAS_UTEIS = [
     ("Cozinha — 2,60 × 2,85", 7.41),
     ("Lavanderia — 2,45 × 1,50", 3.6751),
     ("Suíte master — 4,65 × 2,85", 13.2525),
-    ("Closet — 3,40 × 1,50", 5.10),
-    ("Banho suíte — 3,40 × 1,50", 5.10),
-    ("Demi-suíte 01 — 3,40 × 2,50", 8.50),
-    ("Demi-suíte 02 — 3,40 × 2,50", 8.50),
-    ("Banho compartilhado — 3,40 × 1,50", 5.10),
-    ("Lavabo — 3,40 × 1,20", 4.08),
-    ("Corredor envidraçado — 1,10 × 11,45", 12.595),
+    ("Closet — 3,20 × 1,50", 4.80),
+    ("Banho suíte — 3,20 × 1,50", 4.80),
+    ("Demi-suíte 01 — 3,20 × 2,50", 8.00),
+    ("Demi-suíte 02 — 3,20 × 2,50", 8.00),
+    ("Banho compartilhado — 3,20 × 1,50", 4.80),
+    ("Lavabo — 3,20 × 1,20", 3.84),
+    ("Corredor envidraçado — 1,30 × 11,45", 14.8851),
 ]
 A_UTIL = sum(a for _, a in AREAS_UTEIS)
 A_CONST = 8.00 * 4.85 + 5.00 * 14.65          # 112,05
@@ -153,7 +153,7 @@ def arq(etapa):
     tx = side_axes(fig)
     if etapa == 1:
         y = header(tx, "ARQ-01 — Planta baixa da Etapa 1 (construção inicial)",
-                   "Terreno 8,00 × 25,00 m = 200,00 m²   |   Planta aprovada pelo proprietário (R03 do estudo)")
+                   "Terreno 8,00 × 25,00 m = 200,00 m²   |   Corredor alargado para 1,30 m a pedido do proprietário")
         y = table(tx, "ÁREAS ÚTEIS (internas, sem paredes)",
                   [(n, br(a) + " m²") for n, a in AREAS_UTEIS] + [("TOTAL ÁREA ÚTIL", br(A_UTIL) + " m²", True)],
                   y, x1=0.48)
@@ -300,7 +300,7 @@ def arq03():
         cx.plot([x0 - 0.6, x0 + 8.6], [y0, y0], color="k", lw=0.8)
         rect(cx, (x0, y0, x0 + 5.0, y0 + 0.15), fc="#bbbbbb", ec="none")
         rect(cx, (x0, y0 + 0.15, x0 + 0.20, y0 + 3.90), fc="#3a3a3a", ec="none")          # divisa esq
-        rect(cx, (x0 + 3.60, y0 + 0.15, x0 + 3.75, y0 + 3.15), fc="#3a3a3a", ec="none")   # parede corredor
+        rect(cx, (x0 + 3.40, y0 + 0.15, x0 + 3.55, y0 + 3.15), fc="#3a3a3a", ec="none")   # parede corredor
         cx.plot([x0 + 4.92, x0 + 4.92], [y0 + 0.15, y0 + 2.75], color=BLUE, lw=1.6)        # vidro
         rect(cx, (x0 + 4.85, y0 + 2.75, x0 + 5.0, y0 + 3.05), fc="#3a3a3a", ec="none")     # viga sobre vidro
         rect(cx, (x0 + 7.80, y0, x0 + 8.0, y0 + H_MURO), fc="#8a8a8a", ec="none")          # muro
@@ -308,9 +308,9 @@ def arq03():
         cx.plot([x0 + 0.20, x0 + 4.85], [y0 + 0.15 + PD] * 2, color="#777777", lw=0.6, ls="--")
         cx.add_patch(Rectangle((x0 + 4.95, y0 + 2.95), 0.22, 0.16, fc="white", ec=BLUE, lw=1))  # calha
         cx.text(x0 + 1.9, y0 + 1.4, "demi-suíte 01", fontsize=4.4, ha="center")
-        cx.text(x0 + 4.3, y0 + 1.4, "corredor", fontsize=4.4, ha="center", rotation=90)
+        cx.text(x0 + 4.2, y0 + 1.4, "corredor", fontsize=4.4, ha="center", rotation=90)
         cx.text(x0 + 6.4, y0 + 1.0, "pátio", fontsize=4.4, ha="center")
-        dim_chain(cx, [x0, x0 + 0.20, x0 + 3.60, x0 + 3.75, x0 + 4.85, x0 + 5.0, x0 + 7.8, x0 + 8.0], y0 - 0.45, False,
+        dim_chain(cx, [x0, x0 + 0.20, x0 + 3.40, x0 + 3.55, x0 + 4.85, x0 + 5.0, x0 + 7.8, x0 + 8.0], y0 - 0.45, False,
                   fs=4.2)
         cx.text(x0 + 4, y0 + 4.3, "CORTE TRANSVERSAL B-B", fontsize=7, fontweight="bold", ha="center")
 
@@ -463,7 +463,7 @@ def arq04():
 
 # ----------------------------------------------------------------------------- EST-01
 YL = [5.60, 10.275, 11.625, 14.275, 15.925, 18.575, 20.225, 21.875, 24.90]
-PILARES = ([(0.10, y) for y in YL] + [(3.675, y) for y in YL]
+PILARES = ([(0.10, y) for y in YL] + [(3.475, y) for y in YL]
            + [(4.925, y) for y in (10.275, 13.20, 16.50, 19.60, 21.875, 24.90)]
            + [(7.90, 5.60), (7.90, 10.275), (5.275, 5.60), (5.275, 7.275), (7.90, 7.275)])
 PERG = [(5.15, 14.15), (7.65, 14.15), (5.15, 18.85), (7.65, 18.85)]
@@ -569,25 +569,25 @@ PTS = []
 def _room_pts():
     P = PTS
     lights = [(2.7, 6.9), (2.7, 9.2), (6.5, 8.8), (6.6, 6.45), (1.9, 10.95), (1.9, 12.95), (1.9, 15.1),
-              (1.9, 17.25), (1.9, 19.4), (1.9, 21.05), (2.5, 23.4), (4.3, 12.0), (4.3, 15.5), (4.3, 19.0),
+              (1.9, 17.25), (1.9, 19.4), (1.9, 21.05), (2.5, 23.4), (4.2, 12.0), (4.2, 15.5), (4.2, 19.0),
               (4.0, 2.75), (1.2, 5.3), (6.9, 5.3), (6.4, 12.5), (6.4, 16.5), (6.4, 20.5), (6.4, 23.6)]
     P += [(x, y, "L") for x, y in lights]
     tug = [(0.35, 6.2), (0.35, 8.0), (0.35, 9.6), (2.5, 5.85), (4.9, 9.9), (3.4, 10.05),          # estar/jantar
            (7.65, 7.8), (7.65, 8.6), (7.65, 9.4), (5.5, 7.5), (6.9, 7.5),                            # cozinha
            (7.65, 6.0), (7.65, 6.8), (5.5, 6.0),                                                     # lavanderia
            (0.35, 10.9),                                                                             # lavabo
-           (0.35, 12.2), (0.35, 13.7), (3.45, 12.75), (1.5, 11.85),                                  # demi 02
+           (0.35, 12.2), (0.35, 13.7), (3.25, 12.75), (1.5, 11.85),                                  # demi 02
            (0.35, 15.1),                                                                             # banho comp
-           (0.35, 16.5), (0.35, 18.0), (3.45, 17.05), (1.5, 18.35),                                  # demi 01
+           (0.35, 16.5), (0.35, 18.0), (3.25, 17.05), (1.5, 18.35),                                  # demi 01
            (0.35, 19.4), (0.35, 21.05),                                                              # banho suíte, closet
            (0.35, 22.5), (0.35, 24.2), (2.5, 24.65), (4.7, 23.0), (3.0, 22.1),                       # suíte
-           (3.9, 13.5), (3.9, 18.0),                                                                 # corredor
+           (3.7, 13.5), (3.7, 18.0),                                                                 # corredor
            (0.35, 1.0), (7.65, 1.0)]                                                                 # garagem
     P += [(x, y, "T") for x, y in tug]
-    P += [(3.2, 19.9, "E"), (3.2, 15.6, "E"), (7.65, 9.9, "E"), (7.65, 23.6, "E"), (7.65, 17.4, "E")]
+    P += [(1.3, 19.9, "E"), (1.3, 15.6, "E"), (7.65, 9.9, "E"), (7.65, 23.6, "E"), (7.65, 17.4, "E")]
     P += [(0.4, 23.4, "A"), (0.4, 17.25, "A"), (0.4, 12.95, "A"), (0.4, 7.0, "A")]
-    sw = [(5.15, 5.9), (3.9, 10.5), (3.45, 11.1), (3.45, 12.0), (3.45, 16.3), (2.4, 14.5), (2.4, 15.75),
-          (1.2, 20.0), (1.2, 21.65), (3.7, 22.1), (5.45, 7.5), (4.7, 21.6)]
+    sw = [(5.15, 5.9), (3.7, 10.5), (3.25, 11.1), (3.25, 12.0), (3.25, 16.3), (2.25, 14.5), (2.25, 15.75),
+          (1.2, 20.0), (1.2, 21.65), (3.6, 22.1), (5.45, 7.5), (4.7, 21.6)]
     P += [(x, y, "I") for x, y in sw]
 
 
@@ -679,8 +679,8 @@ def hid01():
     ax = plan_axes(fig)
     light_plan(ax)
     # água fria
-    af = [[(7.6, 0.3), (7.6, 5.3), (7.6, 5.9)], [(7.6, 5.3), (4.4, 5.3), (4.4, 22.0), (7.5, 22.0), (7.5, 23.2)], [(4.4, 15.1), (3.3, 15.1)],
-          [(3.5, 15.1), (3.5, 10.9), (2.6, 10.9)], [(3.5, 15.1), (3.5, 19.4), (2.6, 19.4)],
+    af = [[(7.6, 0.3), (7.6, 5.3), (7.6, 5.9)], [(7.6, 5.3), (4.4, 5.3), (4.4, 22.0), (7.5, 22.0), (7.5, 23.2)], [(4.4, 15.1), (3.1, 15.1)],
+          [(3.3, 15.1), (3.3, 10.9), (2.6, 10.9)], [(3.3, 15.1), (3.3, 19.4), (2.6, 19.4)],
           [(7.6, 5.9), (7.6, 8.8)], [(7.5, 18.6), (7.5, 22.0)]]
     for seg in af:
         ax.plot([p[0] for p in seg], [p[1] for p in seg], color=BLUE, lw=0.9)
@@ -772,12 +772,12 @@ def quantitativos(est, ele):
     alv_int = L_int * H_INT - (A_doors - 0.9 * 2.1) - 2 * 1.2 * 1.2 - A_v3
     L_muro = 5.5 * 2 + 14.65 + 3.0 + 2.8
     perims = {n: 2 * (w + d) for _, _, n, w, d in ROOMS}
-    P_tot = sum(perims.values()) + 2 * (1.10 + 11.45)
+    P_tot = sum(perims.values()) + 2 * (1.30 + 11.45)
     reb_int = P_tot * PD - 2 * A_doors - A_win - A_v3 - (2.8 + 11.45) * 2.6 - 4.5 * PD * 2
     molhados = ["BANHO SUÍTE", "BANHO COMPARTILHADO", "LAVABO", "LAVANDERIA"]
     az = sum(perims[m] for m in molhados) * PD - 6 * 0.7 * 2.1 + 5.0 * 0.6  # + faixa da bancada da cozinha
     reb_ext = (8.0 * 3.9) + (2.95 + 14.45) * 0.6 + 3.0 * 3.3 + 8.0 * 0.6 + (19.5 + 5.0 + 4.85) * 0.6
-    A_piso_molh = 5.10 + 5.10 + 4.08 + 3.675
+    A_piso_molh = 4.80 + 4.80 + 3.84 + 3.675
     A_vidro = (2.8 + 11.45) * 2.6 + A_v3
     Q = []  # (etapa, descrição, un, quantidade, observação)
     add = lambda e, d, u, q, o="": Q.append((e, d, u, round(q, 2), o))

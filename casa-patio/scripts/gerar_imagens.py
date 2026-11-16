@@ -11,11 +11,11 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle, Polygon, Circle, Ellipse, FancyBboxPatch
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
-from planta_fase2 import WALLS, MUROS, OPEN
+from planta_fase2 import WALLS, MUROS, OPEN, FURN
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "..", "imagens")
-REV = "R00"
+REV = "R01"
 
 WOOD = "#a9713f"
 WOOD_D = "#7d5029"
@@ -178,9 +178,9 @@ def humanizada(ax, etapa, title=True):
         ax.plot([xx, xx], [0, 5.5], color="#a9a396", lw=0.25)
     R((0.2, 5.7, 7.8, 10.2), fc=FLOOR, ec="none")
     R((0.2, 10.35, 4.85, 24.8), fc=FLOOR, ec="none")
-    for r in ((0.2, 10.35, 3.6, 11.55), (0.2, 14.35, 3.6, 15.85), (0.2, 18.65, 3.6, 20.15), (5.35, 5.7, 7.8, 7.2)):
+    for r in ((0.2, 10.35, 3.4, 11.55), (0.2, 14.35, 3.4, 15.85), (0.2, 18.65, 3.4, 20.15), (5.35, 5.7, 7.8, 7.2)):
         R(r, fc=WET, ec="none")
-    R((0.2, 20.3, 3.6, 21.8), fc="#d9c3a0", ec="none")                                # closet
+    R((0.2, 20.3, 3.4, 21.8), fc="#d9c3a0", ec="none")                                # closet
     R((5.0, 10.35, 7.8, 22.25), fc="#86b56a", ec="none")                              # pátio
     R((5.0, 22.4, 7.8, 24.8), fc="#c9a26f", ec="none")                                # deck do spa
     R((5.45, 22.75, 7.35, 24.45), fill=False, ec="#7d5029", lw=0.8, ls="--")
@@ -208,35 +208,45 @@ def humanizada(ax, etapa, title=True):
             ax.plot([5.0, 7.8], [yy, yy], color=WOOD_D, lw=1.6, alpha=0.75)
         for p in ((5.15, 14.15), (7.65, 14.15), (5.15, 18.85), (7.65, 18.85)):
             R((p[0] - 0.1, p[1] - 0.1, p[0] + 0.1, p[1] + 0.1), fc=WOOD_D, ec="k", lw=0.3)
-    # móveis
-    R((0.3, 22.4, 2.3, 24.3), fc="#f7f3ea", ec="#8a8172", lw=0.5)                      # cama casal suíte
-    R((0.3, 22.4, 0.75, 24.3), fc="#b7a98f", ec="none")
-    for y0 in (12.1, 16.4):                                                           # camas demi-suítes
-        R((0.3, y0, 2.3, y0 + 1.5), fc="#f7f3ea", ec="#8a8172", lw=0.5)
-        R((0.3, y0, 0.75, y0 + 1.5), fc="#b7a98f", ec="none")
-    R((0.3, 20.4, 3.5, 20.95), fc=WOOD, ec=WOOD_D, lw=0.4)                             # armário closet
-    for y0 in (14.45, 18.75):                                                         # banheiros: box, vaso, cuba
-        R((0.3, y0, 1.2, y0 + 1.4), fc="#b5d6e6", ec="#5f8ea3", lw=0.4)
-        ax.add_patch(Ellipse((1.75, y0 + 1.05), 0.38, 0.5, fc="white", ec="#777", lw=0.4))
-        R((2.3, y0 + 0.9, 3.3, y0 + 1.4), fc="#efefef", ec="#777", lw=0.4)
-    ax.add_patch(Ellipse((0.75, 11.1), 0.38, 0.5, fc="white", ec="#777", lw=0.4))
-    R((1.6, 11.05, 2.5, 11.5), fc="#efefef", ec="#777", lw=0.4)
-    R((0.35, 5.9, 3.0, 6.75), fc="#c9c0b0", ec="#8a8172", lw=0.5)                      # sofá
-    R((0.35, 6.75, 1.15, 8.0), fc="#c9c0b0", ec="#8a8172", lw=0.5)
-    R((1.7, 7.1, 2.6, 7.6), fc=WOOD, ec=WOOD_D, lw=0.4)
-    R((1.3, 8.7, 3.5, 9.6), fc=WOOD, ec=WOOD_D, lw=0.5)                                # mesa jantar
-    for xx in (1.45, 2.15, 2.85):
-        R((xx, 8.35, xx + 0.4, 8.65), fc="#e4d7bf", ec=WOOD_D, lw=0.3)
-        R((xx, 9.65, xx + 0.4, 9.95), fc="#e4d7bf", ec=WOOD_D, lw=0.3)
-    R((7.2, 7.4, 7.8, 10.1), fc="#4a4a4a", ec="k", lw=0.4)                             # bancada cozinha
-    R((7.3, 8.3, 7.7, 8.9), fc="#c8c8c8", ec="k", lw=0.3)
-    R((5.5, 8.2, 6.2, 9.7), fc="#6b6b6b", ec="k", lw=0.4)                              # ilha
-    R((7.15, 5.8, 7.75, 6.4), fc="white", ec="#777", lw=0.4)                           # lavadora
-    R((7.15, 6.5, 7.75, 7.1), fc="#dfe7ea", ec="#777", lw=0.4)                         # tanque
-    for x0, c in ((1.0, "#e9e9e9"), (5.5, "#3d3d3d")):                                # carros
-        ax.add_patch(FancyBboxPatch((x0, 0.35), 1.9, 4.8, boxstyle="round,pad=0,rounding_size=0.45", fc=c, ec="#222",
+    # móveis (medidas reais, lista FURN)
+    for x0, y0, x1, y1, kind, col, h in FURN:
+        if kind in ("bed", "bedL"):
+            R((x0, y0, x1, y1), fc=col, ec="#8a8172", lw=0.5)
+            if kind == "bed":      # cabeceira nos fundos
+                R((x0, y1 - 0.12, x1, y1), fc=WOOD, ec="none")
+                R((x0 + 0.1, y1 - 0.62, (x0 + x1) / 2 - 0.05, y1 - 0.2), fc="white", ec="#b9b2a3", lw=0.3)
+                R(((x0 + x1) / 2 + 0.05, y1 - 0.62, x1 - 0.1, y1 - 0.2), fc="white", ec="#b9b2a3", lw=0.3)
+                R((x0, y0, x1, y0 + 0.7), fc="#b7a98f", ec="none")
+            else:                  # cabeceira na parede esquerda
+                R((x0, y0, x0 + 0.12, y1), fc=WOOD, ec="none")
+                R((x0 + 0.2, y0 + 0.1, x0 + 0.62, (y0 + y1) / 2 - 0.05), fc="white", ec="#b9b2a3", lw=0.3)
+                R((x0 + 0.2, (y0 + y1) / 2 + 0.05, x0 + 0.62, y1 - 0.1), fc="white", ec="#b9b2a3", lw=0.3)
+                R((x1 - 0.7, y0, x1, y1), fc="#b7a98f", ec="none")
+        elif kind == "shower":
+            R((x0, y0, x1, y1), fc=col, ec="#5f8ea3", lw=0.5)
+            ax.add_patch(Circle((x0 + 0.3, (y0 + y1) / 2), 0.1, fc="#8fb6c9", ec="#5f8ea3", lw=0.3))
+        elif kind == "wc":
+            horiz = (x1 - x0) > (y1 - y0)
+            ax.add_patch(Ellipse(((x0 + x1) / 2, (y0 + y1) / 2), x1 - x0, y1 - y0, fc="white", ec="#777", lw=0.5))
+        elif kind == "sofa":
+            R((x0, y0, x1, y1), fc=col, ec="#8a8172", lw=0.5)
+            R((x1 - 0.22, y0, x1, y1), fc="#b0a691", ec="none")
+            for yy in (y0, y1 - 0.18):
+                R((x0, yy, x1, yy + 0.18), fc="#b0a691", ec="none")
+        elif kind == "sink":
+            R((x0, y0, x1, y1), fc=col, ec="#555", lw=0.4)
+            ax.add_patch(Circle(((x0 + x1) / 2, (y0 + y1) / 2), 0.05, fc="#555", ec="none"))
+        elif kind == "cook":
+            R((x0, y0, x1, y1), fc=col, ec="k", lw=0.3)
+            for cx_ in (x0 + 0.12, x1 - 0.12):
+                for cy_ in (y0 + 0.18, y1 - 0.18):
+                    ax.add_patch(Circle((cx_, cy_), 0.08, fill=False, ec="#bbbbbb", lw=0.4))
+        else:
+            R((x0, y0, x1, y1), fc=col, ec="#5a5348", lw=0.4)
+    for x0, c in ((1.0, "#e9e9e9"), (5.5, "#3d3d3d")):                                # carros 1,85 × 4,90
+        ax.add_patch(FancyBboxPatch((x0, 0.3), 1.85, 4.9, boxstyle="round,pad=0,rounding_size=0.45", fc=c, ec="#222",
                                     lw=0.5))
-        ax.add_patch(FancyBboxPatch((x0 + 0.2, 1.3), 1.5, 2.5, boxstyle="round,pad=0,rounding_size=0.3", fc="#8fb6c9",
+        ax.add_patch(FancyBboxPatch((x0 + 0.2, 1.3), 1.45, 2.5, boxstyle="round,pad=0,rounding_size=0.3", fc="#8fb6c9",
                                     ec="#222", lw=0.3))
     # paredes
     for w in MUROS:
@@ -255,11 +265,12 @@ def humanizada(ax, etapa, title=True):
         R((x0, 0, x1, 0.30), fc=DARK, ec="none")
     ax.plot([1.6, 7.7], [0.15, 0.15], color=DARK, lw=2.2)
     ax.plot([0.3, 1.3], [0.15, 0.15], color=WOOD_D, lw=2.2)
-    labels = [(2.6, 23.9, "SUÍTE MASTER"), (1.9, 21.4, "CLOSET"), (2.4, 19.2, "BANHO SUÍTE"), (2.6, 17.9, "DEMI-SUÍTE 01"),
-              (2.4, 15.55, "BANHO"), (2.6, 13.6, "DEMI-SUÍTE 02"), (2.9, 10.7, "LAVABO"), (3.0, 8.15, "ESTAR / JANTAR"),
-              (6.3, 7.75, "COZINHA"), (6.2, 6.75, "LAVAND."), (4.0, 2.8, "GARAGEM")]
+    labels = [(4.1, 23.2, "SUÍTE\nMASTER"), (1.8, 21.05, "CLOSET"), (1.75, 19.7, "BANHO SUÍTE"), (2.75, 16.75, "DEMI-\nSUÍTE 01"),
+              (2.75, 15.3, "BANHO"), (2.75, 13.75, "DEMI-\nSUÍTE 02"), (2.75, 10.75, "LAVABO"), (1.2, 8.03, "ESTAR / JANTAR"),
+              (6.2, 9.3, "COZINHA"), (6.3, 6.7, "LAVAND."), (4.2, 2.8, "GARAGEM"), (4.2, 17.0, "CORREDOR 1,30")]
     for x, y, t in labels:
-        ax.text(x, y, t, fontsize=4.6, ha="center", va="center", fontweight="bold", color="#3a342a")
+        ax.text(x, y, t, fontsize=4.4, ha="center", va="center", fontweight="bold", color="#3a342a",
+                rotation=90 if t.startswith("CORREDOR") else 0)
     ax.text(6.4, 16.9 if etapa == 2 else 16.3, "ÁREA GOURMET" if etapa == 2 else "PÁTIO CENTRAL", fontsize=4.8,
             ha="center", va="center", fontweight="bold", color="#3a2a12" if etapa == 2 else "white",
             bbox=dict(fc="#f1e3c6" if etapa == 2 else "none", ec="none", pad=0.5))
@@ -319,7 +330,7 @@ def isometrica(ax, etapa):
     tiles(P, 0, 0, 8, 5.5, 0.0, "#bdb7aa")                             # garagem
     tiles(P, 0.2, 5.7, 7.8, 10.2, 0.15, FLOOR)
     tiles(P, 0.2, 10.2, 4.85, 24.8, 0.15, FLOOR)
-    for r in ((0.2, 10.35, 3.6, 11.55), (0.2, 14.35, 3.6, 15.85), (0.2, 18.65, 3.6, 20.15), (5.35, 5.7, 7.8, 7.2)):
+    for r in ((0.2, 10.35, 3.4, 11.55), (0.2, 14.35, 3.4, 15.85), (0.2, 18.65, 3.4, 20.15), (5.35, 5.7, 7.8, 7.2)):
         tiles(P, r[0], r[1], r[2], r[3], 0.16, WET)
     if etapa == 1:
         tiles(P, 5.0, 10.35, 7.8, 22.25, 0.05, "#7fb062")
@@ -356,25 +367,21 @@ def isometrica(ax, etapa):
                     box(P, r[0], r[1], 1.15, r[2], r[3], 2.35, GLASS, alpha=0.45)
                 elif kind == "glass":
                     box(P, r[0], r[1], 0.15, r[2], r[3], 2.75, GLASS, alpha=0.35)
-    # móveis
-    box(P, 0.3, 22.4, 0.15, 2.3, 24.3, 0.65, "#f7f3ea")
-    box(P, 0.3, 22.4, 0.15, 0.45, 24.3, 1.15, WOOD)
-    for y0 in (12.1, 16.4):
-        box(P, 0.3, y0, 0.15, 2.3, y0 + 1.5, 0.65, "#f7f3ea")
-        box(P, 0.3, y0, 0.15, 0.45, y0 + 1.5, 1.15, WOOD)
-    box(P, 0.3, 20.4, 0.15, 3.5, 20.95, 2.3, WOOD)
-    for y0 in (14.45, 18.75):
-        box(P, 0.3, y0, 0.15, 1.2, y0 + 1.4, 2.1, "#b5d6e6", alpha=0.4)
-        box(P, 2.3, y0 + 0.9, 0.15, 3.3, y0 + 1.4, 1.0, "#efefef")
-    box(P, 0.35, 5.9, 0.15, 3.0, 6.75, 0.6, "#c9c0b0")
-    box(P, 0.35, 6.75, 0.15, 1.15, 8.0, 0.6, "#c9c0b0")
-    box(P, 1.3, 8.7, 0.85, 3.5, 9.6, 0.92, WOOD)
-    box(P, 7.2, 7.4, 0.15, 7.8, 10.1, 1.05, "#4a4a4a")
-    box(P, 5.5, 8.2, 0.15, 6.2, 9.7, 1.05, "#6b6b6b")
-    box(P, 7.15, 5.8, 0.15, 7.75, 6.4, 1.0, "white")
+    # móveis (lista FURN)
+    for x0, y0, x1, y1, kind, col, h in FURN:
+        if kind == "shower":
+            box(P, x0, y0, 0.15, x1, y1, 0.15 + h, col, alpha=0.35)
+        elif kind in ("bed", "bedL"):
+            box(P, x0, y0, 0.15, x1, y1, 0.15 + h, col)
+            if kind == "bed":
+                box(P, x0, y1 - 0.08, 0.15, x1, y1, 1.25, WOOD)
+            else:
+                box(P, x0, y0, 0.15, x0 + 0.08, y1, 1.25, WOOD)
+        else:
+            box(P, x0, y0, 0.15, x1, y1, 0.15 + h, col)
     for x0, c in ((1.0, "#e9e9e9"), (5.5, "#3d3d3d")):
-        box(P, x0, 0.4, 0.15, x0 + 1.9, 5.1, 0.85, c)
-        box(P, x0 + 0.15, 1.5, 0.85, x0 + 1.75, 3.9, 1.45, "#8fb6c9")
+        box(P, x0, 0.35, 0.15, x0 + 1.85, 5.2, 0.85, c)
+        box(P, x0 + 0.15, 1.5, 0.85, x0 + 1.7, 3.9, 1.45, "#8fb6c9")
     # pórtico frontal com testeira inclinada
     box(P, 0, 0, 0, 0.3, 0.3, 4.1, DARK)
     for x0 in (1.30, 7.70):
