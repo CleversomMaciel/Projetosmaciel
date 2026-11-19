@@ -7,3 +7,4 @@
 | 2026-11-18 | Reforma tributária no aluguel (2027) | https://www.instagram.com/p/Df5sgJ-jc5_/ |
 | 2026-11-18 | Minha Casa, Minha Vida 2026: faixas de renda | https://www.instagram.com/p/Df5uo_3Cn8K/ |
 | 2026-11-18 | Custos além da entrada: ITBI, escritura e registro | https://www.instagram.com/p/Df5ynDjjNj2/ |
+| 2026-11-19 | FGTS na compra do imóvel | https://www.instagram.com/p/Df69miugoSo/ |
