@@ -12,7 +12,7 @@ Aprovado pelo usuário: publicação 100% automática, sem aprovação prévia (
 7. Commit + push para `claude/focused-goodall-75vbpw`; conferir que as URLs raw retornam 200 e batem com os arquivos locais.
 8. Publicar via Windsor.ai (connector `instagram`, account `17841433033142206`):
    - `create_carousel_post` com as URLs `https://raw.githubusercontent.com/CleversomMaciel/Projetosmaciel/claude/focused-goodall-75vbpw/instagram/posts/<pasta>/slide-N.jpg` e a legenda.
-   - Se der timeout: conferir com `get_data` (media_permalink, last_3dT) antes de repetir. Nunca publicar duplicado.
+   - Se der timeout: o post costuma sair mesmo assim. Conferir com `get_data` usando um conjunto de campos diferente (o Windsor guarda cache por ~15 min) ou agendar nova conferência em 20 min. Nunca publicar duplicado.
    - `create_story` com `story.jpg`.
 9. Registrar em `HISTORICO.md` (data, tema, link) e fazer commit + push.
 10. Avisar o usuário em português: tema e link. Se algo falhar (ex.: plano trial do Windsor expirado), avisar e deixar imagens e legenda prontas para postagem manual.
