@@ -22,4 +22,5 @@
 - Paleta: preto (#0a0a0a) e dourado champanhe (#cfae78, degradê #f3e3c3 → #a8834f).
 - Fonte: Montserrat. Títulos em caixa alta; palavra-chave em dourado grande.
 - Logo "R" + "RENAN SANTOS / PATRIMÔNIO"; lema "CADA AQUISIÇÃO DEVE CONSTRUIR A PRÓXIMA."; rodapé "IMÓVEIS | CONSULTORIA | PATRIMÔNIO" e "CASCAVEL | PR".
+- **Toda capa e story levam foto de fundo** ("bg": "fundo.jpg" no post.json). Banco de fotos em `instagram/brand/fotos/` (variações `v_*.jpg`); alternar para que posts vizinhos na grade não repitam a mesma foto. Fotos geradas no Canva a partir da descrição aprovada pelo usuário: "Foto realista de casa moderna de alto padrão ao entardecer, iluminação quente nas janelas, tons escuros com detalhes dourados, sem texto e sem pessoas".
 - Gerado por `render.js`.

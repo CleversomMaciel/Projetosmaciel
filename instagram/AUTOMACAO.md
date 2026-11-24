@@ -8,6 +8,7 @@ Aprovado pelo usuário: publicação 100% automática, sem aprovação prévia (
 3. Pesquisar (WebSearch, modo extended) notícias das últimas 48–72h sobre: Selic/Copom, juros de financiamento (Caixa, BB, bancos privados), Minha Casa Minha Vida, FGTS, aluguel (FipeZAP, IGP-M, IVAR), preços de imóveis, reforma tributária, crédito imobiliário (Abecip), mercado de Cascavel/PR e Paraná.
 4. Escolher o tema mais relevante e ainda não publicado. Sem notícia nova forte: usar um tema educativo atemporal (ex.: SAC x Price, escritura x registro, como usar FGTS, custos de cartório e ITBI, como calcular entrada, amortização).
 5. Criar `instagram/posts/AAAA-MM-DD-HHMM-<tema>/post.json` com 5–7 slides, story e legenda, seguindo o guia de estilo (sem emojis, tom profissional, números com fonte, só conteúdo educativo — nunca anunciar imóvel nem se apresentar como corretor).
+5b. Copiar uma foto de `instagram/brand/fotos/v_*.jpg` para a pasta do post como `fundo.jpg` e definir `"bg": "fundo.jpg"` no post.json (não repetir a foto do post anterior).
 6. `node instagram/render.js instagram/posts/<pasta>`; conferir visualmente a capa (Read do slide-1.jpg); corrigir quebras de layout.
 7. Commit + push para `claude/focused-goodall-75vbpw`; conferir que as URLs raw retornam 200 e batem com os arquivos locais.
 8. Publicar via Windsor.ai (connector `instagram`, account `17841433033142206`):

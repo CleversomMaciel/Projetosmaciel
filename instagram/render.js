@@ -54,6 +54,10 @@ const css = (w, h) => `
        font-size:17px; letter-spacing:4px; color:${C.muted}; font-weight:500; white-space:nowrap; }
   .foot .l::before { content:''; display:inline-block; width:70px; height:2px; background:${C.goldSolid}; vertical-align:middle; margin-right:22px; }
   .mid { margin-top:auto; margin-bottom:auto; }
+  .s[data-bg=cover] .mid { margin-top:10px; margin-bottom:auto; }
+  .s[data-bg=cover] .sub { font-size:32px; text-shadow:0 2px 12px rgba(0,0,0,.9); }
+  .s[data-bg=cover] h1, .s[data-bg=cover] .tag { text-shadow:0 2px 16px rgba(0,0,0,.8); }
+  .s[data-bg=cover] .gold { text-shadow:none; filter:drop-shadow(0 3px 10px rgba(0,0,0,.85)); }
 `;
 
 const chrome = (n, total) => `
@@ -73,9 +77,9 @@ const chrome = (n, total) => `
     const isCover = it.n === 1 || !it.n;
     if (!isCover && !post.bg_all) return '';
     const shade = isCover
-      ? 'linear-gradient(90deg, rgba(10,10,10,.96) 0%, rgba(10,10,10,.85) 38%, rgba(10,10,10,.25) 75%, rgba(10,10,10,.1) 100%), linear-gradient(0deg, rgba(10,10,10,.9) 0%, rgba(10,10,10,0) 30%)'
+      ? 'linear-gradient(180deg, rgba(10,10,10,.97) 0%, rgba(10,10,10,.9) 30%, rgba(10,10,10,.6) 50%, rgba(10,10,10,0) 66%, rgba(10,10,10,0) 86%, rgba(10,10,10,.8) 100%)'
       : 'linear-gradient(rgba(10,10,10,.88), rgba(10,10,10,.88))';
-    return ` style="background:${shade}, url('${bgData}') center/cover no-repeat"`;
+    return ` data-bg="${isCover ? 'cover' : 'all'}" style="background:${shade}, url('${bgData}') ${post.bg_pos || 'center bottom'}/cover no-repeat"`;
   };
   for (const it of items) {
     const page = await browser.newPage({ viewport: { width: it.w, height: it.h }, deviceScaleFactor: 1 });
