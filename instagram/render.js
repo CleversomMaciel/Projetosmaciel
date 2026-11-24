@@ -66,12 +66,23 @@ const chrome = (n, total) => `
   const browser = await chromium.launch();
   const items = [...post.slides.map((s, i) => ({ html: s, name: `slide-${i + 1}.jpg`, w: 1080, h: 1350, n: i + 1 })),
                  ...(post.story ? [{ html: post.story, name: 'story.jpg', w: 1080, h: 1920 }] : [])];
+  // Foto de fundo opcional: post.json "bg": "foto.jpg" (capa e story) e "bg_all": true (todos os slides, mais escuro)
+  const bgData = post.bg ? 'data:image/jpeg;base64,' + fs.readFileSync(path.join(dir, post.bg)).toString('base64') : null;
+  const bgStyle = (it) => {
+    if (!bgData) return '';
+    const isCover = it.n === 1 || !it.n;
+    if (!isCover && !post.bg_all) return '';
+    const shade = isCover
+      ? 'linear-gradient(90deg, rgba(10,10,10,.96) 0%, rgba(10,10,10,.85) 38%, rgba(10,10,10,.25) 75%, rgba(10,10,10,.1) 100%), linear-gradient(0deg, rgba(10,10,10,.9) 0%, rgba(10,10,10,0) 30%)'
+      : 'linear-gradient(rgba(10,10,10,.88), rgba(10,10,10,.88))';
+    return ` style="background:${shade}, url('${bgData}') center/cover no-repeat"`;
+  };
   for (const it of items) {
     const page = await browser.newPage({ viewport: { width: it.w, height: it.h }, deviceScaleFactor: 1 });
     await page.setContent(`<html><head><meta charset="utf-8">
       <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=block" rel="stylesheet">
       <style>${css(it.w, it.h)}</style></head>
-      <body><div class="s">${chrome(it.n, post.slides.length)}${it.html}</div></body></html>`, { waitUntil: 'networkidle' });
+      <body><div class="s"${bgStyle(it)}>${chrome(it.n, post.slides.length)}${it.html}</div></body></html>`, { waitUntil: 'networkidle' });
     await page.evaluate(() => document.fonts.ready);
     await page.screenshot({ path: path.join(dir, it.name), type: 'jpeg', quality: 92 });
     await page.close();
