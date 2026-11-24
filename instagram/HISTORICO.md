@@ -9,3 +9,4 @@
 | 2026-11-18 | Custos além da entrada: ITBI, escritura e registro | https://www.instagram.com/p/Df5ynDjjNj2/ |
 | 2026-11-19 | FGTS na compra do imóvel | https://www.instagram.com/p/Df69miugoSo/ |
 | 2026-11-23 | Crédito imobiliário rumo ao recorde (Abecip R$ 411 bi) | https://www.instagram.com/p/DgGflFVAtQm/ |
+| 2026-11-24 | Itaú entra no Minha Casa, Minha Vida | https://www.instagram.com/p/DgH3_u1iMv3/ |
