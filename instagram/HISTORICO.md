@@ -11,3 +11,9 @@
 | 2026-11-23 | Crédito imobiliário rumo ao recorde (Abecip R$ 411 bi) | https://www.instagram.com/p/DgGflFVAtQm/ |
 | 2026-11-24 | Itaú entra no Minha Casa, Minha Vida | https://www.instagram.com/p/DgH3_u1iMv3/ |
 | 2026-11-24 | Amortização: reduzir prazo ou parcela | https://www.instagram.com/p/DgI9xqlljku/ |
+| 2026-11-24 | [foto] Aluguel x inflação (FipeZAP) | https://www.instagram.com/p/DgJD_AaDUJW/ |
+| 2026-11-24 | [foto] Custos além da entrada | https://www.instagram.com/p/DgJEgWggoTC/ |
+| 2026-11-24 | [foto] FGTS na compra do imóvel | https://www.instagram.com/p/DgJJOnRDWmi/ |
+| 2026-11-24 | [foto] Amortização: prazo ou parcela | https://www.instagram.com/p/DgJJWYyDQwH/ |
+| 2026-11-24 | [foto] Itaú no Minha Casa, Minha Vida | https://www.instagram.com/p/DgJJgdNArAt/ |
+| 2026-11-24 | [foto] Minha Casa, Minha Vida: faixas | https://www.instagram.com/p/DgJMIZ_iHRm/ |
