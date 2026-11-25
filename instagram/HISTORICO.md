@@ -18,3 +18,4 @@
 | 2026-11-24 | [foto] Itaú no Minha Casa, Minha Vida | https://www.instagram.com/p/DgJJgdNArAt/ |
 | 2026-11-24 | [foto] Minha Casa, Minha Vida: faixas | https://www.instagram.com/p/DgJMIZ_iHRm/ |
 | 2026-11-25 | [foto] Renda necessária para financiar | https://www.instagram.com/p/DgKaWFvDNbS/ |
+| 2026-11-25 | [foto] Na planta ou pronto | https://www.instagram.com/p/DgLiULvjJHc/ |
