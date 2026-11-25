@@ -17,3 +17,4 @@
 | 2026-11-24 | [foto] Amortização: prazo ou parcela | https://www.instagram.com/p/DgJJWYyDQwH/ |
 | 2026-11-24 | [foto] Itaú no Minha Casa, Minha Vida | https://www.instagram.com/p/DgJJgdNArAt/ |
 | 2026-11-24 | [foto] Minha Casa, Minha Vida: faixas | https://www.instagram.com/p/DgJMIZ_iHRm/ |
+| 2026-11-25 | [foto] Renda necessária para financiar | https://www.instagram.com/p/DgKaWFvDNbS/ |
