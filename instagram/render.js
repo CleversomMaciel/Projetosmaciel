@@ -68,8 +68,9 @@ const chrome = (n, total) => `
 
 (async () => {
   const browser = await chromium.launch();
-  const items = [...post.slides.map((s, i) => ({ html: s, name: `slide-${i + 1}.jpg`, w: 1080, h: 1350, n: i + 1 })),
-                 ...(post.story ? [{ html: post.story, name: 'story.jpg', w: 1080, h: 1920 }] : [])];
+  const items = [...(post.slides || []).map((s, i) => ({ html: s, name: `slide-${i + 1}.jpg`, w: 1080, h: 1350, n: i + 1 })),
+                 ...(post.story ? [{ html: post.story, name: 'story.jpg', w: 1080, h: 1920 }] : []),
+                 ...((post.reel || []).map((s, i) => ({ html: s, name: `cena-${i + 1}.jpg`, w: 1080, h: 1920 })))];
   // Foto de fundo opcional: post.json "bg": "foto.jpg" (capa e story) e "bg_all": true (todos os slides, mais escuro)
   const bgData = post.bg ? 'data:image/jpeg;base64,' + fs.readFileSync(path.join(dir, post.bg)).toString('base64') : null;
   const bgStyle = (it) => {
@@ -86,7 +87,7 @@ const chrome = (n, total) => `
     await page.setContent(`<html><head><meta charset="utf-8">
       <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=block" rel="stylesheet">
       <style>${css(it.w, it.h)}</style></head>
-      <body><div class="s"${bgStyle(it)}>${chrome(it.n, post.slides.length)}${it.html}</div></body></html>`, { waitUntil: 'networkidle' });
+      <body><div class="s"${bgStyle(it)}>${chrome(it.n, (post.slides || []).length)}${it.html}</div></body></html>`, { waitUntil: 'networkidle' });
     await page.evaluate(() => document.fonts.ready);
     await page.screenshot({ path: path.join(dir, it.name), type: 'jpeg', quality: 92 });
     await page.close();
