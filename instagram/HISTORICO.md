@@ -20,3 +20,4 @@
 | 2026-11-25 | [foto] Renda necessária para financiar | https://www.instagram.com/p/DgKaWFvDNbS/ |
 | 2026-11-25 | [foto] Na planta ou pronto | https://www.instagram.com/p/DgLiULvjJHc/ |
 | 2026-11-26 | [foto] 6 documentos antes de comprar | https://www.instagram.com/p/DgM_2RNjZka/ |
+| 2026-11-27 | [foto] Casas geminadas pela Caixa: o que é verdade | https://www.instagram.com/p/DgPjzwhCO9E/ |
