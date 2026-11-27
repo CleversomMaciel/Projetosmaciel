@@ -14,9 +14,10 @@ for i in $(seq 2 $N); do
   filt+="[$prev][v$i]xfade=transition=fade:duration=$F:offset=$off[x$i];"; prev="x$i"; off=$(echo "$off+$T-$F" | bc)
 done
 filt=${filt%;}
+DUR=$(echo "$N*$T-($N-1)*$F" | bc)
 if [ -n "$M" ]; then
-  ffmpeg -y -loglevel error "${args[@]}" -i "$M" -filter_complex "$filt" -map "[$prev]" -map $N:a -shortest -c:v libx264 -pix_fmt yuv420p -r 30 -c:a aac -b:a 160k $D/reel.mp4
+  ffmpeg -y -loglevel error "${args[@]}" -i "$M" -filter_complex "$filt" -map "[$prev]" -map $N:a -t $DUR -c:v libx264 -pix_fmt yuv420p -r 30 -c:a aac -b:a 160k $D/reel.mp4
 else
-  ffmpeg -y -loglevel error "${args[@]}" -f lavfi -i anullsrc=r=44100:cl=stereo -filter_complex "$filt" -map "[$prev]" -map $N:a -shortest -c:v libx264 -pix_fmt yuv420p -r 30 -c:a aac $D/reel.mp4
+  ffmpeg -y -loglevel error "${args[@]}" -f lavfi -i anullsrc=r=44100:cl=stereo -filter_complex "$filt" -map "[$prev]" -map $N:a -t $DUR -c:v libx264 -pix_fmt yuv420p -r 30 -c:a aac $D/reel.mp4
 fi
 echo "ok $D/reel.mp4"
