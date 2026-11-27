@@ -1,0 +1,7 @@
+{"serie":"O BANCO NÃO TE CONTA #1","cenas":[
+ {"foto":"v_casa1.jpg","linhas":["Seu imóvel de","R$ 300 mil","pode custar"],"destaque":"R$ 678 MIL","tamanho":110,"tamanho_destaque":130},
+ {"foto":"v_casa2.jpg","linhas":["Faz a conta"],"destaque":"comigo","tamanho":100,"texto":"Entrada de <b>R$ 60 mil</b> e <b>R$ 240 mil</b> financiados em 30 anos, com juros de 11% ao ano."},
+ {"foto":"v_casa1_zoom.jpg","linhas":["Só de juros:"],"destaque":"R$ 378 MIL","tamanho":100,"tamanho_destaque":130,"texto":"Mais do que o valor financiado. Somando entrada e parcelas, o total passa de <b>R$ 678 mil</b>."},
+ {"foto":"v_casa2_zoom.jpg","linhas":["Como pagar"],"destaque":"menos juros","tamanho":100,"texto":"Entrada maior, <b>amortizar cedo</b> reduzindo o prazo e comparar o <b>CET</b> entre bancos."},
+ {"foto":"v_casa1_esp.jpg","linhas":["Siga para o"],"destaque":"#2 DA SÉRIE","tamanho":110,"tamanho_destaque":120,"texto":"Valores ilustrativos, Tabela SAC, sem seguros e tarifas."}
+]}
